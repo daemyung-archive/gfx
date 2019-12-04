@@ -74,3 +74,21 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin)
         PROPERTIES
             XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
 endif()
+
+add_executable(gfx_demo
+        demo/gfx_demo.cpp
+        demo/platform_lib_modules.h
+        demo/sc_lib_modules.h
+        demo/gfx_lib_modules.h
+        demo/Gfx_triangle_demo.h
+        demo/Gfx_triangle_demo.cpp)
+
+target_link_libraries(gfx_demo
+    PUBLIC
+        gfx)
+
+set_target_properties(gfx_demo
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS ON)
