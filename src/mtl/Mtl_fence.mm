@@ -3,8 +3,8 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl/Mtl_fence.h"
 #include "std_lib_modules.h"
+#include "Mtl_fence.h"
 
 using namespace std;
 

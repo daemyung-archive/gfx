@@ -3,17 +3,17 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl/Mtl_device.h"
-#include "mtl/Mtl_buffer.h"
-#include "mtl/Mtl_image.h"
-#include "mtl/Mtl_sampler.h"
-#include "mtl/Mtl_shader.h"
-#include "mtl/Mtl_pipeline.h"
-#include "mtl/Mtl_swap_chain.h"
-#include "mtl/Mtl_cmd_list.h"
-#include "mtl/Mtl_fence.h"
-#include "mtl/mtl_lib_modules.h"
+#include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
+#include "Mtl_device.h"
+#include "Mtl_buffer.h"
+#include "Mtl_image.h"
+#include "Mtl_sampler.h"
+#include "Mtl_shader.h"
+#include "Mtl_pipeline.h"
+#include "Mtl_swap_chain.h"
+#include "Mtl_cmd_list.h"
+#include "Mtl_fence.h"
 
 using namespace std;
 

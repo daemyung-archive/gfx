@@ -61,6 +61,10 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin)
             src/mtl/Mtl_fence.h
             src/mtl/Mtl_fence.mm)
 
+    target_include_directories(gfx
+        PRIVATE
+            src/mtl)
+
     target_compile_options(gfx
         PUBLIC
             -x objective-c++)

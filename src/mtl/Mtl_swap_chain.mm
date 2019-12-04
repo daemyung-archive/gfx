@@ -4,11 +4,11 @@
 //
 
 #include <Cocoa/Cocoa.h>
-#include "mtl/Mtl_swap_chain.h"
-#include "mtl/Mtl_device.h"
-#include "mtl/Mtl_image.h"
-#include "mtl/mtl_lib_modules.h"
+#include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
+#include "Mtl_swap_chain.h"
+#include "Mtl_device.h"
+#include "Mtl_image.h"
 
 using namespace std;
 

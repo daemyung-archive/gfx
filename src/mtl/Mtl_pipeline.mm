@@ -4,11 +4,11 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl/Mtl_pipeline.h"
-#include "mtl/Mtl_device.h"
-#include "mtl/Mtl_shader.h"
-#include "mtl/mtl_lib_modules.h"
+#include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
+#include "Mtl_pipeline.h"
+#include "Mtl_device.h"
+#include "Mtl_shader.h"
 
 using namespace std;
 using namespace Gfx_lib;

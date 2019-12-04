@@ -3,9 +3,9 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl/Mtl_sampler.h"
-#include "mtl/Mtl_device.h"
-#include "mtl/mtl_lib_modules.h"
+#include "mtl_lib_modules.h"
+#include "Mtl_sampler.h"
+#include "Mtl_device.h"
 
 using namespace std;
 using namespace Gfx_lib;

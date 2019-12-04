@@ -4,9 +4,9 @@
 //
 
 #include <sc/Msl_compiler.h>
-#include "mtl/Mtl_shader.h"
-#include "mtl/Mtl_device.h"
-#include "mtl/mtl_lib_modules.h"
+#include "mtl_lib_modules.h"
+#include "Mtl_shader.h"
+#include "Mtl_device.h"
 
 using namespace std;
 using namespace Sc_lib;
