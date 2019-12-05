@@ -144,43 +144,41 @@ void Mtl_cmd_list::reset()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* buffer, uint32_t index)
+void Mtl_cmd_list::bind(Buffer* vertex_buffer, uint32_t index)
 {
-    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
+    auto mtl_vertex_buffer = static_cast<Mtl_buffer*>(vertex_buffer);
 
-    if (mtl_buffer == binding_vertex_buffers_[index])
+    if (mtl_vertex_buffer == binding_vertex_buffers_[index])
         return;
 
-    if (render_encoder_ && mtl_buffer) {
-        bind_buffer_(mtl_buffer, index);
-    }
+    if (render_encoder_ && mtl_vertex_buffer)
+        bind_buffer_(mtl_vertex_buffer, index);
 
-    binding_vertex_buffers_[index] = mtl_buffer;
+    binding_vertex_buffers_[index] = mtl_vertex_buffer;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* buffer, Index_type type)
+void Mtl_cmd_list::bind(Buffer* index_buffer, Index_type type)
 {
-    binding_index_buffer_ = static_cast<Mtl_buffer*>(buffer);
+    binding_index_buffer_ = static_cast<Mtl_buffer*>(index_buffer);
     binding_index_type_ = convert(type);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index)
+void Mtl_cmd_list::bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index)
 {
-    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
+    auto mtl_uniform_buffer = static_cast<Mtl_buffer*>(uniform_buffer);
 
     if (Pipeline_stage::vertex & stages) {
         auto& buffers = binding_uniform_buffers_[Pipeline_stage::vertex];
         auto& offsets = binding_uniform_offsets_[Pipeline_stage::vertex];
 
-        if (render_encoder_ && (mtl_buffer != buffers[index])) {
-            bind_buffer_(mtl_buffer, Pipeline_stage::vertex, index);
-        }
+        if (render_encoder_ && (mtl_uniform_buffer != buffers[index]))
+            bind_buffer_(mtl_uniform_buffer, Pipeline_stage::vertex, index);
 
-        buffers[index] = mtl_buffer;
+        buffers[index] = mtl_uniform_buffer;
         offsets[index] = 0;
     }
 
@@ -188,11 +186,11 @@ void Mtl_cmd_list::bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t 
         auto& buffers = binding_uniform_buffers_[Pipeline_stage::fragment];
         auto& offsets = binding_uniform_offsets_[Pipeline_stage::fragment];
 
-        if (render_encoder_ && (mtl_buffer != buffers[index])) {
-            bind_buffer_(mtl_buffer, Pipeline_stage::fragment, index);
+        if (render_encoder_ && (mtl_uniform_buffer != buffers[index])) {
+            bind_buffer_(mtl_uniform_buffer, Pipeline_stage::fragment, index);
         }
 
-        buffers[index] = mtl_buffer;
+        buffers[index] = mtl_uniform_buffer;
         offsets[index] = 0;
     }
 }
@@ -310,6 +308,68 @@ void Mtl_cmd_list::draw_indexed(uint32_t count, uint32_t first)
                                  indexType:binding_index_type_
                                indexBuffer:binding_index_buffer_->buffer()
                          indexBufferOffset:first * byte_size(binding_index_type_)];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_list::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region)
+{
+    auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
+    auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
+
+    assert(mtl_src_buffer && mtl_dst_buffer);
+    auto blit_encoder = [command_buffer_ blitCommandEncoder];
+
+    [blit_encoder copyFromBuffer:mtl_src_buffer->buffer()
+                    sourceOffset:region.src_offset
+                        toBuffer:mtl_dst_buffer->buffer()
+               destinationOffset:region.dst_offset
+                            size:region.size];
+    [blit_encoder endEncoding];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_list::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region)
+{
+    auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
+    auto mtl_dst_image = static_cast<Mtl_image*>(dst_image);
+
+    assert(mtl_src_buffer && mtl_dst_image);
+    auto blit_encoder = [command_buffer_ blitCommandEncoder];
+
+    [blit_encoder copyFromBuffer:mtl_src_buffer->buffer()
+                    sourceOffset:region.buffer_offset
+               sourceBytesPerRow:region.buffer_row_size
+             sourceBytesPerImage:region.buffer_row_size * region.buffer_image_height
+                      sourceSize:convert(region.image_extent)
+                       toTexture:mtl_dst_image->texture()
+                destinationSlice:region.image_subresource.array_layer
+                destinationLevel:region.image_subresource.mip_level
+               destinationOrigin:convert(region.image_offset)];
+    [blit_encoder endEncoding];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_list::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region)
+{
+    auto mtl_src_image = static_cast<Mtl_image*>(src_image);
+    auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
+
+    assert(mtl_src_image && mtl_dst_buffer);
+    auto blit_encoder = [command_buffer_ blitCommandEncoder];
+
+    [blit_encoder copyFromTexture:mtl_src_image->texture()
+                      sourceSlice:region.image_subresource.array_layer
+                      sourceLevel:region.image_subresource.mip_level
+                     sourceOrigin:convert(region.image_offset)
+                       sourceSize:convert(region.image_extent)
+                         toBuffer:mtl_dst_buffer->buffer()
+                destinationOffset:region.buffer_offset
+           destinationBytesPerRow:region.buffer_row_size
+         destinationBytesPerImage:region.buffer_row_size * region.buffer_image_height];
+    [blit_encoder endEncoding];
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -42,6 +42,32 @@ struct Render_pass_state {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Image_subresource {
+    uint32_t mip_level { 0 };
+    uint32_t array_layer { 0 };
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Buffer_copy_region {
+    uint64_t size { 0 };
+    uint64_t src_offset { 0 };
+    uint64_t dst_offset { 0 };
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Buffer_image_copy_region {
+    uint32_t buffer_row_size { 0 };
+    uint32_t buffer_image_height { 0 };
+    uint32_t buffer_offset { 0 };
+    Image_subresource image_subresource;
+    Extent image_extent { 0, 0, 1 };
+    Offset image_offset { 0, 0, 0 };
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 class Cmd_list {
 public:
     virtual ~Cmd_list() = default;
@@ -52,11 +78,11 @@ public:
 
     virtual void reset() = 0;
 
-    virtual void bind(Buffer* buffer, uint32_t index) = 0;
+    virtual void bind(Buffer* vertex_buffer, uint32_t index) = 0;
 
-    virtual void bind(Buffer* buffer, Index_type type) = 0;
+    virtual void bind(Buffer* index_buffer, Index_type type) = 0;
 
-    virtual void bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index) = 0;
+    virtual void bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index) = 0;
 
     virtual void bind(Pipeline* pipeline) = 0;
 
@@ -71,6 +97,12 @@ public:
     virtual void draw(uint32_t count, uint32_t first = 0) = 0;
 
     virtual void draw_indexed(uint32_t count, uint32_t first = 0) = 0;
+
+    virtual void copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region) = 0;
+
+    virtual void copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region) = 0;
+
+    virtual void copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region) = 0;
 
     virtual Device* device() const = 0;
 };

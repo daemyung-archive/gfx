@@ -355,6 +355,20 @@ inline auto convert(const Scissor& scissor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+inline auto convert(const Offset& offset)
+{
+    return MTLOriginMake(offset.x, offset.y, offset.z);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto convert(const Extent& extent)
+{
+    return MTLSizeMake(extent.w, extent.h, extent.d);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 } // of namespace Gfx_lib
 
 #endif // GFX_MTL_LIB_MODULES_GUARD
