@@ -4,6 +4,7 @@
 // See "LICENSE" for license information.
 //
 
+#include <sc/Msl_compiler.h>
 #include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
 #include "Mtl_pipeline.h"
@@ -11,6 +12,7 @@
 #include "Mtl_shader.h"
 
 using namespace std;
+using namespace Sc_lib;
 using namespace Gfx_lib;
 
 namespace {
@@ -27,9 +29,11 @@ inline auto make(const Vertex_state& state)
         if (UINT32_MAX == binding.stride)
             continue;
 
-        descriptor.layouts[i].stride = binding.stride;
-        descriptor.layouts[i].stepRate = 1;
-        descriptor.layouts[i].stepFunction = convert(binding.step_rate);
+        auto index = i + vertex_buffer_index_offset;
+
+        descriptor.layouts[index].stride = binding.stride;
+        descriptor.layouts[index].stepRate = 1;
+        descriptor.layouts[index].stepFunction = convert(binding.step_rate);
     }
 
     for (auto i = 0; i != state.attributes.size(); ++i ){
@@ -40,7 +44,7 @@ inline auto make(const Vertex_state& state)
 
         descriptor.attributes[i].format = convert<MTLVertexFormat>(attribute.format);
         descriptor.attributes[i].offset = attribute.offset;
-        descriptor.attributes[i].bufferIndex = attribute.binding;
+        descriptor.attributes[i].bufferIndex = attribute.binding + vertex_buffer_index_offset;
     }
 
     return descriptor;

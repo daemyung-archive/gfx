@@ -14,6 +14,7 @@
 #include "Mtl_pipeline.h"
 
 using namespace std;
+using namespace Sc_lib;
 using namespace Gfx_lib;
 
 namespace {
@@ -317,7 +318,7 @@ void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
 {
     assert(render_encoder_);
 
-    [render_encoder_ setVertexBuffer:buffer->buffer() offset:0 atIndex:index];
+    [render_encoder_ setVertexBuffer:buffer->buffer() offset:0 atIndex:index + vertex_buffer_index_offset];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -329,7 +330,7 @@ void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32
     switch (stage) {
         case Pipeline_stage::vertex:
             [render_encoder_ setVertexBuffer:buffer->buffer() offset:offset
-                                     atIndex:index + Sc_lib::vertex_stage_buffer_index_offset];
+                                     atIndex:index];
 
             break;
         case Pipeline_stage::fragment:
