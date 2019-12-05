@@ -19,6 +19,7 @@ namespace Gfx_lib {
 class Device;
 class Buffer;
 class Image;
+class Sampler;
 class Pipeline;
 
 using Extent = Platform_lib::Extent;
@@ -78,11 +79,15 @@ public:
 
     virtual void reset() = 0;
 
-    virtual void bind(Buffer* vertex_buffer, uint32_t index) = 0;
+    virtual void bind(Buffer* buffer, uint32_t index) = 0;
 
-    virtual void bind(Buffer* index_buffer, Index_type type) = 0;
+    virtual void bind(Buffer* buffer, Index_type type) = 0;
 
-    virtual void bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index) = 0;
+    virtual void bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index) = 0;
+
+    virtual void bind(Image* image, const Pipeline_stages& stages, uint32_t index) = 0;
+
+    virtual void bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index) = 0;
 
     virtual void bind(Pipeline* pipeline) = 0;
 

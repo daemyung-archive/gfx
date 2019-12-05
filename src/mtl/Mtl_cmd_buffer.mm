@@ -11,6 +11,7 @@
 #include "Mtl_device.h"
 #include "Mtl_buffer.h"
 #include "Mtl_image.h"
+#include "Mtl_sampler.h"
 #include "Mtl_pipeline.h"
 
 using namespace std;
@@ -112,6 +113,8 @@ Mtl_cmd_buffer::Mtl_cmd_buffer(Mtl_device* device) :
     binding_index_buffer_ { nullptr },
     binding_index_type_ { MTLIndexTypeUInt16 },
     binding_uniform_buffers_ {},
+    binding_images_ {},
+    binding_samplers_ {},
     binding_pipeline_ { nullptr }
 {
 }
@@ -132,6 +135,8 @@ void Mtl_cmd_buffer::stop()
     binding_index_type_ = MTLIndexTypeUInt16;
     binding_uniform_buffers_.clear();
     binding_uniform_offsets_.clear();
+    binding_images_.clear();
+    binding_samplers_.clear();
     binding_pipeline_ = nullptr;
 }
 
@@ -144,41 +149,41 @@ void Mtl_cmd_buffer::reset()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind(Buffer* vertex_buffer, uint32_t index)
+void Mtl_cmd_buffer::bind(Buffer* buffer, uint32_t index)
 {
-    auto mtl_vertex_buffer = static_cast<Mtl_buffer*>(vertex_buffer);
+    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
 
-    if (mtl_vertex_buffer == binding_vertex_buffers_[index])
+    if (mtl_buffer == binding_vertex_buffers_[index])
         return;
 
-    if (render_encoder_ && mtl_vertex_buffer)
-        bind_buffer_(mtl_vertex_buffer, index);
+    if (render_encoder_ && mtl_buffer)
+        bind_buffer_(mtl_buffer, index);
 
-    binding_vertex_buffers_[index] = mtl_vertex_buffer;
+    binding_vertex_buffers_[index] = mtl_buffer;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind(Buffer* index_buffer, Index_type type)
+void Mtl_cmd_buffer::bind(Buffer* buffer, Index_type type)
 {
-    binding_index_buffer_ = static_cast<Mtl_buffer*>(index_buffer);
+    binding_index_buffer_ = static_cast<Mtl_buffer*>(buffer);
     binding_index_type_ = convert(type);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index)
+void Mtl_cmd_buffer::bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index)
 {
-    auto mtl_uniform_buffer = static_cast<Mtl_buffer*>(uniform_buffer);
+    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
 
     if (Pipeline_stage::vertex & stages) {
         auto& buffers = binding_uniform_buffers_[Pipeline_stage::vertex];
         auto& offsets = binding_uniform_offsets_[Pipeline_stage::vertex];
 
-        if (render_encoder_ && (mtl_uniform_buffer != buffers[index]))
-            bind_buffer_(mtl_uniform_buffer, Pipeline_stage::vertex, index);
+        if (render_encoder_ && (mtl_buffer != buffers[index]))
+            bind_buffer_(mtl_buffer, Pipeline_stage::vertex, index);
 
-        buffers[index] = mtl_uniform_buffer;
+        buffers[index] = mtl_buffer;
         offsets[index] = 0;
     }
 
@@ -186,12 +191,51 @@ void Mtl_cmd_buffer::bind(Buffer* uniform_buffer, const Pipeline_stages& stages,
         auto& buffers = binding_uniform_buffers_[Pipeline_stage::fragment];
         auto& offsets = binding_uniform_offsets_[Pipeline_stage::fragment];
 
-        if (render_encoder_ && (mtl_uniform_buffer != buffers[index])) {
-            bind_buffer_(mtl_uniform_buffer, Pipeline_stage::fragment, index);
-        }
+        if (render_encoder_ && (mtl_buffer != buffers[index]))
+            bind_buffer_(mtl_buffer, Pipeline_stage::fragment, index);
 
-        buffers[index] = mtl_uniform_buffer;
+        buffers[index] = mtl_buffer;
         offsets[index] = 0;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::bind(Image* image, const Pipeline_stages& stages, uint32_t index)
+{
+    auto mtl_image = static_cast<Mtl_image*>(image);
+
+    if (Pipeline_stage::vertex & stages) {
+        auto& images = binding_images_[Pipeline_stage::vertex];
+
+        if (render_encoder_ && (mtl_image != images[index]))
+            bind_image_(mtl_image, Pipeline_stage::vertex, index);
+
+        images[index] = mtl_image;
+    }
+
+    if (Pipeline_stage::fragment & stages) {
+        auto& images = binding_images_[Pipeline_stage::fragment];
+
+        if (render_encoder_ && (mtl_image != images[index]))
+            bind_image_(mtl_image, Pipeline_stage::fragment, index);
+
+        images[index] = mtl_image;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index)
+{
+    auto mtl_sampler = static_cast<Mtl_sampler*>(sampler);
+
+    if (Pipeline_stage::vertex & stages) {
+        [render_encoder_ setVertexSamplerState:mtl_sampler->sampler_state() atIndex:index];
+    }
+
+    if (Pipeline_stage::fragment & stages) {
+        [render_encoder_ setFragmentSamplerState:mtl_sampler->sampler_state() atIndex:index];
     }
 }
 
@@ -241,7 +285,7 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
     for (auto& [stage, buffers] : binding_uniform_buffers_) {
         auto& offsets = binding_uniform_offsets_[stage];
 
-        for (auto i = 0; i != 8; ++i) {
+        for (auto i = 0; i != buffers.size(); ++i) {
             if (!buffers[i])
                 continue;
 
@@ -249,7 +293,25 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
         }
     }
 
-    // bind images and samplers.
+    // bind images.
+    for (auto& [stage, images] : binding_images_) {
+        for (auto i = 0; i != images.size(); ++i) {
+            if (!images[i])
+                continue;
+
+            bind_image_(images[i], stage, i);
+        }
+    }
+
+    // bind samplers.
+    for (auto& [stage, samplers] : binding_samplers_) {
+        for (auto i = 0; i != samplers.size(); ++i) {
+            if (!samplers[i])
+                continue;
+
+            bind_sampler_(samplers[i], stage, i);
+        }
+    }
 
     // bind pipeline.
     if (binding_pipeline_) {
@@ -398,17 +460,57 @@ void Mtl_cmd_buffer::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint
         case Pipeline_stage::vertex:
             [render_encoder_ setVertexBuffer:buffer->buffer() offset:offset
                                      atIndex:index];
-
             break;
         case Pipeline_stage::fragment:
             [render_encoder_ setFragmentBuffer:buffer->buffer() offset:offset
                                        atIndex:index];
-
             break;
         case Pipeline_stage::compute:
             [compute_encoder_ setBuffer:buffer->buffer() offset:offset
                                 atIndex:index];
+            break;
+        default:
+            break;
+    }
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::bind_image_(Mtl_image* image, Pipeline_stage stage, uint32_t index)
+{
+    assert(render_encoder_);
+
+    switch (stage) {
+        case Pipeline_stage::vertex:
+            [render_encoder_ setVertexTexture:image->texture() atIndex:index];
+            break;
+        case Pipeline_stage::fragment:
+            [render_encoder_ setFragmentTexture:image->texture() atIndex:index];
+
+            break;
+        case Pipeline_stage::compute:
+            [compute_encoder_ setTexture:image->texture() atIndex:index];
+            break;
+        default:
+            break;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::bind_sampler_(Mtl_sampler* sampler, Pipeline_stage stage, uint32_t index)
+{
+    assert(render_encoder_);
+
+    switch (stage) {
+        case Pipeline_stage::vertex:
+            [render_encoder_ setVertexSamplerState:sampler->sampler_state() atIndex:index];
+            break;
+        case Pipeline_stage::fragment:
+            [render_encoder_ setFragmentSamplerState:sampler->sampler_state() atIndex:index];
+            break;
+        case Pipeline_stage::compute:
+            [compute_encoder_ setSamplerState:sampler->sampler_state() atIndex:index];
             break;
         default:
             break;

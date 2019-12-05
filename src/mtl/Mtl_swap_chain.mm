@@ -2,13 +2,8 @@
 // This file is part of the "gfx" project
 // See "LICENSE" for license information.
 //
-#include <UIKit/UIKit.h>
 
-#if TARGET_OS_IOS
-    #include <UIKit/UIKit.h>
-#elif TARGET_OS_OSX
-    #include <Cocoa/Cocoa.h>
-#endif
+#include <platform/Window.h>
 #include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
 #include "Mtl_swap_chain.h"

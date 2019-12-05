@@ -17,6 +17,8 @@ namespace Gfx_lib {
 
 class Mtl_device;
 class Mtl_buffer;
+class Mtl_image;
+class Mtl_sampler;
 class Mtl_pipeline;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -31,11 +33,15 @@ public:
 
     void reset() override;
 
-    void bind(Buffer* vertex_buffer, uint32_t index) override;
+    void bind(Buffer* buffer, uint32_t index) override;
 
-    void bind(Buffer* index_buffer, Index_type type) override;
+    void bind(Buffer* buffer, Index_type type) override;
 
-    void bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index) override;
+    void bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index) override;
+
+    void bind(Image* image, const Pipeline_stages& stages, uint32_t index) override;
+
+    void bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index) override;
 
     void bind(Pipeline* pipeline) override;
 
@@ -67,6 +73,10 @@ private:
 
     void bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32_t index, uint32_t offset = 0);
 
+    void bind_image_(Mtl_image* image, Pipeline_stage stage, uint32_t index);
+
+    void bind_sampler_(Mtl_sampler* sampler, Pipeline_stage stage, uint32_t index);
+
     void bind_render_pipeline_(Mtl_pipeline* pipeline);
 
     void bind_compute_pipeline_(Mtl_pipeline* pipeline);
@@ -81,6 +91,8 @@ private:
     MTLIndexType binding_index_type_;
     std::unordered_map<Pipeline_stage, std::array<Mtl_buffer*, 8>> binding_uniform_buffers_;
     std::unordered_map<Pipeline_stage, std::array<uint32_t, 8>> binding_uniform_offsets_;
+    std::unordered_map<Pipeline_stage, std::array<Mtl_image*, 8>> binding_images_;
+    std::unordered_map<Pipeline_stage, std::array<Mtl_sampler*, 8>> binding_samplers_;
     Mtl_pipeline* binding_pipeline_;
 };
 
