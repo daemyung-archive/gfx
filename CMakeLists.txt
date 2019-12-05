@@ -80,11 +80,14 @@ endif()
 
 add_executable(gfx_demo
     demo/gfx_demo.cpp
+    demo/stb_lib_modules.h
     demo/platform_lib_modules.h
     demo/sc_lib_modules.h
     demo/gfx_lib_modules.h
     demo/Gfx_triangle_demo.h
-    demo/Gfx_triangle_demo.cpp)
+    demo/Gfx_triangle_demo.cpp
+    demo/Gfx_texture_demo.h
+    demo/Gfx_texture_demo.cpp)
 
 target_link_libraries(gfx_demo
     PUBLIC

@@ -9,10 +9,10 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class Gfx_triangle_demo
+class Gfx_texture_demo
 {
 public:
-    Gfx_triangle_demo(uint32_t w, uint32_t h);
+    Gfx_texture_demo(uint32_t w, uint32_t h);
 
     void run();
 
@@ -32,7 +32,7 @@ private:
     using unique_ptr = std::unique_ptr<T>;
     template<typename T, size_t Size>
     using array = std::array<T, Size>;
-
+    
     unique_ptr<Window> window_;
     Spirv_compiler compiler_;
     unique_ptr<Device> device_;
@@ -41,6 +41,8 @@ private:
     array<unique_ptr<Cmd_buffer>, 3> cmd_buffers_;
     array<unique_ptr<Fence>, 3> fences_;
     unique_ptr<Buffer> vertex_buffer_;
+    unique_ptr<Image> image_;
+    unique_ptr<Sampler> sampler_;
     unique_ptr<Pipeline> render_pipeline_;
 };
 
