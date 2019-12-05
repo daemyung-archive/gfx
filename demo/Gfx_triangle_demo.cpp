@@ -63,9 +63,9 @@ void Gfx_triangle_demo::init_window_(uint32_t w, uint32_t h)
     window_ = make_unique<Window>(window_desc);
 
     assert(window_);
-    window_->startup_signal.connect(std::bind(&Gfx_triangle_demo::on_startup_, this));
-    window_->startup_signal.connect(std::bind(&Gfx_triangle_demo::on_shutdown_, this));
-    window_->startup_signal.connect(std::bind(&Gfx_triangle_demo::on_render_, this));
+    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_startup_);
+    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_shutdown_);
+    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_render_);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

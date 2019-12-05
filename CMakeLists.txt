@@ -80,12 +80,12 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin)
 endif()
 
 add_executable(gfx_demo
-        demo/gfx_demo.cpp
-        demo/platform_lib_modules.h
-        demo/sc_lib_modules.h
-        demo/gfx_lib_modules.h
-        demo/Gfx_triangle_demo.h
-        demo/Gfx_triangle_demo.cpp)
+    demo/gfx_demo.cpp
+    demo/platform_lib_modules.h
+    demo/sc_lib_modules.h
+    demo/gfx_lib_modules.h
+    demo/Gfx_triangle_demo.h
+    demo/Gfx_triangle_demo.cpp)
 
 target_link_libraries(gfx_demo
     PUBLIC
