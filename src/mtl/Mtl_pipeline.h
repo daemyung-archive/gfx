@@ -22,6 +22,8 @@ class Mtl_pipeline final : public Pipeline {
 public:
     Mtl_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Mtl_device* device);
 
+    Device* device() const override;
+
     Pipeline_type type() const noexcept override;
 
     inline auto primitive_type() const noexcept

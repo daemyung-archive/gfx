@@ -23,6 +23,15 @@ Mtl_shader::Mtl_shader(const Shader_desc& desc, Mtl_device* device) :
     init_function_(desc);
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
+Device* Mtl_shader::device() const
+{
+    return device_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 Stage Mtl_shader::stage() const noexcept
 {
     return stage_;

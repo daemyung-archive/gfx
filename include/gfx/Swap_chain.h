@@ -14,6 +14,7 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
 class Image;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -36,6 +37,8 @@ public:
     virtual Image* acquire() = 0;
 
     virtual void present() = 0;
+
+    virtual Device* device() const = 0;
 
     virtual Format image_format() const = 0;
 

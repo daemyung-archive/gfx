@@ -14,9 +14,8 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
 class Shader;
-
-// using vertex_attribute_count = Sc_lib::vertex_attribute_count;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -146,6 +145,8 @@ struct Pipeline_desc<Pipeline_type::compute> {
 class Pipeline {
 public:
     virtual ~Pipeline() = default;
+
+    virtual Device* device() const = 0;
 
     virtual Pipeline_type type() const noexcept = 0;
 };

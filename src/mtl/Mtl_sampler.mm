@@ -52,6 +52,13 @@ Mtl_sampler::Mtl_sampler(const Sampler_desc& desc, Mtl_device* device) :
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Device* Mtl_sampler::device() const
+{
+    return device_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 Filter Mtl_sampler::min() const noexcept
 {
     return min_;

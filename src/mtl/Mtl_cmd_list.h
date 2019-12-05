@@ -51,6 +51,8 @@ public:
 
     void draw_indexed(uint32_t count, uint32_t first = 0) override;
 
+    Device* device() const override;
+
     inline auto command_buffer() const noexcept
     { return command_buffer_; }
 

@@ -314,6 +314,13 @@ void Mtl_cmd_list::draw_indexed(uint32_t count, uint32_t first)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Device* Mtl_cmd_list::device() const
+{
+    return device_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
 {
     assert(render_encoder_);

@@ -6,7 +6,6 @@ add_library(gfx
     STATIC
         include/gfx/enums.h
         include/gfx/types.h
-        include/gfx/Clear_value.h
         include/gfx/Device.h
         include/gfx/Buffer.h
         include/gfx/Image.h

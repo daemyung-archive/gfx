@@ -12,6 +12,10 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 struct Sampler_desc {
     Filter min;
     Filter mag;
@@ -26,6 +30,8 @@ struct Sampler_desc {
 class Sampler {
 public:
     virtual ~Sampler() = default;
+
+    virtual Device* device() const = 0;
 
     virtual Filter min() const noexcept = 0;
 

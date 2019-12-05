@@ -25,7 +25,9 @@ public:
 
     void reset() override;
 
-    bool signaled() override;
+    Device* device() const override;
+
+    bool signaled() const override;
 
     inline auto semaphore() const noexcept
     { return semaphore_; }

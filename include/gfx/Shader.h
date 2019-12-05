@@ -15,6 +15,10 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 struct Shader_desc {
     Stage stage;
     std::vector<uint32_t> src;
@@ -25,6 +29,8 @@ struct Shader_desc {
 class Shader {
 public:
     virtual ~Shader() = default;
+
+    virtual Device* device() const = 0;
 
     virtual Stage stage() const noexcept = 0;
 };

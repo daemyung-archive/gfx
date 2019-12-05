@@ -193,6 +193,13 @@ Mtl_pipeline::Mtl_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Mtl
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Device* Mtl_pipeline::device() const
+{
+    return device_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 Pipeline_type Mtl_pipeline::type() const noexcept
 {
     return type_;

@@ -29,6 +29,8 @@ public:
 
     void present() override;
 
+    Device* device() const override;
+
     Format image_format() const override;
 
     Extent image_extent() const override;

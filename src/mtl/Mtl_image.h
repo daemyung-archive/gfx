@@ -21,6 +21,8 @@ class Mtl_image final : public Image {
 public:
     Mtl_image(const Image_desc& desc, Mtl_device* device);
 
+    Device* device() const override;
+
     Image_type type() const override;
 
     Format format() const override;

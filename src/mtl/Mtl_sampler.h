@@ -21,6 +21,8 @@ class Mtl_sampler final : public Sampler {
 public:
     Mtl_sampler(const Sampler_desc& desc, Mtl_device* device);
 
+    Device* device() const override;
+
     Filter min() const noexcept override;
 
     Filter mag() const noexcept override;

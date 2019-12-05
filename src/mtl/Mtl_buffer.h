@@ -25,6 +25,8 @@ public:
 
     void unmap() override;
 
+    Device* device() const override;
+
     Heap_type type() const override;
 
     uint64_t size() const override;

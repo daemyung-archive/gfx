@@ -5,6 +5,7 @@
 
 #include "std_lib_modules.h"
 #include "Mtl_fence.h"
+#include "Mtl_device.h"
 
 using namespace std;
 
@@ -38,7 +39,14 @@ void Mtl_fence::reset()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool Mtl_fence::signaled()
+Device* Mtl_fence::device() const
+{
+    return device_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+bool Mtl_fence::signaled() const
 {
     return signaled_;
 }

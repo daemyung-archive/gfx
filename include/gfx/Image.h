@@ -14,6 +14,10 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 struct Image_desc {
     Image_type type { Image_type::two_dim };
     Format format { Format::invalid };
@@ -29,6 +33,8 @@ struct Image_desc {
 class Image {
 public:
     virtual ~Image() = default;
+
+    virtual Device* device() const = 0;
 
     virtual Image_type type() const = 0;
 

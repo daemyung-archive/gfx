@@ -21,6 +21,8 @@ class Mtl_shader final : public Shader {
 public:
     Mtl_shader(const Shader_desc& desc, Mtl_device* device);
 
+    Device* device() const override;
+
     Stage stage() const noexcept override;
 
     inline auto function() const noexcept

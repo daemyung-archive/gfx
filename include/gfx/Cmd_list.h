@@ -11,12 +11,12 @@
 #include <platform/Extent.h>
 #include "gfx/enums.h"
 #include "gfx/types.h"
-#include "gfx/Clear_value.h"
 
 namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
 class Buffer;
 class Image;
 class Pipeline;
@@ -71,6 +71,8 @@ public:
     virtual void draw(uint32_t count, uint32_t first = 0) = 0;
 
     virtual void draw_indexed(uint32_t count, uint32_t first = 0) = 0;
+
+    virtual Device* device() const = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

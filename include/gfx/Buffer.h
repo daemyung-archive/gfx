@@ -14,6 +14,10 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+class Device;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 struct Buffer_desc {
     const void* data { nullptr };
     size_t size { 0 };
@@ -29,6 +33,8 @@ public:
     virtual gsl::span<std::byte> map() = 0;
 
     virtual void unmap() = 0;
+
+    virtual Device* device() const = 0;
 
     virtual Heap_type type() const = 0;
 
