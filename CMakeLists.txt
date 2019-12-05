@@ -13,7 +13,7 @@ add_library(gfx
         include/gfx/Shader.h
         include/gfx/Pipeline.h
         include/gfx/Swap_chain.h
-        include/gfx/Cmd_list.h
+        include/gfx/Cmd_buffer.h
         include/gfx/Fence.h
         src/std_lib_modules.h
         src/Device.cpp)
@@ -55,8 +55,8 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin)
             src/mtl/Mtl_pipeline.mm
             src/mtl/Mtl_swap_chain.h
             src/mtl/Mtl_swap_chain.mm
-            src/mtl/Mtl_cmd_list.h
-            src/mtl/Mtl_cmd_list.mm
+            src/mtl/Mtl_cmd_buffer.h
+            src/mtl/Mtl_cmd_buffer.mm
             src/mtl/Mtl_fence.h
             src/mtl/Mtl_fence.mm)
 

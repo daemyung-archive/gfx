@@ -14,7 +14,7 @@
 #include "gfx/Shader.h"
 #include "gfx/Pipeline.h"
 #include "gfx/Swap_chain.h"
-#include "gfx/Cmd_list.h"
+#include "gfx/Cmd_buffer.h"
 #include "gfx/Fence.h"
 
 namespace Gfx_lib {
@@ -39,11 +39,11 @@ public:
 
     virtual std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) = 0;
 
-    virtual std::unique_ptr<Cmd_list> make_cmd_list() = 0;
+    virtual std::unique_ptr<Cmd_buffer> make_cmd_buffer() = 0;
 
     virtual std::unique_ptr<Fence> make(const Fence_desc& desc) = 0;
 
-    virtual void submit(Cmd_list* cmd_list, Fence* fence = nullptr) = 0;
+    virtual void submit(Cmd_buffer* cmd_buffer, Fence* fence = nullptr) = 0;
 
     virtual void wait_idle() = 0;
 };

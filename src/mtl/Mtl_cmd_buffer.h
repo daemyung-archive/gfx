@@ -3,13 +3,13 @@
 // See "LICENSE" for license information.
 //
 
-#ifndef GFX_MTL_CMD_LIST_GUARD
-#define GFX_MTL_CMD_LIST_GUARD
+#ifndef GFX_MTL_CMD_BUFFER_GUARD
+#define GFX_MTL_CMD_BUFFER_GUARD
 
 #include <array>
 #include <unordered_map>
 #include <Metal/Metal.h>
-#include "gfx/Cmd_list.h"
+#include "gfx/Cmd_buffer.h"
 
 namespace Gfx_lib {
 
@@ -21,9 +21,9 @@ class Mtl_pipeline;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class Mtl_cmd_list final : public Cmd_list {
+class Mtl_cmd_buffer final : public Cmd_buffer {
 public:
-    Mtl_cmd_list(Mtl_device* device);
+    Mtl_cmd_buffer(Mtl_device* device);
 
     void start() override;
 
@@ -88,4 +88,4 @@ private:
 
 } // of namespace Gfx_lib
 
-#endif // GFX_MTL_CMD_LIST_GUARD
+#endif // GFX_MTL_CMD_BUFFER_GUARD

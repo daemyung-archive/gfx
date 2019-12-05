@@ -31,11 +31,11 @@ public:
 
     std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) override;
 
-    std::unique_ptr<Cmd_list> make_cmd_list() override;
+    std::unique_ptr<Cmd_buffer> make_cmd_buffer() override;
 
     std::unique_ptr<Fence> make(const Fence_desc& desc) override;
 
-    void submit(Cmd_list* cmd_list, Fence* fence = nullptr) override;
+    void submit(Cmd_buffer* cmd_buffer, Fence* fence = nullptr) override;
 
     void wait_idle() override;
 

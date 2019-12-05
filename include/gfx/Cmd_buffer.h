@@ -3,8 +3,8 @@
 // See "LICENSE" for license information.
 //
 
-#ifndef GFX_CMD_LIST_GUARD
-#define GFX_CMD_LIST_GUARD
+#ifndef GFX_CMD_BUFFER_GUARD
+#define GFX_CMD_BUFFER_GUARD
 
 #include <cstdint>
 #include <bitset>
@@ -68,9 +68,9 @@ struct Buffer_image_copy_region {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class Cmd_list {
+class Cmd_buffer {
 public:
-    virtual ~Cmd_list() = default;
+    virtual ~Cmd_buffer() = default;
 
     virtual void start() = 0;
 
@@ -111,4 +111,4 @@ public:
 
 } // of namespace Gfx_lib
 
-#endif // GFX_CMD_LIST_GUARD
+#endif // GFX_CMD_BUFFER_GUARD

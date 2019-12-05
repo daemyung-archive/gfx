@@ -7,7 +7,7 @@
 #include <sc/Msl_compiler.h>
 #include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
-#include "Mtl_cmd_list.h"
+#include "Mtl_cmd_buffer.h"
 #include "Mtl_device.h"
 #include "Mtl_buffer.h"
 #include "Mtl_image.h"
@@ -103,7 +103,7 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Mtl_cmd_list::Mtl_cmd_list(Mtl_device* device) :
+Mtl_cmd_buffer::Mtl_cmd_buffer(Mtl_device* device) :
     device_ { device },
     command_buffer_ { nil },
     render_encoder_ { nil },
@@ -118,14 +118,14 @@ Mtl_cmd_list::Mtl_cmd_list(Mtl_device* device) :
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::start()
+void Mtl_cmd_buffer::start()
 {
     command_buffer_ = [device_->command_queue() commandBuffer];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::stop()
+void Mtl_cmd_buffer::stop()
 {
     binding_vertex_buffers_.fill(nullptr);
     binding_index_buffer_ = nullptr;
@@ -137,14 +137,14 @@ void Mtl_cmd_list::stop()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::reset()
+void Mtl_cmd_buffer::reset()
 {
     command_buffer_ = nil;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* vertex_buffer, uint32_t index)
+void Mtl_cmd_buffer::bind(Buffer* vertex_buffer, uint32_t index)
 {
     auto mtl_vertex_buffer = static_cast<Mtl_buffer*>(vertex_buffer);
 
@@ -159,7 +159,7 @@ void Mtl_cmd_list::bind(Buffer* vertex_buffer, uint32_t index)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* index_buffer, Index_type type)
+void Mtl_cmd_buffer::bind(Buffer* index_buffer, Index_type type)
 {
     binding_index_buffer_ = static_cast<Mtl_buffer*>(index_buffer);
     binding_index_type_ = convert(type);
@@ -167,7 +167,7 @@ void Mtl_cmd_list::bind(Buffer* index_buffer, Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index)
+void Mtl_cmd_buffer::bind(Buffer* uniform_buffer, const Pipeline_stages& stages, uint32_t index)
 {
     auto mtl_uniform_buffer = static_cast<Mtl_buffer*>(uniform_buffer);
 
@@ -197,7 +197,7 @@ void Mtl_cmd_list::bind(Buffer* uniform_buffer, const Pipeline_stages& stages, u
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind(Pipeline* pipeline)
+void Mtl_cmd_buffer::bind(Pipeline* pipeline)
 {
     auto mtl_pipeline = static_cast<Mtl_pipeline*>(pipeline);
 
@@ -217,7 +217,7 @@ void Mtl_cmd_list::bind(Pipeline* pipeline)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::begin(const Render_pass_state& state)
+void Mtl_cmd_buffer::begin(const Render_pass_state& state)
 {
     auto descriptor = make(state);
 
@@ -262,7 +262,7 @@ void Mtl_cmd_list::begin(const Render_pass_state& state)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::end()
+void Mtl_cmd_buffer::end()
 {
     [render_encoder_ endEncoding];
     render_encoder_ = nil;
@@ -270,7 +270,7 @@ void Mtl_cmd_list::end()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::set(const Viewport& viewport)
+void Mtl_cmd_buffer::set(const Viewport& viewport)
 {
     assert(render_encoder_);
 
@@ -279,7 +279,7 @@ void Mtl_cmd_list::set(const Viewport& viewport)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::set(const Scissor& scissor)
+void Mtl_cmd_buffer::set(const Scissor& scissor)
 {
     assert(render_encoder_);
 
@@ -288,7 +288,7 @@ void Mtl_cmd_list::set(const Scissor& scissor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::draw(uint32_t count, uint32_t first)
+void Mtl_cmd_buffer::draw(uint32_t count, uint32_t first)
 {
     assert(render_encoder_);
 
@@ -299,7 +299,7 @@ void Mtl_cmd_list::draw(uint32_t count, uint32_t first)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::draw_indexed(uint32_t count, uint32_t first)
+void Mtl_cmd_buffer::draw_indexed(uint32_t count, uint32_t first)
 {
     assert(render_encoder_);
 
@@ -312,7 +312,7 @@ void Mtl_cmd_list::draw_indexed(uint32_t count, uint32_t first)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region)
+void Mtl_cmd_buffer::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region)
 {
     auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
@@ -330,7 +330,7 @@ void Mtl_cmd_list::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_cop
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region)
+void Mtl_cmd_buffer::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region)
 {
     auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
     auto mtl_dst_image = static_cast<Mtl_image*>(dst_image);
@@ -352,7 +352,7 @@ void Mtl_cmd_list::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region)
+void Mtl_cmd_buffer::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region)
 {
     auto mtl_src_image = static_cast<Mtl_image*>(src_image);
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
@@ -374,14 +374,14 @@ void Mtl_cmd_list::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Device* Mtl_cmd_list::device() const
+Device* Mtl_cmd_buffer::device() const
 {
     return device_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
+void Mtl_cmd_buffer::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
 {
     assert(render_encoder_);
 
@@ -390,7 +390,7 @@ void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32_t index, uint32_t offset)
+void Mtl_cmd_buffer::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32_t index, uint32_t offset)
 {
     assert(render_encoder_);
 
@@ -417,7 +417,7 @@ void Mtl_cmd_list::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind_render_pipeline_(Mtl_pipeline* pipeline)
+void Mtl_cmd_buffer::bind_render_pipeline_(Mtl_pipeline* pipeline)
 {
     assert(render_encoder_);
 
@@ -434,7 +434,7 @@ void Mtl_cmd_list::bind_render_pipeline_(Mtl_pipeline* pipeline)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_list::bind_compute_pipeline_(Mtl_pipeline* pipeline)
+void Mtl_cmd_buffer::bind_compute_pipeline_(Mtl_pipeline* pipeline)
 {
     // [compute_encoder_ setComputePipelineState]
 }

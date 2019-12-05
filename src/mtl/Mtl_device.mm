@@ -12,7 +12,7 @@
 #include "Mtl_shader.h"
 #include "Mtl_pipeline.h"
 #include "Mtl_swap_chain.h"
-#include "Mtl_cmd_list.h"
+#include "Mtl_cmd_buffer.h"
 #include "Mtl_fence.h"
 
 using namespace std;
@@ -75,9 +75,9 @@ std::unique_ptr<Swap_chain> Mtl_device::make(const Swap_chain_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Cmd_list> Mtl_device::make_cmd_list()
+std::unique_ptr<Cmd_buffer> Mtl_device::make_cmd_buffer()
 {
-    return make_unique<Mtl_cmd_list>(this);
+    return make_unique<Mtl_cmd_buffer>(this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -89,12 +89,12 @@ std::unique_ptr<Fence> Mtl_device::make(const Fence_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_device::submit(Cmd_list* cmd_list, Fence* fence)
+void Mtl_device::submit(Cmd_buffer* cmd_buffer, Fence* fence)
 {
-    auto mtl_cmd_list = static_cast<Mtl_cmd_list*>(cmd_list);
+    auto mtl_cmd_buffer = static_cast<Mtl_cmd_buffer*>(cmd_buffer);
     __block auto semaphore = fence ? static_cast<Mtl_fence*>(fence)->semaphore() : nil;
 
-    [mtl_cmd_list->command_buffer() addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+    [mtl_cmd_buffer->command_buffer() addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
         if (queue_mutex_.try_lock()) {
             [used_command_buffers_ removeObject:command_buffer];
             queue_mutex_.unlock();
@@ -103,11 +103,11 @@ void Mtl_device::submit(Cmd_list* cmd_list, Fence* fence)
         if (semaphore)
             dispatch_semaphore_signal(semaphore);
     }];
-    [mtl_cmd_list->command_buffer() commit];
+    [mtl_cmd_buffer->command_buffer() commit];
 
     lock_guard<mutex> lock { queue_mutex_ };
 
-    [used_command_buffers_ addObject:mtl_cmd_list->command_buffer()];
+    [used_command_buffers_ addObject:mtl_cmd_buffer->command_buffer()];
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -37,7 +37,7 @@ Gfx_triangle_demo::Gfx_triangle_demo(uint32_t w, uint32_t h) :
     device_ { nullptr },
     swap_chain_ { nullptr },
     frame_index_ { 0 },
-    cmd_lists_ { nullptr, nullptr, nullptr },
+    cmd_buffers_ { nullptr, nullptr, nullptr },
     fences_ { nullptr, nullptr, nullptr },
     vertex_buffer_ {}
 {
@@ -89,8 +89,8 @@ void Gfx_triangle_demo::init_resources_()
     swap_chain_ = device_->make(swap_chain_desc);
 
     // create cmd lists.
-    for (auto& cmd_list : cmd_lists_)
-        cmd_list = device_->make_cmd_list();
+    for (auto& cmd_buffer : cmd_buffers_)
+        cmd_buffer = device_->make_cmd_buffer();
 
     // create fences.
     for (auto& fence : fences_)
@@ -155,12 +155,12 @@ void Gfx_triangle_demo::on_shutdown_()
 void Gfx_triangle_demo::on_render_()
 {
     auto& fence = fences_[frame_index_];
-    auto& cmd_list = cmd_lists_[frame_index_];
+    auto& cmd_buffer = cmd_buffers_[frame_index_];
 
     if (!fence->signaled())
         fence->wait_signal();
 
-    cmd_list->start();
+    cmd_buffer->start();
 
     Render_pass_state render_pass_state;
 
@@ -171,14 +171,14 @@ void Gfx_triangle_demo::on_render_()
     render_pass_state.colors[0].clear_value.b = 1.0f;
     render_pass_state.colors[0].clear_value.a = 1.0f;
 
-    cmd_list->begin(render_pass_state);
-    cmd_list->bind(vertex_buffer_.get(), 0);
-    cmd_list->bind(render_pipeline_.get());
-    cmd_list->draw(3);
-    cmd_list->end();
+    cmd_buffer->begin(render_pass_state);
+    cmd_buffer->bind(vertex_buffer_.get(), 0);
+    cmd_buffer->bind(render_pipeline_.get());
+    cmd_buffer->draw(3);
+    cmd_buffer->end();
 
-    cmd_list->stop();
-    device_->submit(cmd_list.get(), fence.get());
+    cmd_buffer->stop();
+    device_->submit(cmd_buffer.get(), fence.get());
     swap_chain_->present();
 
     frame_index_ = ++frame_index_ % 3;

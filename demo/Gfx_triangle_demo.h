@@ -33,7 +33,7 @@ private:
     std::unique_ptr<Device> device_;
     std::unique_ptr<Swap_chain> swap_chain_;
     uint32_t frame_index_;
-    std::array<std::unique_ptr<Cmd_list>, 3> cmd_lists_;
+    std::array<std::unique_ptr<Cmd_buffer>, 3> cmd_buffers_;
     std::array<std::unique_ptr<Fence>, 3> fences_;
     std::unique_ptr<Buffer> vertex_buffer_;
     std::unique_ptr<Pipeline> render_pipeline_;

@@ -14,7 +14,7 @@ using Image = Gfx_lib::Image;
 using Sampler = Gfx_lib::Sampler;
 using Shader = Gfx_lib::Shader;
 using Pipeline = Gfx_lib::Pipeline;
-using Cmd_list = Gfx_lib::Cmd_list;
+using Cmd_buffer = Gfx_lib::Cmd_buffer;
 using Fence = Gfx_lib::Fence;
 using Swap_chain = Gfx_lib::Swap_chain;
 
