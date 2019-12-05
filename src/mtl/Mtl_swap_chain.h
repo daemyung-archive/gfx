@@ -49,7 +49,7 @@ private:
 private:
     Mtl_device* device_;
     Format image_format_;
-    Extent image_exent_;
+    Extent image_extent_;
     Color_space color_space_;
     Present_mode present_mode_;
     void* window_;

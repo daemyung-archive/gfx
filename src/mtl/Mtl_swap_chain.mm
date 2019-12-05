@@ -2,8 +2,13 @@
 // This file is part of the "gfx" project
 // See "LICENSE" for license information.
 //
+#include <UIKit/UIKit.h>
 
-#include <Cocoa/Cocoa.h>
+#if TARGET_OS_IOS
+    #include <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+    #include <Cocoa/Cocoa.h>
+#endif
 #include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
 #include "Mtl_swap_chain.h"
@@ -20,7 +25,7 @@ Mtl_swap_chain::Mtl_swap_chain(const Swap_chain_desc& desc, Mtl_device* device) 
     Swap_chain(),
     device_ { device },
     image_format_ { desc.image_format },
-    image_exent_ { desc.image_extent },
+    image_extent_ { desc.image_extent },
     color_space_ { desc.color_space },
     present_mode_ { desc.present_mode },
     window_ { desc.window },
@@ -78,7 +83,7 @@ Format Mtl_swap_chain::image_format() const
 
 Extent Mtl_swap_chain::image_extent() const
 {
-    return image_exent_;
+    return image_extent_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -119,7 +124,7 @@ void Mtl_swap_chain::init_images()
 
     desc.type = Image_type::swap_chain;
     desc.format = image_format_;
-    desc.extent = image_exent_;
+    desc.extent = image_extent_;
 
     for (auto& image : images_) {
         try {
@@ -136,7 +141,7 @@ void Mtl_swap_chain::init_images()
 void Mtl_swap_chain::connect_to_window_()
 {
 #if TARGET_OS_IOS
-    auto window = (__bridge UIWindow*)window_
+    auto window = (__bridge UIWindow*)window_;
 
     [window.rootViewController.view.layer addSublayer:layer_];
     [layer_ setFrame:CGRectMake(0, 0, image_extent_.w, image_extent_.h)];

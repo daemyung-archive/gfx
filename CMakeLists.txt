@@ -37,7 +37,7 @@ set_target_properties(gfx
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS ON)
 
-if(CMAKE_SYSTEM_NAME MATCHES Darwin)
+if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
     target_sources(gfx
         PRIVATE
             src/mtl/mtl_lib_modules.h
