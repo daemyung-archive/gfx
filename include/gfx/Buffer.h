@@ -8,7 +8,7 @@
 
 #include <cstddef>
 #include <gsl/gsl>
-#include "gfx/enums.h"
+#include "enums.h"
 
 namespace Gfx_lib {
 

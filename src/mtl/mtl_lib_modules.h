@@ -8,8 +8,8 @@
 
 #include <stdexcept>
 #include <Metal/Metal.h>
-#include "gfx/enums.h"
-#include "gfx/types.h"
+#include "enums.h"
+#include "types.h"
 
 namespace Gfx_lib {
 

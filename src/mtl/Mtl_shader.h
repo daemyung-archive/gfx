@@ -7,7 +7,7 @@
 #define GFX_MTL_SHADER_GUARD
 
 #include <Metal/Metal.h>
-#include "gfx/Shader.h"
+#include "Shader.h"
 
 namespace Gfx_lib {
 

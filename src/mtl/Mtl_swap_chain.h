@@ -10,7 +10,7 @@
 #include <vector>
 #include <Metal/Metal.h>
 #include <QuartzCore/CAMetalLayer.h>
-#include "gfx/Swap_chain.h"
+#include "Swap_chain.h"
 
 namespace Gfx_lib {
 

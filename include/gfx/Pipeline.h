@@ -7,8 +7,7 @@
 #define GFX_PIPELINE_GUARD
 
 #include <array>
-// #include <sc/limits.h>
-#include "gfx/enums.h"
+#include "enums.h"
 
 namespace Gfx_lib {
 

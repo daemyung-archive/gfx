@@ -6,7 +6,7 @@
 #ifndef GFX_SAMPLER_GUARD
 #define GFX_SAMPLER_GUARD
 
-#include "gfx/enums.h"
+#include "enums.h"
 
 namespace Gfx_lib {
 

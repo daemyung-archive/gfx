@@ -8,7 +8,7 @@
 
 #include <utility>
 #include <Metal/Metal.h>
-#include "gfx/Pipeline.h"
+#include "Pipeline.h"
 
 namespace Gfx_lib {
 

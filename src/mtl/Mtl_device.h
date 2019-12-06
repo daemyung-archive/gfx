@@ -9,7 +9,7 @@
 #include <mutex>
 #include <Foundation/Foundation.h>
 #include <Metal/Metal.h>
-#include "gfx/Device.h"
+#include "Device.h"
 
 namespace Gfx_lib {
 

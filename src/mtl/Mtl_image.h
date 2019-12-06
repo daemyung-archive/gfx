@@ -7,7 +7,7 @@
 #define GFX_MTL_IMAGE_GUARD
 
 #include <Metal/Metal.h>
-#include "gfx/Image.h"
+#include "Image.h"
 
 namespace Gfx_lib {
 

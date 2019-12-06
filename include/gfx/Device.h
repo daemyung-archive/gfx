@@ -7,15 +7,15 @@
 #define GFX_DEVICE_GUARD
 
 #include <memory>
-#include "gfx/enums.h"
-#include "gfx/Buffer.h"
-#include "gfx/Image.h"
-#include "gfx/Sampler.h"
-#include "gfx/Shader.h"
-#include "gfx/Pipeline.h"
-#include "gfx/Swap_chain.h"
-#include "gfx/Cmd_buffer.h"
-#include "gfx/Fence.h"
+#include "enums.h"
+#include "Buffer.h"
+#include "Image.h"
+#include "Sampler.h"
+#include "Shader.h"
+#include "Pipeline.h"
+#include "Swap_chain.h"
+#include "Cmd_buffer.h"
+#include "Fence.h"
 
 namespace Gfx_lib {
 

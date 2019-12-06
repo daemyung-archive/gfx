@@ -7,7 +7,7 @@
 #define GFX_MTL_SAMPLER_GUARD
 
 #include <Metal/Metal.h>
-#include "gfx/Sampler.h"
+#include "Sampler.h"
 
 namespace Gfx_lib {
 

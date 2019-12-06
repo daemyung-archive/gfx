@@ -3,7 +3,7 @@
 // See "LICENSE" for license information.
 //
 
-#include "gfx/Device.h"
+#include "Device.h"
 #include "Mtl_device.h"
 
 using namespace std;

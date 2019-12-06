@@ -7,7 +7,7 @@
 #define GFX_MTL_BUFFER_GUARD
 
 #include <Metal/Metal.h>
-#include "gfx/Buffer.h"
+#include "Buffer.h"
 
 namespace Gfx_lib {
 

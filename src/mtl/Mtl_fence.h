@@ -7,7 +7,7 @@
 #define GFX_MTL_FENCE_GUARD
 
 #include <dispatch/dispatch.h>
-#include "gfx/Fence.h"
+#include "Fence.h"
 
 namespace Gfx_lib {
 

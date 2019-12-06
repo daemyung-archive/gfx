@@ -9,7 +9,7 @@
 #include <array>
 #include <unordered_map>
 #include <Metal/Metal.h>
-#include "gfx/Cmd_buffer.h"
+#include "Cmd_buffer.h"
 
 namespace Gfx_lib {
 
