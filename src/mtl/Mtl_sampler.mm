@@ -8,29 +8,6 @@
 #include "Mtl_device.h"
 
 using namespace std;
-using namespace Gfx_lib;
-
-namespace {
-
-//----------------------------------------------------------------------------------------------------------------------
-
-auto make(const Sampler_desc& desc)
-{
-    auto descriptor = [MTLSamplerDescriptor new];
-
-    descriptor.minFilter = convert(desc.min);
-    descriptor.magFilter = convert(desc.mag);
-    descriptor.mipFilter = convert(desc.mip);
-    descriptor.sAddressMode = convert(desc.u);
-    descriptor.tAddressMode = convert(desc.v);
-    descriptor.rAddressMode = convert(desc.w);
-
-    return descriptor;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-} // of namespace
 
 namespace Gfx_lib {
 
@@ -103,9 +80,17 @@ Address_mode Mtl_sampler::w() const noexcept
 
 void Mtl_sampler::init_sampler_state_(const Sampler_desc& desc)
 {
-    auto descriptor = make(desc);
+    // configure a sampler descriptor.
+    auto descriptor = [MTLSamplerDescriptor new];
 
-    assert(descriptor);
+    descriptor.minFilter = convert(desc.min);
+    descriptor.magFilter = convert(desc.mag);
+    descriptor.mipFilter = convert(desc.mip);
+    descriptor.sAddressMode = convert(desc.u);
+    descriptor.tAddressMode = convert(desc.v);
+    descriptor.rAddressMode = convert(desc.w);
+
+    // try to create a sampler state.
     sampler_state_ = [device_->device() newSamplerStateWithDescriptor:descriptor];
 
     if (!sampler_state_)

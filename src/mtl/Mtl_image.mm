@@ -11,31 +11,6 @@
 using namespace std;
 using namespace Gfx_lib;
 
-namespace {
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto make(const Image_desc& desc)
-{
-    auto descriptor = [MTLTextureDescriptor new];
-
-    descriptor.textureType = convert(desc.type);
-    descriptor.pixelFormat = convert<MTLPixelFormat>(desc.format);
-    descriptor.width = desc.extent.w;
-    descriptor.height = desc.extent.h;
-    descriptor.depth = desc.extent.d;
-    descriptor.mipmapLevelCount = desc.mip_levels;
-    descriptor.sampleCount = desc.samples;
-    descriptor.arrayLength = desc.array_layers;
-    descriptor.allowGPUOptimizedContents = YES;
-
-    return descriptor;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-} // of namespace
-
 namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -105,11 +80,22 @@ uint8_t Mtl_image::samples() const
 
 void Mtl_image::init_texture_(const Image_desc& desc)
 {
-    auto descriptor = make(desc);
+    // configure a texture descriptor.
+    auto descriptor = [MTLTextureDescriptor new];
 
+    descriptor.textureType = convert(desc.type);
+    descriptor.pixelFormat = convert<MTLPixelFormat>(desc.format);
+    descriptor.width = desc.extent.w;
+    descriptor.height = desc.extent.h;
+    descriptor.depth = desc.extent.d;
+    descriptor.mipmapLevelCount = desc.mip_levels;
+    descriptor.sampleCount = desc.samples;
+    descriptor.arrayLength = desc.array_layers;
+    descriptor.allowGPUOptimizedContents = YES;
     descriptor.resourceOptions = MTLResourceStorageModePrivate;
     descriptor.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
 
+    // try to create a texture.
     texture_ = [device_->device() newTextureWithDescriptor:descriptor];
 
     if (!texture_)

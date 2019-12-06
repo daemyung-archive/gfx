@@ -63,54 +63,6 @@ inline auto is_valid(const Render_pass_attachment_state& attachment)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Clear_value& clear_value)
-{
-    return MTLClearColorMake(clear_value.r, clear_value.g, clear_value.b, clear_value.a);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto make(const Render_pass_state& state)
-{
-    auto descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-
-    for( auto i = 0; i != state.colors.size(); ++i) {
-        auto& color = state.colors[i];
-
-        if (is_valid(color)) {
-            auto mtl_image = static_cast<Mtl_image*>(color.image);
-
-            // set up the color attachment descriptor at the index.
-            descriptor.colorAttachments[i].texture = mtl_image->texture();
-            descriptor.colorAttachments[i].loadAction = convert(color.load_op);
-            descriptor.colorAttachments[i].storeAction = convert(color.store_op);
-            descriptor.colorAttachments[i].clearColor = convert(color.clear_value);
-        }
-    }
-
-    auto& depth_stencil = state.depth_stencil;
-
-    if (is_valid(depth_stencil)) {
-        auto mtl_image = static_cast<Mtl_image*>(depth_stencil.image);
-
-        // set up the depth attachment descriptor.
-        descriptor.depthAttachment.texture = mtl_image->texture();
-        descriptor.depthAttachment.loadAction = convert(depth_stencil.load_op);
-        descriptor.depthAttachment.storeAction = convert(depth_stencil.store_op);
-        descriptor.depthAttachment.clearDepth = depth_stencil.clear_value.d;
-
-        // set up the stencil attachment descriptor.
-        descriptor.stencilAttachment.texture = mtl_image->texture();
-        descriptor.stencilAttachment.loadAction = convert(depth_stencil.load_op);
-        descriptor.stencilAttachment.storeAction = convert(depth_stencil.store_op);
-        descriptor.stencilAttachment.clearStencil = depth_stencil.clear_value.s;
-    }
-
-    return descriptor;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 inline auto operator&(const Pipeline_stage& stage, const Pipeline_stages& stages)
 {
     return stages.to_ulong() & etoi(stage);
@@ -320,8 +272,42 @@ void Mtl_cmd_buffer::bind(Pipeline* pipeline)
 
 void Mtl_cmd_buffer::begin(const Render_pass_state& state)
 {
-    auto descriptor = make(state);
+    // configure a render pass descriptor.
+    auto descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 
+    for( auto i = 0; i != state.colors.size(); ++i) {
+        auto& color = state.colors[i];
+
+        if (is_valid(color)) {
+            auto mtl_image = static_cast<Mtl_image*>(color.image);
+
+            // set up the color attachment descriptor at the index.
+            descriptor.colorAttachments[i].texture = mtl_image->texture();
+            descriptor.colorAttachments[i].loadAction = convert(color.load_op);
+            descriptor.colorAttachments[i].storeAction = convert(color.store_op);
+            descriptor.colorAttachments[i].clearColor = convert(color.clear_value);
+        }
+    }
+
+    auto& depth_stencil = state.depth_stencil;
+
+    if (is_valid(depth_stencil)) {
+        auto mtl_image = static_cast<Mtl_image*>(depth_stencil.image);
+
+        // set up the depth attachment descriptor.
+        descriptor.depthAttachment.texture = mtl_image->texture();
+        descriptor.depthAttachment.loadAction = convert(depth_stencil.load_op);
+        descriptor.depthAttachment.storeAction = convert(depth_stencil.store_op);
+        descriptor.depthAttachment.clearDepth = depth_stencil.clear_value.d;
+
+        // set up the stencil attachment descriptor.
+        descriptor.stencilAttachment.texture = mtl_image->texture();
+        descriptor.stencilAttachment.loadAction = convert(depth_stencil.load_op);
+        descriptor.stencilAttachment.storeAction = convert(depth_stencil.store_op);
+        descriptor.stencilAttachment.clearStencil = depth_stencil.clear_value.s;
+    }
+
+    // start render encoding.
     render_encoder_ = [command_buffer_ renderCommandEncoderWithDescriptor:descriptor];
 
     // by default, the front facing is the clockwise in metal.

@@ -53,7 +53,7 @@ public:
 private:
     void init_render_pipeline_state_(const Pipeline_desc<Pipeline_type::render>& desc);
 
-    void init_depth_stencil_state_(const Pipeline_desc<Pipeline_type::render>& desc);
+    void init_depth_stencil_state_(const Depth_stencil_stage& stage);
 
 private:
     Mtl_device* device_;

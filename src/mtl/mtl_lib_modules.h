@@ -341,6 +341,13 @@ inline auto convert(Store_op op) noexcept
 
 //----------------------------------------------------------------------------------------------------------------------
 
+inline auto convert(const Clear_value& clear_value)
+{
+    return MTLClearColorMake(clear_value.r, clear_value.g, clear_value.b, clear_value.a);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline auto convert(const Viewport& viewport)
 {
     return MTLViewport { viewport.x, viewport.y, viewport.w, viewport.h, 0.0, 1.0 };
