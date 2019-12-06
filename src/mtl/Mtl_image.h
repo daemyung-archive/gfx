@@ -35,8 +35,6 @@ public:
 
     uint8_t samples() const override;
 
-    Image_tiling tiling() const override;
-
     inline auto texture() const noexcept
     { return texture_; }
 

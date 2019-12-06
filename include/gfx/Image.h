@@ -25,7 +25,6 @@ struct Image_desc {
     uint8_t mip_levels { 1 };
     uint8_t array_layers { 1 };
     uint8_t samples { 1 };
-    Image_tiling image_tiling { Image_tiling::optimal };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -47,8 +46,6 @@ public:
     virtual uint8_t array_layers() const = 0;
 
     virtual uint8_t samples() const = 0;
-
-    virtual Image_tiling tiling() const = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

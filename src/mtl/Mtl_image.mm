@@ -27,7 +27,7 @@ inline auto make(const Image_desc& desc)
     descriptor.mipmapLevelCount = desc.mip_levels;
     descriptor.sampleCount = desc.samples;
     descriptor.arrayLength = desc.array_layers;
-    descriptor.allowGPUOptimizedContents = (Image_tiling::optimal == desc.image_tiling);
+    descriptor.allowGPUOptimizedContents = YES;
 
     return descriptor;
 }
@@ -99,13 +99,6 @@ uint8_t Mtl_image::array_layers() const
 uint8_t Mtl_image::samples() const
 {
     return [texture_ sampleCount];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Image_tiling Mtl_image::tiling() const
-{
-    return [texture_ allowGPUOptimizedContents] ? Image_tiling::optimal : Image_tiling::linear;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
