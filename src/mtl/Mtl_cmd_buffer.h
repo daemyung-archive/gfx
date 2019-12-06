@@ -23,6 +23,56 @@ class Mtl_pipeline;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+template<typename T>
+struct Mtl_arg {
+    T* res { nullptr };
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<>
+struct Mtl_arg<Mtl_buffer> {
+    Mtl_buffer* res { nullptr };
+    uint32_t offset;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Mtl_arg_table final {
+public:
+    Mtl_arg_table();
+
+    void clear();
+
+    bool set(Mtl_arg<Mtl_buffer>&& arg, uint32_t index);
+
+    bool set(Mtl_arg<Mtl_image>&& arg, uint32_t index);
+
+    bool set(Mtl_arg<Mtl_sampler>&& arg, uint32_t index);
+
+    template<typename T>
+    Mtl_arg<T> get(size_t) const noexcept;
+
+    template<>
+    Mtl_arg<Mtl_buffer> get(size_t index) const noexcept
+    { return buffers_[index]; }
+
+    template<>
+    Mtl_arg<Mtl_image> get(size_t index) const noexcept
+    { return images_[index]; }
+
+    template<>
+    Mtl_arg<Mtl_sampler> get(size_t index) const noexcept
+    { return samplers_[index]; }
+
+private:
+    std::vector<Mtl_arg<Mtl_buffer>> buffers_;
+    std::vector<Mtl_arg<Mtl_image>> images_;
+    std::vector<Mtl_arg<Mtl_sampler>> samplers_;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 class Mtl_cmd_buffer final : public Cmd_buffer {
 public:
     Mtl_cmd_buffer(Mtl_device* device);
@@ -86,14 +136,11 @@ private:
     id<MTLCommandBuffer> command_buffer_;
     id<MTLRenderCommandEncoder> render_encoder_;
     id<MTLComputeCommandEncoder> compute_encoder_;
-    std::array<Mtl_buffer*, 2> binding_vertex_buffers_;
-    Mtl_buffer* binding_index_buffer_;
-    MTLIndexType binding_index_type_;
-    std::unordered_map<Pipeline_stage, std::array<Mtl_buffer*, 8>> binding_uniform_buffers_;
-    std::unordered_map<Pipeline_stage, std::array<uint32_t, 8>> binding_uniform_offsets_;
-    std::unordered_map<Pipeline_stage, std::array<Mtl_image*, 8>> binding_images_;
-    std::unordered_map<Pipeline_stage, std::array<Mtl_sampler*, 8>> binding_samplers_;
-    Mtl_pipeline* binding_pipeline_;
+    std::array<Mtl_buffer*, 2> vertex_buffers_;
+    Mtl_buffer* index_buffer_;
+    MTLIndexType index_type_;
+    std::unordered_map<Pipeline_stage, Mtl_arg_table> arg_tables_;
+    Mtl_pipeline* pipeline_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

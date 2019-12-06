@@ -22,6 +22,26 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+constexpr auto max_arg_num = 16;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<typename T>
+inline bool operator!=(const Mtl_arg<T>& lhs, const Mtl_arg<T>& rhs)
+{
+    return lhs.res != rhs.res;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<>
+inline bool operator!=(const Mtl_arg<Mtl_buffer>& lhs, const Mtl_arg<Mtl_buffer>& rhs)
+{
+    return lhs.res != rhs.res || lhs.offset != rhs.offset;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline auto byte_size(MTLIndexType type)
 {
     switch (type) {
@@ -104,18 +124,70 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Mtl_arg_table::Mtl_arg_table() :
+    buffers_ { max_arg_num },
+    images_ { max_arg_num },
+    samplers_ { max_arg_num }
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_arg_table::clear()
+{
+    buffers_.empty();
+    images_.empty();
+    samplers_.empty();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+bool Mtl_arg_table::set(Mtl_arg<Mtl_buffer>&& arg, uint32_t index)
+{
+    auto changed = (arg != buffers_[index]);
+
+    if (changed)
+        buffers_[index] = arg;
+
+    return changed;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+bool Mtl_arg_table::set(Mtl_arg<Mtl_image>&& arg, uint32_t index)
+{
+    auto changed = (arg != images_[index]);
+
+    if (changed)
+        images_[index] = arg;
+
+    return changed;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+bool Mtl_arg_table::set(Mtl_arg<Mtl_sampler>&& arg, uint32_t index)
+{
+    auto changed = (arg != samplers_[index]);
+
+    if (changed)
+        samplers_[index] = arg;
+
+    return changed;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 Mtl_cmd_buffer::Mtl_cmd_buffer(Mtl_device* device) :
     device_ { device },
     command_buffer_ { nil },
     render_encoder_ { nil },
     compute_encoder_ { nil },
-    binding_vertex_buffers_ { nullptr, nullptr },
-    binding_index_buffer_ { nullptr },
-    binding_index_type_ { MTLIndexTypeUInt16 },
-    binding_uniform_buffers_ {},
-    binding_images_ {},
-    binding_samplers_ {},
-    binding_pipeline_ { nullptr }
+    vertex_buffers_ { nullptr, nullptr },
+    index_buffer_ { nullptr },
+    index_type_ { MTLIndexTypeUInt16 },
+    arg_tables_ {},
+    pipeline_ { nullptr }
 {
 }
 
@@ -130,14 +202,11 @@ void Mtl_cmd_buffer::start()
 
 void Mtl_cmd_buffer::stop()
 {
-    binding_vertex_buffers_.fill(nullptr);
-    binding_index_buffer_ = nullptr;
-    binding_index_type_ = MTLIndexTypeUInt16;
-    binding_uniform_buffers_.clear();
-    binding_uniform_offsets_.clear();
-    binding_images_.clear();
-    binding_samplers_.clear();
-    binding_pipeline_ = nullptr;
+    vertex_buffers_.fill(nullptr);
+    index_buffer_ = nullptr;
+    index_type_ = MTLIndexTypeUInt16;
+    arg_tables_.clear();
+    pipeline_ = nullptr;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -153,21 +222,21 @@ void Mtl_cmd_buffer::bind(Buffer* buffer, uint32_t index)
 {
     auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
 
-    if (mtl_buffer == binding_vertex_buffers_[index])
+    if (mtl_buffer == vertex_buffers_[index])
         return;
 
     if (render_encoder_ && mtl_buffer)
         bind_buffer_(mtl_buffer, index);
 
-    binding_vertex_buffers_[index] = mtl_buffer;
+    vertex_buffers_[index] = mtl_buffer;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Mtl_cmd_buffer::bind(Buffer* buffer, Index_type type)
 {
-    binding_index_buffer_ = static_cast<Mtl_buffer*>(buffer);
-    binding_index_type_ = convert(type);
+    index_buffer_ = static_cast<Mtl_buffer*>(buffer);
+    index_type_ = convert(type);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -177,25 +246,17 @@ void Mtl_cmd_buffer::bind(Buffer* buffer, const Pipeline_stages& stages, uint32_
     auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
 
     if (Pipeline_stage::vertex & stages) {
-        auto& buffers = binding_uniform_buffers_[Pipeline_stage::vertex];
-        auto& offsets = binding_uniform_offsets_[Pipeline_stage::vertex];
+        auto& arg_table = arg_tables_[Pipeline_stage::vertex];
 
-        if (render_encoder_ && (mtl_buffer != buffers[index]))
+        if (render_encoder_ && arg_table.set({ mtl_buffer, 0 }, index))
             bind_buffer_(mtl_buffer, Pipeline_stage::vertex, index);
-
-        buffers[index] = mtl_buffer;
-        offsets[index] = 0;
     }
 
     if (Pipeline_stage::fragment & stages) {
-        auto& buffers = binding_uniform_buffers_[Pipeline_stage::fragment];
-        auto& offsets = binding_uniform_offsets_[Pipeline_stage::fragment];
+        auto& arg_table = arg_tables_[Pipeline_stage::fragment];
 
-        if (render_encoder_ && (mtl_buffer != buffers[index]))
+        if (render_encoder_ && arg_table.set({ mtl_buffer, 0 }, index))
             bind_buffer_(mtl_buffer, Pipeline_stage::fragment, index);
-
-        buffers[index] = mtl_buffer;
-        offsets[index] = 0;
     }
 }
 
@@ -206,21 +267,17 @@ void Mtl_cmd_buffer::bind(Image* image, const Pipeline_stages& stages, uint32_t 
     auto mtl_image = static_cast<Mtl_image*>(image);
 
     if (Pipeline_stage::vertex & stages) {
-        auto& images = binding_images_[Pipeline_stage::vertex];
+        auto& arg_table = arg_tables_[Pipeline_stage::vertex];
 
-        if (render_encoder_ && (mtl_image != images[index]))
+        if (render_encoder_ && arg_table.set({ mtl_image }, index))
             bind_image_(mtl_image, Pipeline_stage::vertex, index);
-
-        images[index] = mtl_image;
     }
 
     if (Pipeline_stage::fragment & stages) {
-        auto& images = binding_images_[Pipeline_stage::fragment];
+        auto& arg_table = arg_tables_[Pipeline_stage::fragment];
 
-        if (render_encoder_ && (mtl_image != images[index]))
+        if (render_encoder_ && arg_table.set({ mtl_image }, index))
             bind_image_(mtl_image, Pipeline_stage::fragment, index);
-
-        images[index] = mtl_image;
     }
 }
 
@@ -245,7 +302,7 @@ void Mtl_cmd_buffer::bind(Pipeline* pipeline)
 {
     auto mtl_pipeline = static_cast<Mtl_pipeline*>(pipeline);
 
-    if (mtl_pipeline == binding_pipeline_)
+    if (mtl_pipeline == pipeline_)
         return;
 
     if (render_encoder_ && mtl_pipeline) {
@@ -256,7 +313,7 @@ void Mtl_cmd_buffer::bind(Pipeline* pipeline)
         }
     }
 
-    binding_pipeline_ = mtl_pipeline;
+    pipeline_ = mtl_pipeline;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -272,8 +329,8 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
     [render_encoder_ setFrontFacingWinding:MTLWindingCounterClockwise];
 
     // bind vertex buffers.
-    for (auto i = 0; i != binding_vertex_buffers_.size(); ++i) {
-        auto& binding_vertex_buffer = binding_vertex_buffers_[i];
+    for (auto i = 0; i != vertex_buffers_.size(); ++i) {
+        auto& binding_vertex_buffer = vertex_buffers_[i];
 
         if (!binding_vertex_buffer)
             continue;
@@ -281,44 +338,48 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
         bind_buffer_(binding_vertex_buffer, i);
     }
 
-    // bind uniform buffers.
-    for (auto& [stage, buffers] : binding_uniform_buffers_) {
-        auto& offsets = binding_uniform_offsets_[stage];
+    // bind argument buffers.
+    for (auto& [stage, arg_table] : arg_tables_) {
+        for (auto i = 0; i != max_arg_num; ++i) {
+            auto arg = arg_table.get<Mtl_buffer>(i);
 
-        for (auto i = 0; i != buffers.size(); ++i) {
-            if (!buffers[i])
+            if (!arg.res)
                 continue;
 
-            bind_buffer_(buffers[i], stage, i, offsets[i]);
+            bind_buffer_(arg.res, stage, i, arg.offset);
         }
     }
 
-    // bind images.
-    for (auto& [stage, images] : binding_images_) {
-        for (auto i = 0; i != images.size(); ++i) {
-            if (!images[i])
+    // bind argument images.
+    for (auto& [stage, arg_table] : arg_tables_) {
+        for (auto i = 0; i != max_arg_num; ++i) {
+            auto arg = arg_table.get<Mtl_image>(i);
+
+            if (!arg.res)
                 continue;
 
-            bind_image_(images[i], stage, i);
+            bind_image_(arg.res, stage, i);
         }
     }
 
     // bind samplers.
-    for (auto& [stage, samplers] : binding_samplers_) {
-        for (auto i = 0; i != samplers.size(); ++i) {
-            if (!samplers[i])
+    for (auto& [stage, arg_table] : arg_tables_) {
+        for (auto i = 0; i != max_arg_num; ++i) {
+            auto arg = arg_table.get<Mtl_sampler>(i);
+
+            if (!arg.res)
                 continue;
 
-            bind_sampler_(samplers[i], stage, i);
+            bind_sampler_(arg.res, stage, i);
         }
     }
 
     // bind pipeline.
-    if (binding_pipeline_) {
-        if (Pipeline_type::render == binding_pipeline_->type())
-            bind_render_pipeline_(binding_pipeline_);
+    if (pipeline_) {
+        if (Pipeline_type::render == pipeline_->type())
+            bind_render_pipeline_(pipeline_);
         else
-            bind_compute_pipeline_(binding_pipeline_);
+            bind_compute_pipeline_(pipeline_);
     }
 }
 
@@ -354,7 +415,7 @@ void Mtl_cmd_buffer::draw(uint32_t count, uint32_t first)
 {
     assert(render_encoder_);
 
-    [render_encoder_ drawPrimitives:binding_pipeline_->primitive_type()
+    [render_encoder_ drawPrimitives:pipeline_->primitive_type()
                         vertexStart:first
                         vertexCount:count];
 }
@@ -365,11 +426,11 @@ void Mtl_cmd_buffer::draw_indexed(uint32_t count, uint32_t first)
 {
     assert(render_encoder_);
 
-    [render_encoder_ drawIndexedPrimitives:binding_pipeline_->primitive_type()
+    [render_encoder_ drawIndexedPrimitives:pipeline_->primitive_type()
                                 indexCount:count
-                                 indexType:binding_index_type_
-                               indexBuffer:binding_index_buffer_->buffer()
-                         indexBufferOffset:first * byte_size(binding_index_type_)];
+                                 indexType:index_type_
+                               indexBuffer:index_buffer_->buffer()
+                         indexBufferOffset:first * byte_size(index_type_)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
