@@ -3,8 +3,8 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl_lib_modules.h"
 #include "std_lib_modules.h"
+#include "mtl_lib_modules.h"
 #include "Mtl_device.h"
 #include "Mtl_buffer.h"
 #include "Mtl_image.h"
@@ -92,7 +92,7 @@ std::unique_ptr<Fence> Mtl_device::make(const Fence_desc& desc)
 void Mtl_device::submit(Cmd_buffer* cmd_buffer, Fence* fence)
 {
     auto mtl_cmd_buffer = static_cast<Mtl_cmd_buffer*>(cmd_buffer);
-    __block auto semaphore = fence ? static_cast<Mtl_fence*>(fence)->semaphore() : nil;
+    __block auto mtl_fence = static_cast<Mtl_fence*>(fence);
 
     [mtl_cmd_buffer->command_buffer() addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
         if (queue_mutex_.try_lock()) {
@@ -100,8 +100,8 @@ void Mtl_device::submit(Cmd_buffer* cmd_buffer, Fence* fence)
             queue_mutex_.unlock();
         }
 
-        if (semaphore)
-            dispatch_semaphore_signal(semaphore);
+        if (mtl_fence)
+            dispatch_semaphore_signal(mtl_fence->semaphore());
     }];
     [mtl_cmd_buffer->command_buffer() commit];
 

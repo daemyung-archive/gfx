@@ -55,8 +55,8 @@ void Mtl_swap_chain::present()
     [command_buffer presentDrawable:drawable_];
     [command_buffer commit];
 
-    drawable_ = nil;
     images_[image_index_]->texture_ = nil;
+    drawable_ = nil;
     image_index_ = ++image_index_ % images_.size();
 }
 

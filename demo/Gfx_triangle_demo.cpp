@@ -31,8 +31,8 @@ const vector<Vertex> vertices = {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Gfx_triangle_demo::Gfx_triangle_demo(uint32_t w, uint32_t h) :
-    window_ { nullptr },
+Gfx_triangle_demo::Gfx_triangle_demo(Window* window) :
+    window_ { window },
     compiler_ {},
     device_ { nullptr },
     swap_chain_ { nullptr },
@@ -41,7 +41,7 @@ Gfx_triangle_demo::Gfx_triangle_demo(uint32_t w, uint32_t h) :
     fences_ { nullptr, nullptr, nullptr },
     vertex_buffer_ {}
 {
-    init_window_(w, h);
+    init_window_(window);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,19 +53,11 @@ void Gfx_triangle_demo::run()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Gfx_triangle_demo::init_window_(uint32_t w, uint32_t h)
+void Gfx_triangle_demo::init_window_(Window* window)
 {
-    Window_desc window_desc;
-
-    window_desc.title = L"GFX Triangle Demo";
-    window_desc.extent = { w, h };
-
-    window_ = make_unique<Window>(window_desc);
-
-    assert(window_);
-    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_startup_);
-    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_shutdown_);
-    window_->startup_signal.connect(this, &Gfx_triangle_demo::on_render_);
+    window->startup_signal.connect(this, &Gfx_triangle_demo::on_startup_);
+    window->shutdown_signal.connect(this, &Gfx_triangle_demo::on_shutdown_);
+    window->render_signal.connect(this, &Gfx_triangle_demo::on_render_);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -80,7 +72,7 @@ void Gfx_triangle_demo::init_resources_()
 
 #if __APPLE__
     swap_chain_desc.image_format = Format::bgra8_unorm;
-#elif
+#else
     swap_chain_desc.image_format = Format::rgba8_unorm;
 #endif
     swap_chain_desc.image_extent = window_->extent();
@@ -110,7 +102,7 @@ void Gfx_triangle_demo::init_resources_()
     vertex_shader_desc.stage = Stage::vertex;
     vertex_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.vert");
 
-    auto vertex_shader = device_->make(vertex_shader_desc);
+    static auto vertex_shader = device_->make(vertex_shader_desc);
 
     // create a fragment shader.
     Shader_desc fragment_shader_desc;
@@ -118,7 +110,7 @@ void Gfx_triangle_demo::init_resources_()
     fragment_shader_desc.stage = Stage::vertex;
     fragment_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.frag");
 
-    auto fragment_shader = device_->make(fragment_shader_desc);
+    static auto fragment_shader = device_->make(fragment_shader_desc);
 
     // create a render pipeline.
     Pipeline_desc<Pipeline_type::render> render_pipeline_desc;
@@ -131,6 +123,7 @@ void Gfx_triangle_demo::init_resources_()
     render_pipeline_desc.vertex_state.bindings[0].stride = sizeof(Vertex);
     render_pipeline_desc.vertex_shader_stage = vertex_shader.get();
     render_pipeline_desc.fragment_shader_stage = fragment_shader.get();
+    render_pipeline_desc.rasterization_stage.cull_mode = Cull_mode::none;
     render_pipeline_desc.output_merger_stage.color_formats[0] = swap_chain_->image_format();
 
     render_pipeline_ = device_->make(render_pipeline_desc);
@@ -160,7 +153,8 @@ void Gfx_triangle_demo::on_render_()
     if (!fence->signaled())
         fence->wait_signal();
 
-    cmd_buffer->start();
+    fence->reset();
+    cmd_buffer->reset();
 
     Render_pass_state render_pass_state;
 
@@ -171,13 +165,14 @@ void Gfx_triangle_demo::on_render_()
     render_pass_state.colors[0].clear_value.b = 1.0f;
     render_pass_state.colors[0].clear_value.a = 1.0f;
 
+    cmd_buffer->start();
     cmd_buffer->begin(render_pass_state);
     cmd_buffer->bind(vertex_buffer_.get(), 0);
     cmd_buffer->bind(render_pipeline_.get());
     cmd_buffer->draw(3);
     cmd_buffer->end();
-
     cmd_buffer->stop();
+
     device_->submit(cmd_buffer.get(), fence.get());
     swap_chain_->present();
 

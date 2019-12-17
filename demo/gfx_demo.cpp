@@ -15,13 +15,14 @@ using namespace cxxopts;
 //----------------------------------------------------------------------------------------------------------------------
 
 template<typename T>
-void run(uint32_t w, uint32_t h)
+void run(Window* window)
 {
-    T(w, h).run();
+    T(window).run();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
+#if TARGET_OS_IOS || TARGET_OS_OSX
 int main(int argc, char* argv[])
 {
     Options options("gfx_demo", "Various gfx demos");
@@ -34,12 +35,33 @@ int main(int argc, char* argv[])
     auto result = options.parse(argc, argv);
     auto target = result["target"].as<string>();
 
+    Window_desc window_desc;
+
+    window_desc.title = L"GFX Demo";
+    window_desc.extent = { result["w"].as<uint32_t>(), result["h"].as<uint32_t>() };
+
+    auto window = make_unique<Window>(window_desc);
+
     if ("triangle" == target)
-        run<Gfx_triangle_demo>(result["w"].as<uint32_t>(), result["h"].as<uint32_t>());
+        run<Gfx_triangle_demo>(window.get());
     else if("texture" == target)
-        run<Gfx_texture_demo>(result["w"].as<uint32_t>(), result["h"].as<uint32_t>());
+        run<Gfx_texture_demo>(window.get());
 
     return 0;
 }
+#elif defined(__ANDROID__)
+void android_main(struct android_app* state)
+{
+    Window_desc window_desc;
+
+    window_desc.title = L"GFX Demo";
+    window_desc.extent = { 360, 640 };
+    window_desc.app = state;
+
+    auto window = make_unique<Window>(window_desc);
+
+    run<Gfx_triangle_demo>(window.get());
+}
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -12,12 +12,12 @@
 class Gfx_triangle_demo
 {
 public:
-    Gfx_triangle_demo(uint32_t w, uint32_t h);
+    Gfx_triangle_demo(Window* window);
 
     void run();
 
 private:
-    void init_window_(uint32_t w, uint32_t h);
+    void init_window_(Window* window);
 
     void init_resources_();
 
@@ -33,7 +33,7 @@ private:
     template<typename T, size_t Size>
     using array = std::array<T, Size>;
 
-    unique_ptr<Window> window_;
+    Window* window_;
     Spirv_compiler compiler_;
     unique_ptr<Device> device_;
     unique_ptr<Swap_chain> swap_chain_;

@@ -7,6 +7,7 @@
 #define GFX_CMD_BUFFER_GUARD
 
 #include <cstdint>
+#include <array>
 #include <bitset>
 #include <platform/Extent.h>
 #include "enums.h"
