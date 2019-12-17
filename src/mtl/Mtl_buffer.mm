@@ -3,7 +3,7 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl_lib_modules.h"
+#include "mtl_lib.h"
 #include "std_lib_modules.h"
 #include "Mtl_buffer.h"
 #include "Mtl_device.h"
@@ -63,7 +63,7 @@ uint64_t Mtl_buffer::size() const
 
 void Mtl_buffer::init_buffer_(const Buffer_desc& desc)
 {
-    const auto options = convert(desc.type);
+    const auto options = convert<MTLResourceOptions>(desc.type);
 
     if (desc.data) {
         buffer_ = [device_->device() newBufferWithBytes:desc.data

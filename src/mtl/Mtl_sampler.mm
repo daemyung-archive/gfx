@@ -3,7 +3,7 @@
 // See "LICENSE" for license information.
 //
 
-#include "mtl_lib_modules.h"
+#include "mtl_lib.h"
 #include "Mtl_sampler.h"
 #include "Mtl_device.h"
 
@@ -83,12 +83,12 @@ void Mtl_sampler::init_sampler_state_(const Sampler_desc& desc)
     // configure a sampler descriptor.
     auto descriptor = [MTLSamplerDescriptor new];
 
-    descriptor.minFilter = convert(desc.min);
-    descriptor.magFilter = convert(desc.mag);
-    descriptor.mipFilter = convert(desc.mip);
-    descriptor.sAddressMode = convert(desc.u);
-    descriptor.tAddressMode = convert(desc.v);
-    descriptor.rAddressMode = convert(desc.w);
+    descriptor.minFilter = convert<MTLSamplerMinMagFilter>(desc.min);
+    descriptor.magFilter = convert<MTLSamplerMinMagFilter>(desc.mag);
+    descriptor.mipFilter = convert<MTLSamplerMipFilter>(desc.mip);
+    descriptor.sAddressMode = convert<MTLSamplerAddressMode>(desc.u);
+    descriptor.tAddressMode = convert<MTLSamplerAddressMode>(desc.v);
+    descriptor.rAddressMode = convert<MTLSamplerAddressMode>(desc.w);
 
     // try to create a sampler state.
     sampler_state_ = [device_->device() newSamplerStateWithDescriptor:descriptor];

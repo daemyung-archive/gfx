@@ -41,7 +41,7 @@ set_target_properties(gfx
 if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
     target_sources(gfx
         PRIVATE
-            src/mtl/mtl_lib_modules.h
+            src/mtl/mtl_lib.h
             src/mtl/Mtl_device.h
             src/mtl/Mtl_device.mm
             src/mtl/Mtl_buffer.h

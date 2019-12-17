@@ -4,9 +4,9 @@
 //
 
 #include "std_lib_modules.h"
+#include "mtl_lib.h"
 #include "Mtl_image.h"
 #include "Mtl_device.h"
-#include "mtl_lib_modules.h"
 
 using namespace std;
 using namespace Gfx_lib;
@@ -83,7 +83,7 @@ void Mtl_image::init_texture_(const Image_desc& desc)
     // configure a texture descriptor.
     auto descriptor = [MTLTextureDescriptor new];
 
-    descriptor.textureType = convert(desc.type);
+    descriptor.textureType = convert<MTLTextureType>(desc.type);
     descriptor.pixelFormat = convert<MTLPixelFormat>(desc.format);
     descriptor.width = desc.extent.w;
     descriptor.height = desc.extent.h;

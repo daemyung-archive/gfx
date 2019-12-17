@@ -4,7 +4,7 @@
 //
 
 #include <sc/Msl_compiler.h>
-#include "mtl_lib_modules.h"
+#include "mtl_lib.h"
 #include "Mtl_shader.h"
 #include "Mtl_device.h"
 

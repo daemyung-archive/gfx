@@ -3,8 +3,8 @@
 // See "LICENSE" for license information.
 //
 
-#ifndef GFX_MTL_LIB_MODULES_GUARD
-#define GFX_MTL_LIB_MODULES_GUARD
+#ifndef GFX_MTL_LIB_GUARD
+#define GFX_MTL_LIB_GUARD
 
 #include <stdexcept>
 #include <Metal/Metal.h>
@@ -15,15 +15,13 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-inline T convert(Format);
-
-template<typename T>
-inline T convert(Topology topology);
+template<typename R, typename T>
+inline R convert(T);
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Heap_type type)
+template<>
+inline MTLResourceOptions convert(Heap_type type)
 {
     switch (type) {
         case Heap_type::local:
@@ -39,7 +37,8 @@ inline auto convert(Heap_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Image_type type)
+template<>
+inline MTLTextureType convert(Image_type type)
 {
     switch (type) {
         case Image_type::two_dim:
@@ -76,7 +75,8 @@ inline MTLPixelFormat convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Filter filter)
+template<>
+inline MTLSamplerMinMagFilter convert(Filter filter)
 {
     switch (filter) {
         case Filter::nearest:
@@ -90,7 +90,8 @@ inline auto convert(Filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Mip_filter filter)
+template<>
+inline MTLSamplerMipFilter convert(Mip_filter filter)
 {
     switch (filter) {
         case Mip_filter::nearest:
@@ -104,7 +105,8 @@ inline auto convert(Mip_filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Address_mode mode)
+template<>
+inline MTLSamplerAddressMode convert(Address_mode mode)
 {
     switch (mode) {
         case Address_mode::repeat:
@@ -118,7 +120,8 @@ inline auto convert(Address_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Step_rate rate)
+template<>
+inline MTLVertexStepFunction convert(Step_rate rate)
 {
     switch (rate) {
         case Step_rate::vertex:
@@ -153,7 +156,8 @@ inline MTLVertexFormat convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Index_type type)
+template<>
+inline MTLIndexType convert(Index_type type)
 {
     switch (type) {
         case Index_type::uint16:
@@ -167,7 +171,8 @@ inline auto convert(Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Blend_factor factor)
+template<>
+inline MTLBlendFactor convert(Blend_factor factor)
 {
     switch (factor) {
         case Blend_factor::zero:
@@ -189,7 +194,8 @@ inline auto convert(Blend_factor factor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Blend_op op)
+template<>
+inline MTLBlendOperation convert(Blend_op op)
 {
     switch (op) {
         case Blend_op::add:
@@ -208,7 +214,6 @@ inline auto convert(Blend_op op)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-
 
 template<>
 inline MTLPrimitiveTopologyClass convert(Topology topology)
@@ -243,7 +248,8 @@ inline MTLPrimitiveType convert(Topology topology)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Cull_mode mode)
+template<>
+inline MTLCullMode convert(Cull_mode mode)
 {
     switch (mode) {
         case Cull_mode::front:
@@ -259,7 +265,8 @@ inline auto convert(Cull_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Stencil_op op)
+template<>
+inline MTLStencilOperation convert(Stencil_op op)
 {
     switch (op) {
         case Stencil_op::keep:
@@ -285,7 +292,8 @@ inline auto convert(Stencil_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Compare_op op)
+template<>
+inline MTLCompareFunction convert(Compare_op op)
 {
     switch (op) {
         case Compare_op::never:
@@ -311,7 +319,8 @@ inline auto convert(Compare_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Load_op op)
+template<>
+inline MTLLoadAction convert(Load_op op)
 {
     switch (op) {
         case Load_op::load:
@@ -327,7 +336,8 @@ inline auto convert(Load_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Store_op op) noexcept
+template<>
+inline MTLStoreAction convert(Store_op op)
 {
     switch (op) {
         case Store_op::store:
@@ -341,35 +351,40 @@ inline auto convert(Store_op op) noexcept
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Clear_value& clear_value)
+template<>
+inline MTLClearColor convert(Clear_value clear_value)
 {
     return MTLClearColorMake(clear_value.r, clear_value.g, clear_value.b, clear_value.a);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Viewport& viewport)
+template<>
+inline MTLViewport convert(Viewport viewport)
 {
     return MTLViewport { viewport.x, viewport.y, viewport.w, viewport.h, 0.0, 1.0 };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Scissor& scissor)
+template<>
+inline MTLScissorRect convert(Scissor scissor)
 {
-    return MTLScissorRect { scissor.x, scissor.y, scissor.w, scissor.h };
+    return { scissor.x, scissor.y, scissor.w, scissor.h };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Offset& offset)
+template<>
+inline MTLOrigin convert(Offset offset)
 {
     return MTLOriginMake(offset.x, offset.y, offset.z);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(const Extent& extent)
+template<>
+inline MTLSize convert(Extent extent)
 {
     return MTLSizeMake(extent.w, extent.h, extent.d);
 }
@@ -378,4 +393,4 @@ inline auto convert(const Extent& extent)
 
 } // of namespace Gfx_lib
 
-#endif // GFX_MTL_LIB_MODULES_GUARD
+#endif // GFX_MTL_LIB_GUARD
