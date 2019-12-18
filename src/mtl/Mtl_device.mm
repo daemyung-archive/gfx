@@ -129,7 +129,7 @@ void Mtl_device::init_device_()
     device_ = MTLCreateSystemDefaultDevice();
 
     if (!device_)
-        throw runtime_error("fail to create device.");
+        throw runtime_error("fail to create device");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ void Mtl_device::init_command_queue_()
     command_queue_ = [device_ newCommandQueue];
 
     if (!command_queue_)
-        throw runtime_error("fail to create device.");
+        throw runtime_error("fail to create device");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
