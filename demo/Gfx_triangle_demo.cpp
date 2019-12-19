@@ -102,7 +102,7 @@ void Gfx_triangle_demo::init_resources_()
     vertex_shader_desc.stage = Stage::vertex;
     vertex_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.vert");
 
-    static auto vertex_shader = device_->make(vertex_shader_desc);
+    auto vertex_shader = device_->make(vertex_shader_desc);
 
     // create a fragment shader.
     Shader_desc fragment_shader_desc;
@@ -110,7 +110,7 @@ void Gfx_triangle_demo::init_resources_()
     fragment_shader_desc.stage = Stage::vertex;
     fragment_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.frag");
 
-    static auto fragment_shader = device_->make(fragment_shader_desc);
+    auto fragment_shader = device_->make(fragment_shader_desc);
 
     // create a render pipeline.
     Pipeline_desc<Pipeline_type::render> render_pipeline_desc;
