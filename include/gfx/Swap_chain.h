@@ -47,6 +47,8 @@ public:
     virtual Color_space color_space() const = 0;
 
     virtual Present_mode present_mode() const = 0;
+
+    virtual uint64_t frame_count() const = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

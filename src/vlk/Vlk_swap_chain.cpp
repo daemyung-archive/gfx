@@ -25,22 +25,23 @@ Vlk_swap_chain::Vlk_swap_chain(const Swap_chain_desc& desc, Vlk_device* device) 
     image_extent_ { desc.image_extent },
     color_space_ { desc.color_space },
     present_mode_ { desc.present_mode },
+    frame_count_ { 0 },
     window_ { desc.window },
     surface_ { VK_NULL_HANDLE },
     swapchain_ { VK_NULL_HANDLE },
     images_ { desc.image_count },
     image_index_ { UINT32_MAX },
-    fences_ { desc.image_count },
     cmd_buffers_ { desc.image_count },
+    fences_ { desc.image_count },
     acquire_semaphores_ { desc.image_count },
     submit_semaphores_ { desc.image_count },
-    index_ { 0 }
+    frame_index_ { 0 }
 {
     init_surface_(desc);
     init_swapchain_(desc);
     init_images_();
-    init_fences_();
     init_cmd_buffers_();
+    init_fences_();
     init_semaphores_();
 }
 
@@ -59,7 +60,7 @@ Image* Vlk_swap_chain::acquire()
 {
     if (UINT32_MAX == image_index_) {
         vkAcquireNextImageKHR(device_->device(), swapchain_,
-                              UINT64_MAX, acquire_semaphores_[index_], VK_NULL_HANDLE,
+                              UINT64_MAX, cur_acquire_semaphore_(), VK_NULL_HANDLE,
                               &image_index_);
     }
 
@@ -71,39 +72,39 @@ Image* Vlk_swap_chain::acquire()
 void Vlk_swap_chain::present()
 {
     // query a fence is signaled or not, if not wait a fence to signal.
-    if (!fences_[index_]->signaled())
-        fences_[index_]->wait_signal();
+    if (!cur_fence_()->signaled())
+        cur_fence_()->wait_signal();
 
     // reset a fence and a command buffer.
-    fences_[index_]->reset();
-    cmd_buffers_[index_]->reset();
-    cmd_buffers_[index_]->start();
+    cur_fence_()->reset();
+    cur_cmd_buffer_()->reset();
+    cur_cmd_buffer_()->start();
 
     // configure an image barrier.
     VkImageMemoryBarrier image_barrier {};
 
     image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    image_barrier.srcAccessMask = images_[image_index_]->access_mask();
+    image_barrier.srcAccessMask = cur_image_()->access_mask();
     image_barrier.dstAccessMask = 0;
-    image_barrier.oldLayout = images_[image_index_]->layout();
+    image_barrier.oldLayout = cur_image_()->layout();
     image_barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    image_barrier.image = images_[image_index_]->image();
-    image_barrier.subresourceRange.aspectMask = images_[image_index_]->aspect_mask();
-    image_barrier.subresourceRange.levelCount = images_[image_index_]->mip_levels();
-    image_barrier.subresourceRange.layerCount = images_[image_index_]->array_layers();
+    image_barrier.image = cur_image_()->image();
+    image_barrier.subresourceRange.aspectMask = cur_image_()->aspect_mask();
+    image_barrier.subresourceRange.levelCount = cur_image_()->mip_levels();
+    image_barrier.subresourceRange.layerCount = cur_image_()->array_layers();
 
     // update image meta data.
-    images_[image_index_]->access_mask_ = 0;
-    images_[image_index_]->layout_ = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    cur_image_()->access_mask_ = 0;
+    cur_image_()->layout_ = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     // record barrier command.
-    vkCmdPipelineBarrier(cmd_buffers_[index_]->command_buffer(),
+    vkCmdPipelineBarrier(cur_cmd_buffer_()->command_buffer(),
                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          VK_DEPENDENCY_BY_REGION_BIT,
                          0, nullptr,
                          0, nullptr,
                          1, &image_barrier);
-    cmd_buffers_[index_]->stop();
+    cur_cmd_buffer_()->stop();
 
     // configure a wait destination stage mask.
     VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -113,22 +114,22 @@ void Vlk_swap_chain::present()
 
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &acquire_semaphores_[index_];
+    submit_info.pWaitSemaphores = &cur_acquire_semaphore_();
     submit_info.pWaitDstStageMask = &wait_dst_stage_mask;
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &cmd_buffers_[index_]->command_buffer();
+    submit_info.pCommandBuffers = &cur_cmd_buffer_()->command_buffer();
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &submit_semaphores_[index_];
+    submit_info.pSignalSemaphores = &cur_submit_semaphore_();
 
     // submit a command buffer.
-    vkQueueSubmit(device_->queue(), 1, &submit_info, fences_[index_]->fence());
+    vkQueueSubmit(device_->queue(), 1, &submit_info, cur_fence_()->fence());
 
     // configure a present info.
     VkPresentInfoKHR present_info {};
 
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1;
-    present_info.pWaitSemaphores = &submit_semaphores_[index_];
+    present_info.pWaitSemaphores = &cur_submit_semaphore_();
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &swapchain_;
     present_info.pImageIndices = &image_index_;
@@ -137,7 +138,7 @@ void Vlk_swap_chain::present()
     vkQueuePresentKHR(device_->queue(), &present_info);
 
     image_index_ = UINT32_MAX;
-    index_ = ++index_ % images_.size();
+    frame_index_ = ++frame_count_ % images_.size();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -173,6 +174,13 @@ Color_space Vlk_swap_chain::color_space() const
 Present_mode Vlk_swap_chain::present_mode() const
 {
     return present_mode_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+uint64_t Vlk_swap_chain::frame_count() const
+{
+    return frame_count_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -267,6 +275,15 @@ void Vlk_swap_chain::init_images_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void Vlk_swap_chain::init_cmd_buffers_()
+{
+    // try to create command buffers.
+    for (auto& cmd_buffer : cmd_buffers_)
+        cmd_buffer = make_unique<Vlk_cmd_buffer>(device_);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void Vlk_swap_chain::init_fences_()
 {
     // configure a fence descriptor.
@@ -277,15 +294,6 @@ void Vlk_swap_chain::init_fences_()
     // try to create fences.
     for (auto& fence : fences_)
         fence = make_unique<Vlk_fence>(desc, device_);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_swap_chain::init_cmd_buffers_()
-{
-    // try to create command buffers.
-    for (auto& cmd_buffer : cmd_buffers_)
-        cmd_buffer = make_unique<Vlk_cmd_buffer>(device_);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

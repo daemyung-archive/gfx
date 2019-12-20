@@ -23,6 +23,7 @@ Mtl_swap_chain::Mtl_swap_chain(const Swap_chain_desc& desc, Mtl_device* device) 
     image_extent_ { desc.image_extent },
     color_space_ { desc.color_space },
     present_mode_ { desc.present_mode },
+    frame_count_ { 0 },
     window_ { desc.window },
     layer_ { nil },
     images_ { desc.image_count },
@@ -57,7 +58,7 @@ void Mtl_swap_chain::present()
 
     images_[image_index_]->texture_ = nil;
     drawable_ = nil;
-    image_index_ = ++image_index_ % images_.size();
+    image_index_ = ++frame_count_ % images_.size();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -93,6 +94,13 @@ Color_space Mtl_swap_chain::color_space() const
 Present_mode Mtl_swap_chain::present_mode() const
 {
     return present_mode_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+uint64_t Mtl_swap_chain::frame_count() const
+{
+    return frame_count_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

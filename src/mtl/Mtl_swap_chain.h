@@ -39,6 +39,8 @@ public:
 
     Present_mode present_mode() const override;
 
+    uint64_t frame_count() const override;
+
 private:
     void init_layer_(const Swap_chain_desc& desc);
 
@@ -52,6 +54,7 @@ private:
     Extent image_extent_;
     Color_space color_space_;
     Present_mode present_mode_;
+    uint64_t frame_count_;
     void* window_;
     CAMetalLayer* layer_;
     std::vector<std::unique_ptr<Mtl_image>> images_;
