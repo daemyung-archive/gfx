@@ -217,14 +217,14 @@ void Vlk_swap_chain::init_swapchain_(const Swap_chain_desc& desc)
     create_info.surface = surface_;
     create_info.minImageCount = desc.image_count;
     create_info.imageFormat = convert<VkFormat>(desc.image_format);
-    create_info.imageColorSpace = convert(desc.color_space);
+    create_info.imageColorSpace = convert<VkColorSpaceKHR>(desc.color_space);
     create_info.imageExtent = surface_caps.currentExtent;
     create_info.imageArrayLayers = 1;
     create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     create_info.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
-    create_info.presentMode = convert(desc.present_mode);
+    create_info.presentMode = convert<VkPresentModeKHR>(desc.present_mode);
     create_info.clipped = VK_TRUE;
 
     // try to create a swapchain.

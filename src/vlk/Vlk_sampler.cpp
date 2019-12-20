@@ -91,12 +91,12 @@ void Vlk_sampler::init_sampler_(const Sampler_desc& desc)
     VkSamplerCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    create_info.magFilter = convert(desc.mag);
-    create_info.minFilter = convert(desc.min);
-    create_info.mipmapMode = convert(desc.mip);
-    create_info.addressModeU = convert(desc.u);
-    create_info.addressModeV = convert(desc.v);
-    create_info.addressModeW = convert(desc.w);
+    create_info.magFilter = convert<VkFilter>(desc.mag);
+    create_info.minFilter = convert<VkFilter>(desc.min);
+    create_info.mipmapMode = convert<VkSamplerMipmapMode>(desc.mip);
+    create_info.addressModeU = convert<VkSamplerAddressMode>(desc.u);
+    create_info.addressModeV = convert<VkSamplerAddressMode>(desc.v);
+    create_info.addressModeW = convert<VkSamplerAddressMode>(desc.w);
 
     // try to create a sampler.
     if (vkCreateSampler(device_->device(), &create_info, nullptr, &sampler_))

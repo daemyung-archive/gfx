@@ -194,19 +194,13 @@ APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DECLARE_VLK_SYMBOL)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-inline T convert(const Extent&);
-
-template<typename T>
-inline T convert(Image_type);
-
-template<typename T>
-inline T convert(Format);
+template<typename R, typename T>
+inline R convert(T);
 
 //----------------------------------------------------------------------------------------------------------------------
 
 template <>
-inline VkExtent2D convert(const Extent& extent)
+inline VkExtent2D convert(Extent extent)
 {
     return { extent.w, extent.h };
 }
@@ -214,14 +208,15 @@ inline VkExtent2D convert(const Extent& extent)
 //----------------------------------------------------------------------------------------------------------------------
 
 template <>
-inline VkExtent3D convert(const Extent& extent)
+inline VkExtent3D convert(Extent extent)
 {
     return { extent.w, extent.h, extent.d };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Heap_type type)
+template<>
+inline VmaMemoryUsage convert(Heap_type type)
 {
     switch (type) {
         case Heap_type::local:
@@ -301,7 +296,8 @@ inline VkImageAspectFlags convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(uint32_t samples)
+template<>
+inline VkSampleCountFlagBits convert(uint8_t samples)
 {
     return static_cast<VkSampleCountFlagBits>(0x1 << (samples - 1));
 }
@@ -324,7 +320,8 @@ inline VkImageViewType convert(Image_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Filter filter)
+template<>
+inline VkFilter convert(Filter filter)
 {
     switch (filter) {
         case Filter::nearest:
@@ -338,7 +335,8 @@ inline auto convert(Filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Mip_filter filter)
+template<>
+inline VkSamplerMipmapMode convert(Mip_filter filter)
 {
     switch (filter) {
         case Mip_filter::nearest:
@@ -352,7 +350,8 @@ inline auto convert(Mip_filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Address_mode mode)
+template<>
+inline VkSamplerAddressMode convert(Address_mode mode)
 {
     switch (mode) {
         case Address_mode::repeat:
@@ -366,7 +365,8 @@ inline auto convert(Address_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Step_rate rate)
+template<>
+inline VkVertexInputRate convert(Step_rate rate)
 {
     switch (rate) {
         case Step_rate::vertex:
@@ -380,7 +380,8 @@ inline auto convert(Step_rate rate)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Topology topology)
+template<>
+inline VkPrimitiveTopology convert(Topology topology)
 {
     switch (topology) {
         case Topology::triangle_list:
@@ -396,7 +397,8 @@ inline auto convert(Topology topology)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Cull_mode mode)
+template<>
+inline VkCullModeFlags convert(Cull_mode mode)
 {
     switch (mode) {
         case Cull_mode::front:
@@ -412,7 +414,8 @@ inline auto convert(Cull_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Front_face face)
+template<>
+inline VkFrontFace convert(Front_face face)
 {
     switch (face) {
         case Front_face::counter_clockwise:
@@ -426,7 +429,8 @@ inline auto convert(Front_face face)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Compare_op op)
+template<>
+inline VkCompareOp convert(Compare_op op)
 {
     switch (op) {
         case Compare_op::never:
@@ -452,7 +456,8 @@ inline auto convert(Compare_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Blend_factor factor)
+template<>
+inline VkBlendFactor convert(Blend_factor factor)
 {
     switch (factor) {
         case Blend_factor::zero:
@@ -474,7 +479,8 @@ inline auto convert(Blend_factor factor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Blend_op op)
+template <>
+inline VkBlendOp convert(Blend_op op)
 {
     switch (op) {
         case Blend_op::add:
@@ -494,7 +500,8 @@ inline auto convert(Blend_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Index_type type)
+template<>
+inline VkIndexType convert(Index_type type)
 {
     switch (type) {
         case Index_type::uint16:
@@ -508,7 +515,8 @@ inline auto convert(Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Pipeline_type type)
+template<>
+inline VkPipelineBindPoint convert(Pipeline_type type)
 {
     switch (type) {
         case Pipeline_type::render:
@@ -522,7 +530,8 @@ inline auto convert(Pipeline_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Load_op op)
+template <>
+inline VkAttachmentLoadOp convert(Load_op op)
 {
     switch (op) {
         case Load_op::load:
@@ -538,7 +547,8 @@ inline auto convert(Load_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Store_op op) noexcept
+template <>
+inline VkAttachmentStoreOp convert(Store_op op)
 {
     switch (op) {
         case Store_op::store:
@@ -552,7 +562,8 @@ inline auto convert(Store_op op) noexcept
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Present_mode mode)
+template<>
+inline VkPresentModeKHR convert(Present_mode mode)
 {
     switch (mode) {
         case Present_mode::immediate:
@@ -570,7 +581,8 @@ inline auto convert(Present_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto convert(Color_space space)
+template<>
+inline VkColorSpaceKHR convert(Color_space space)
 {
     switch (space) {
         case Color_space::srgb_non_linear:

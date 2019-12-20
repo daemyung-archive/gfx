@@ -102,7 +102,7 @@ void Vlk_cmd_buffer::bind(Buffer* buffer, Index_type type)
         return;
 
     if (buffer_impl)
-        vkCmdBindIndexBuffer(command_buffer_, buffer_impl->buffer(), 0, convert(type));
+        vkCmdBindIndexBuffer(command_buffer_, buffer_impl->buffer(), 0, convert<VkIndexType>(type));
 
     index_buffer_ = buffer_impl;
 }
@@ -138,7 +138,7 @@ void Vlk_cmd_buffer::bind(Pipeline* pipeline)
         return;
 
     if (pipeline_impl)
-        vkCmdBindPipeline(command_buffer_, convert(pipeline_impl->type()), pipeline_impl->pipeline());
+        vkCmdBindPipeline(command_buffer_, convert<VkPipelineBindPoint>(pipeline_impl->type()), pipeline_impl->pipeline());
 
     pipeline_ = pipeline_impl;
 }

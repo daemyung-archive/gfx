@@ -43,9 +43,9 @@ void Vlk_render_pass::init_render_pass_(const Vlk_render_pass_desc& desc)
             VkAttachmentDescription attachment {};
 
             attachment.format = convert<VkFormat>(color.format);
-            attachment.samples = convert(color.samples);
-            attachment.loadOp = convert(color.load_op);
-            attachment.storeOp = convert(color.store_op);
+            attachment.samples = convert<VkSampleCountFlagBits>(color.samples);
+            attachment.loadOp = convert<VkAttachmentLoadOp>(color.load_op);
+            attachment.storeOp = convert<VkAttachmentStoreOp>(color.store_op);
             attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -58,9 +58,9 @@ void Vlk_render_pass::init_render_pass_(const Vlk_render_pass_desc& desc)
             VkAttachmentDescription attachment {};
 
             attachment.format = convert<VkFormat>(depth_stencil.format);
-            attachment.samples = convert(depth_stencil.samples);
-            attachment.loadOp = convert(depth_stencil.load_op);
-            attachment.storeOp = convert(depth_stencil.store_op);
+            attachment.samples = convert<VkSampleCountFlagBits>(depth_stencil.samples);
+            attachment.loadOp = convert<VkAttachmentLoadOp>(depth_stencil.load_op);
+            attachment.storeOp = convert<VkAttachmentStoreOp>(depth_stencil.store_op);
             attachment.stencilLoadOp = attachment.loadOp;
             attachment.stencilStoreOp = attachment.storeOp;
             attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
