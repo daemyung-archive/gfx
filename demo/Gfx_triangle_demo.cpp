@@ -99,7 +99,7 @@ void Gfx_triangle_demo::init_resources_()
     // create a vertex shader.
     Shader_desc vertex_shader_desc;
 
-    vertex_shader_desc.stage = Stage::vertex;
+    vertex_shader_desc.type = Shader_type::vertex;
     vertex_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.vert");
 
     auto vertex_shader = device_->make(vertex_shader_desc);
@@ -107,7 +107,7 @@ void Gfx_triangle_demo::init_resources_()
     // create a fragment shader.
     Shader_desc fragment_shader_desc;
 
-    fragment_shader_desc.stage = Stage::vertex;
+    fragment_shader_desc.type = Shader_type::vertex;
     fragment_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.frag");
 
     auto fragment_shader = device_->make(fragment_shader_desc);

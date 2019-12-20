@@ -18,7 +18,7 @@ namespace Gfx_lib {
 Mtl_shader::Mtl_shader(const Shader_desc& desc, Mtl_device* device) :
     Shader(),
     device_ { device },
-    stage_ { desc.stage }
+    type_ { desc.type }
 {
     init_function_(desc);
 }
@@ -32,9 +32,9 @@ Device* Mtl_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Stage Mtl_shader::stage() const noexcept
+Shader_type Mtl_shader::type() const noexcept
 {
-    return stage_;
+    return type_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ Stage Mtl_shader::stage() const noexcept
 void Mtl_shader::init_function_(const Shader_desc& desc)
 {
     // compile to msl from spirv.
-    auto src = Msl_compiler().compile(desc.stage, desc.src);
+    auto src = Msl_compiler().compile(desc.src);
 
     // create a library.
     NSError* err;

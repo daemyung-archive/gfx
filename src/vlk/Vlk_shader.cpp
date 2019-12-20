@@ -17,7 +17,7 @@ namespace Gfx_lib {
 Vlk_shader::Vlk_shader(const Shader_desc& desc, Vlk_device* device) :
     Shader(),
     device_ { device },
-    stage_ { desc.stage },
+    type_ { desc.type },
     shader_module_ { VK_NULL_HANDLE }
 {
     init_shader_module_(desc);
@@ -39,9 +39,9 @@ Device* Vlk_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Stage Vlk_shader::stage() const noexcept
+Shader_type Vlk_shader::type() const noexcept
 {
-    return stage_;
+    return type_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

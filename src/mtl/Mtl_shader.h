@@ -23,7 +23,7 @@ public:
 
     Device* device() const override;
 
-    Stage stage() const noexcept override;
+    Shader_type type() const noexcept override;
 
     inline auto function() const noexcept
     { return function_; }
@@ -33,7 +33,7 @@ private:
 
 private:
     Mtl_device* device_;
-    Stage stage_;
+    Shader_type type_;
     id<MTLFunction> function_;
 };
 
