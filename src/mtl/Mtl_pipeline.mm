@@ -5,8 +5,8 @@
 //
 
 #include <sc/Msl_compiler.h>
+#include "std_lib.h"
 #include "mtl_lib.h"
-#include "std_lib_modules.h"
 #include "Mtl_pipeline.h"
 #include "Mtl_device.h"
 #include "Mtl_shader.h"

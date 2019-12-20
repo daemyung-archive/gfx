@@ -3,12 +3,10 @@
 // See "LICENSE" for license information.
 //
 
+#include "std_lib.h"
 #include "mtl_lib.h"
-#include "std_lib_modules.h"
 #include "Mtl_buffer.h"
 #include "Mtl_device.h"
-
-#include <vector>
 
 using namespace std;
 

@@ -9,7 +9,7 @@
 #define VK_NO_PROTOTYPES 1
 
 #if defined(__ANDROID__)
-    #define VK_USE_PLATFORM_ANDROID_KHR 1
+#define VK_USE_PLATFORM_ANDROID_KHR 1
 #endif
 
 #include <stdexcept>

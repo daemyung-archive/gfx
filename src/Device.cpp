@@ -7,9 +7,9 @@
 #include "Device.h"
 
 #if TARGET_OS_IOS || TARGET_OS_OSX
-    #include "Mtl_device.h"
+#include "Mtl_device.h"
 #elif defined(__ANDROID__)
-    #include "Vlk_device.h"
+#include "Vlk_device.h"
 #endif
 
 using namespace std;

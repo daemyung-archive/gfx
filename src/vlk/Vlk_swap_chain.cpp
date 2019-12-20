@@ -4,8 +4,8 @@
 //
 
 #include <platform/Window.h>
-#include "std_lib_modules.h"
-#include "vlk_lib_modules.h"
+#include "std_lib.h"
+#include "vlk_lib.h"
 #include "Vlk_swap_chain.h"
 #include "Vlk_device.h"
 #include "Vlk_image.h"

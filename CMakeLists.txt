@@ -15,7 +15,7 @@ add_library(gfx
         include/gfx/Swap_chain.h
         include/gfx/Cmd_buffer.h
         include/gfx/Fence.h
-        src/std_lib_modules.h
+        src/std_lib.h
         src/Lru_cache.h
         src/Device.cpp)
 
@@ -80,7 +80,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
 elseif(CMAKE_SYSTEM_NAME MATCHES Android)
     target_sources(gfx
         PRIVATE
-            src/vlk/vlk_lib_modules.h
+            src/vlk/vlk_lib.h
             src/vlk/Vlk_device.h
             src/vlk/Vlk_device.cpp
             src/vlk/Vlk_buffer.h

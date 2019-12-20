@@ -3,7 +3,7 @@
 // See "LICENSE" for license information.
 //
 
-#include "vlk_lib_modules.h"
+#include "vlk_lib.h"
 #include "Vlk_sampler.h"
 #include "Vlk_device.h"
 
