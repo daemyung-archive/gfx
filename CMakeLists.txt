@@ -77,7 +77,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
     set_target_properties(gfx
         PROPERTIES
             XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
-elseif(CMAKE_SYSTEM_NAME MATCHES Android)
+elseif(CMAKE_SYSTEM_NAME MATCHES Android OR CMAKE_SYSTEM_NAME MATCHES Windows)
     target_sources(gfx
         PRIVATE
             src/vlk/vlk_lib.h
@@ -110,34 +110,28 @@ elseif(CMAKE_SYSTEM_NAME MATCHES Android)
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
-    add_executable(gfx_demo
-        MACOSX_BUNDLE
-            demo/gfx_demo.cpp
-            demo/stb_lib_modules.h
-            demo/platform_lib_modules.h
-            demo/sc_lib_modules.h
-            demo/gfx_lib_modules.h
-            demo/Gfx_triangle_demo.h
-            demo/Gfx_triangle_demo.cpp
-            demo/Gfx_texture_demo.h
-            demo/Gfx_texture_demo.cpp)
+    add_executable(gfx_demo MACOSX_BUNDLE)
 elseif(CMAKE_SYSTEM_NAME MATCHES Android)
-    add_library(gfx_demo
-        SHARED
-            demo/gfx_demo.cpp
-            demo/stb_lib_modules.h
-            demo/platform_lib_modules.h
-            demo/sc_lib_modules.h
-            demo/gfx_lib_modules.h
-            demo/Gfx_triangle_demo.h
-            demo/Gfx_triangle_demo.cpp
-            demo/Gfx_texture_demo.h
-            demo/Gfx_texture_demo.cpp)
+    add_library(gfx_demo SHARED)
 
     # Export ANativeActivity_onCreate(),
     # Refer to: https://github.com/android-ndk/ndk/issues/381.
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
+elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
+    add_executable(gfx_demo WIN32)
 endif()
+
+target_sources(gfx_demo
+    PRIVATE
+        demo/gfx_demo.cpp
+        demo/stb_lib_modules.h
+        demo/platform_lib_modules.h
+        demo/sc_lib_modules.h
+        demo/gfx_lib_modules.h
+        demo/Gfx_triangle_demo.h
+        demo/Gfx_triangle_demo.cpp
+        demo/Gfx_texture_demo.h
+        demo/Gfx_texture_demo.cpp)
 
 target_link_libraries(gfx_demo
     PUBLIC

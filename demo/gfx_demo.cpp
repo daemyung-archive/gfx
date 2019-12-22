@@ -62,6 +62,20 @@ void android_main(struct android_app* state)
 
     run<Gfx_triangle_demo>(window.get());
 }
+#elif defined(_WIN32)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+    Window_desc window_desc;
+
+    window_desc.title = L"GFX Demo";
+    window_desc.extent = { 360, 640 };
+
+    auto window = make_unique<Window>(window_desc);
+
+    run<Gfx_triangle_demo>(window.get());
+
+    return 0;
+}
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------

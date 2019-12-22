@@ -6,6 +6,7 @@
 #ifndef GFX_STD_LIB_MODULES_GUARD
 #define GFX_STD_LIB_MODULES_GUARD
 
+#include <cassert>
 #include <cstdint>
 #include <stdexcept>
 #include <iostream>

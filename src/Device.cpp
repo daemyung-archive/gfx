@@ -8,7 +8,7 @@
 
 #if TARGET_OS_IOS || TARGET_OS_OSX
 #include "Mtl_device.h"
-#elif defined(__ANDROID__)
+#elif defined(__ANDROID__) || defined(_WIN32)
 #include "Vlk_device.h"
 #endif
 
@@ -22,7 +22,7 @@ std::unique_ptr<Device> Device::make()
 {
 #if TARGET_OS_IOS || TARGET_OS_OSX
     return make_unique<Mtl_device>();
-#elif defined(__ANDROID__)
+#elif defined(__ANDROID__) || defined(_WIN32)
     return make_unique<Vlk_device>();
 #endif
     return nullptr;

@@ -71,6 +71,8 @@ namespace Gfx_lib {
 APPLY_VLK_BOOTSTRAP_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_CORE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_CORE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DEFINE_VLK_SYMBOL)
@@ -107,6 +109,9 @@ Vlk_device::Vlk_device() :
 
 Vlk_device::~Vlk_device()
 {
+    framebuffer_pool_.clear();
+    render_pass_pool_.clear();
+
     fini_command_pool_();
     fini_allocator_();
     fini_device_();
@@ -304,7 +309,11 @@ Vlk_framebuffer* Vlk_device::framebuffer(const Render_pass_state& state)
 void Vlk_device::init_library_()
 {
     try {
+#if defined(__ANDROID__)
         library_ = Library { "libvulkan.so" };
+#elif defined(_WIN32)
+        library_ = Library { "vulkan-1.dll" };
+#endif
     }
     catch (exception& e) {
         throw runtime_error("fail to create a device");;
@@ -322,12 +331,6 @@ void Vlk_device::init_bootstrap_symbols_()
 
 void Vlk_device::init_instance_()
 {
-#if defined(_DEBUG) || !defined(NDEBUG)
-    vector<const char*> layers {
-        "VK_LAYER_LUNARG_core_validation"
-    };
-#endif
-
     vector<const char*> extensions {
 #if defined(_DEBUG) || !defined(NDEBUG)
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
@@ -335,6 +338,8 @@ void Vlk_device::init_instance_()
         VK_KHR_SURFACE_EXTENSION_NAME,
 #if VK_USE_PLATFORM_ANDROID_KHR
         VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
+#elif VK_USE_PLATFORM_WIN32_KHR
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 #endif
     };
 
@@ -349,10 +354,6 @@ void Vlk_device::init_instance_()
 
     create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     create_info.pApplicationInfo = &app_info;
-#if defined(_DEBUG) || !defined(NDEBUG)
-    create_info.enabledLayerCount = layers.size();
-    create_info.ppEnabledLayerNames = &layers[0];
-#endif
     create_info.enabledExtensionCount = extensions.size();
     create_info.ppEnabledExtensionNames = &extensions[0];
 
@@ -367,6 +368,8 @@ void Vlk_device::init_instance_symbols_()
 {
     APPLY_VLK_INSTANCE_CORE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
     APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
+    APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
+    APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
     APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
 }
 

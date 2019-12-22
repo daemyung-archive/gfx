@@ -10,6 +10,8 @@
 
 #if defined(__ANDROID__)
 #define VK_USE_PLATFORM_ANDROID_KHR 1
+#elif defined(_WIN32)
+#define VK_USE_PLATFORM_WIN32_KHR 1
 #endif
 
 #include <stdexcept>
@@ -45,8 +47,20 @@
     macro(vkGetPhysicalDeviceSurfaceSupportKHR) \
     macro(vkGetPhysicalDeviceSurfaceCapabilitiesKHR) \
     macro(vkGetPhysicalDeviceSurfaceFormatsKHR) \
-    macro(vkGetPhysicalDeviceSurfacePresentModesKHR) \
+    macro(vkGetPhysicalDeviceSurfacePresentModesKHR)
+#if defined(__ANDROID__)
+#define APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(macro) \
     macro(vkCreateAndroidSurfaceKHR)
+#else
+#define APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(macro)
+#endif
+#if defined(_WIN32)
+#define APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(macro) \
+    macro(vkCreateWin32SurfaceKHR) \
+    macro(vkGetPhysicalDeviceWin32PresentationSupportKHR)
+#else
+#define APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(macro)
+#endif
 #define APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(macro) \
     macro(vkCreateDebugReportCallbackEXT) \
     macro(vkDebugReportMessageEXT) \
@@ -188,6 +202,8 @@ namespace Gfx_lib {
 APPLY_VLK_BOOTSTRAP_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_CORE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_CORE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DECLARE_VLK_SYMBOL)

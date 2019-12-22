@@ -187,7 +187,7 @@ uint64_t Vlk_swap_chain::frame_count() const
 
 void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
 {
-#if defined(ANDROID)
+#if VK_USE_PLATFORM_ANDROID_KHR
     auto window = static_cast<ANativeWindow*>(desc.window);
 
     // configure the surface create info.
@@ -198,6 +198,18 @@ void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
     create_info.window = window;
 
     if (vkCreateAndroidSurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
+        throw runtime_error("fail to create a swap chain");
+#elif VK_USE_PLATFORM_WIN32_KHR
+    auto window = static_cast<HWND>(desc.window);
+
+    assert(window);
+    VkWin32SurfaceCreateInfoKHR create_info{};
+
+    create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    create_info.hinstance = GetModuleHandle(NULL);
+    create_info.hwnd = window;
+
+    if (vkCreateWin32SurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
         throw runtime_error("fail to create a swap chain");
 #endif
 

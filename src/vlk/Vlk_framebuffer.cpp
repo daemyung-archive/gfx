@@ -27,6 +27,13 @@ Vlk_framebuffer::Vlk_framebuffer(const Vlk_framebuffer_desc& desc, Vlk_device* d
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Vlk_framebuffer::~Vlk_framebuffer()
+{
+    fini_framebuffer_();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void Vlk_framebuffer::init_extent_(const Vlk_framebuffer_desc& desc)
 {
     extent_ = desc.images[0]->extent();
@@ -38,13 +45,6 @@ void Vlk_framebuffer::init_extent_(const Vlk_framebuffer_desc& desc)
         if (image && image->extent() != extent_)
             throw runtime_error("fail to create a framebuffer");
     }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Vlk_framebuffer::~Vlk_framebuffer()
-{
-    fini_framebuffer_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

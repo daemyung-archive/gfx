@@ -22,6 +22,8 @@ class Vlk_buffer final : public Buffer {
 public:
     Vlk_buffer(const Buffer_desc& desc, Vlk_device* device);
 
+    ~Vlk_buffer();
+
     gsl::span<std::byte> map() override;
 
     void unmap() override;
@@ -37,6 +39,8 @@ public:
 
 private:
     void init_buffer_and_alloc_(const Buffer_desc& desc);
+
+    void fini_buffer_and_alloc_();
 
     void flush_alloc_() const;
 

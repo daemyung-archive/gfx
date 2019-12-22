@@ -27,6 +27,13 @@ Vlk_buffer::Vlk_buffer(const Buffer_desc& desc, Vlk_device* device) :
 
 //----------------------------------------------------------------------------------------------------------------------
 
+Vlk_buffer::~Vlk_buffer()
+{
+    fini_buffer_and_alloc_();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 gsl::span<std::byte> Vlk_buffer::map()
 {
     void* ptr { nullptr };
@@ -102,6 +109,15 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
         unmap();
     }
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_buffer::fini_buffer_and_alloc_()
+{
+    vmaDestroyBuffer(device_->allocator(), buffer_, alloc_);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 
 void Vlk_buffer::flush_alloc_() const
 {

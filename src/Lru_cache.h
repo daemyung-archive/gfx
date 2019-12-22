@@ -45,6 +45,12 @@ public:
         return std::end(pool_) != pool_.find(key);
     }
 
+    void clear()
+    {
+        pool_.clear();
+        priorities.clear();
+    }
+
 private:
     template<typename... Args>
     void emplace_(uint64_t key, Args&&... args)
