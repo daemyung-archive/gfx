@@ -19,15 +19,24 @@ class Lru_cache final
 {
 public:
     Lru_cache() :
-        priorities {},
+        history_ {},
         pool_ {}
     {
     }
 
     template<typename... Args>
-    void emplace(Args&&... args)
+    void emplace(uint64_t key, Args&&... args)
     {
-        emplace_(args...);
+        assert(!contains(key));
+
+        if (N == pool_.size()) {
+            pool_.erase(history_.back());
+            history_.pop_back();
+        }
+
+        pool_.emplace(key, std::make_unique<T>(args...));
+        history_.remove(key);
+        history_.push_front(key);
     }
 
     std::optional<T*> find(uint64_t key)
@@ -48,27 +57,11 @@ public:
     void clear()
     {
         pool_.clear();
-        priorities.clear();
+        history_.clear();
     }
 
 private:
-    template<typename... Args>
-    void emplace_(uint64_t key, Args&&... args)
-    {
-        assert(!contains(key));
-
-        if (N == pool_.size()) {
-            pool_.erase(priorities.back());
-            priorities.pop_back();
-        }
-
-        pool_.emplace(key, std::make_unique<T>(args...));
-        priorities.remove(key);
-        priorities.push_front(key);
-    }
-
-private:
-    std::list<uint64_t> priorities;
+    std::list<uint64_t> history_;
     std::unordered_map<uint64_t, std::unique_ptr<T>> pool_;
 };
 
