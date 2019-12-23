@@ -9,6 +9,7 @@
 #include "Vlk_device.h"
 
 using namespace std;
+using namespace Sc_lib;
 
 namespace Gfx_lib {
 
@@ -18,8 +19,10 @@ Vlk_shader::Vlk_shader(const Shader_desc& desc, Vlk_device* device) :
     Shader(),
     device_ { device },
     type_ { desc.type },
+    signature_ {},
     shader_module_ { VK_NULL_HANDLE }
 {
+    init_signature_(desc);
     init_shader_module_(desc);
 }
 
@@ -39,9 +42,23 @@ Device* Vlk_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Shader_type Vlk_shader::type() const noexcept
+Sc_lib::Signature Vlk_shader::signature() const noexcept
+{
+    return signature_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Sc_lib::Shader_type Vlk_shader::type() const noexcept
 {
     return type_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_shader::init_signature_(const Shader_desc& desc)
+{
+    signature_ = Spirv_reflector().reflect(desc.src);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

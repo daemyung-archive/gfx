@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace gsl;
+using namespace Sc_lib;
 using namespace Gfx_lib;
 
 namespace {

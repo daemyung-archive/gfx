@@ -8,14 +8,11 @@
 
 #include <vector>
 #include <sc/enums.h>
+#include <sc/Spirv_reflector.h>
 #include "enums.h"
 #include "types.h"
 
 namespace Gfx_lib {
-
-//----------------------------------------------------------------------------------------------------------------------
-
-using namespace Sc_lib;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -24,7 +21,7 @@ class Device;
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Shader_desc {
-    Shader_type type;
+    Sc_lib::Shader_type type;
     std::vector<uint32_t> src;
 };
 
@@ -36,7 +33,9 @@ public:
 
     virtual Device* device() const = 0;
 
-    virtual Shader_type type() const noexcept = 0;
+    virtual Sc_lib::Shader_type type() const noexcept = 0;
+
+    virtual Sc_lib::Signature signature() const noexcept = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

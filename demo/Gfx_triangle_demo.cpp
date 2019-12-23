@@ -6,6 +6,7 @@
 #include "Gfx_triangle_demo.h"
 
 using namespace std;
+using namespace Sc_lib;
 using namespace Gfx_lib;
 
 namespace {

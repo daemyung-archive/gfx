@@ -18,8 +18,11 @@ namespace Gfx_lib {
 Mtl_shader::Mtl_shader(const Shader_desc& desc, Mtl_device* device) :
     Shader(),
     device_ { device },
-    type_ { desc.type }
+    type_ { desc.type },
+    signature_ {},
+    function_ { nil }
 {
+    init_signature_(desc);
     init_function_(desc);
 }
 
@@ -32,9 +35,23 @@ Device* Mtl_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Shader_type Mtl_shader::type() const noexcept
+Sc_lib::Shader_type Mtl_shader::type() const noexcept
 {
     return type_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Sc_lib::Signature Mtl_shader::signature() const noexcept
+{
+    return signature_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_shader::init_signature_(const Shader_desc& desc)
+{
+    signature_ = Spirv_reflector().reflect(desc.src);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
