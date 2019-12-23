@@ -427,7 +427,10 @@ void Vlk_device::init_queue_family_index_()
 
 void Vlk_device::init_device_()
 {
-    vector<const char*> extensions { "VK_KHR_swapchain" };
+    vector<const char*> extensions {
+        "VK_KHR_swapchain",
+        "VK_KHR_maintenance1"
+    };
 
     // configure the device create info.
     VkDeviceQueueCreateInfo queue_create_info {};

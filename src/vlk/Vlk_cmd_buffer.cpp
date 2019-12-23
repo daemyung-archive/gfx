@@ -263,26 +263,26 @@ void Vlk_cmd_buffer::begin(const Render_pass_state& state)
     vkCmdBeginRenderPass(command_buffer_, &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
     // configure viewport to the size of a framebuffer.
-    VkViewport vk_viewport {
+    Viewport viewport {
         0.0f,
         0.0f,
         static_cast<float>(framebuffer->extent().w),
-        static_cast<float>(framebuffer->extent().h),
-        0.0f,
-        1.0f
+        static_cast<float>(framebuffer->extent().h)
     };
 
-    // record a viewport command.
-    vkCmdSetViewport(command_buffer_, 0, 1, &vk_viewport);
+    // set viewport.
+    set(viewport);
 
     // configure scissor to the size of a framebuffer.
-    VkRect2D vk_scissor {
-        { 0, 0 },
-        { framebuffer->extent().w, framebuffer->extent().h }
+    Scissor scissor {
+        0,
+        0,
+        framebuffer->extent().w,
+        framebuffer->extent().h
     };
 
     // record a scissor command.
-    vkCmdSetScissor(command_buffer_, 0, 1, &vk_scissor);
+    set(scissor);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -296,7 +296,14 @@ void Vlk_cmd_buffer::end()
 
 void Vlk_cmd_buffer::set(const Viewport& viewport)
 {
-    VkViewport vk_viewport { viewport.x, viewport.y, viewport.w, viewport.h, 0.0f, 1.0f };
+    VkViewport vk_viewport {
+        viewport.x,
+        viewport.h - viewport.y,
+        viewport.w,
+        -viewport.h,
+        0.0f,
+        1.0f
+    };
 
     vkCmdSetViewport(command_buffer_, 0, 1, &vk_viewport);
 }
