@@ -309,10 +309,6 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
     // start render encoding.
     render_encoder_ = [command_buffer_ renderCommandEncoderWithDescriptor:descriptor];
 
-    // by default, the front facing is the clockwise in metal.
-    // change the front facing winding to counter clockwise.
-    [render_encoder_ setFrontFacingWinding:MTLWindingCounterClockwise];
-
     // bind vertex buffers.
     for (auto i = 0; i != vertex_buffers_.size(); ++i) {
         auto& binding_vertex_buffer = vertex_buffers_[i];
@@ -570,6 +566,7 @@ void Mtl_cmd_buffer::bind_render_pipeline_(Mtl_pipeline* pipeline)
     assert(render_encoder_);
 
     [render_encoder_ setCullMode:pipeline->cull_mode()];
+    [render_encoder_ setFrontFacingWinding:pipeline->winding()];
     [render_encoder_ setRenderPipelineState:pipeline->render_pipeline_state()];
 
     if (pipeline->depth_test_enabled())

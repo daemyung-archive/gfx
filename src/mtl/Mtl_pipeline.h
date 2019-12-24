@@ -32,6 +32,9 @@ public:
     inline auto cull_mode() const noexcept
     { return cull_mode_; }
 
+    inline auto winding() const noexcept
+    { return winding_; }
+
     inline auto depth_test_enabled() const noexcept
     { return depth_test_enabled_; }
 
@@ -60,6 +63,7 @@ private:
     Pipeline_type type_;
     MTLPrimitiveType primitive_type_;
     MTLCullMode cull_mode_;
+    MTLWinding winding_;
     bool depth_test_enabled_;
     bool stencil_test_enabled_;
     uint32_t front_stencil_reference_;

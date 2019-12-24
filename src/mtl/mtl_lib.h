@@ -266,6 +266,21 @@ inline MTLCullMode convert(Cull_mode mode)
 //----------------------------------------------------------------------------------------------------------------------
 
 template<>
+inline MTLWinding convert(Front_face face)
+{
+    switch (face) {
+        case Front_face::counter_clockwise:
+            return MTLWindingCounterClockwise;
+        case Front_face::clockwise:
+            return MTLWindingClockwise;
+        default:
+            throw std::runtime_error("invalid the front face");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<>
 inline MTLStencilOperation convert(Stencil_op op)
 {
     switch (op) {

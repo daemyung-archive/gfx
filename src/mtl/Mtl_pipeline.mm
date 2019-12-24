@@ -24,6 +24,7 @@ Mtl_pipeline::Mtl_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Mtl
     type_ { Pipeline_type::render },
     primitive_type_ { convert<MTLPrimitiveType>(desc.input_assembly_stage.topology) },
     cull_mode_ { convert<MTLCullMode>(desc.rasterization_stage.cull_mode) },
+    winding_ { convert<MTLWinding>(desc.rasterization_stage.front_face) },
     depth_test_enabled_ { desc.depth_stencil_stage.enable_depth_test },
     stencil_test_enabled_ { desc.depth_stencil_stage.enable_stencil_test },
     front_stencil_reference_ { desc.depth_stencil_stage.front_stencil_state.referece },
