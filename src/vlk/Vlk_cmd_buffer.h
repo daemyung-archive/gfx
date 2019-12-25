@@ -72,11 +72,7 @@ public:
 private:
     void init_command_buffer_();
 
-    void init_semaphore_();
-
     void fini_command_buffer_();
-
-    void fini_semaphore_();
 
 private:
     Vlk_device* device_;
