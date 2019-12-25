@@ -15,6 +15,10 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+constexpr auto vertex_buffer_index_offset = 29;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 template<typename R, typename T>
 inline R convert(T);
 
@@ -377,7 +381,7 @@ inline MTLClearColor convert(Clear_value clear_value)
 template<>
 inline MTLViewport convert(Viewport viewport)
 {
-    return MTLViewport { viewport.x, viewport.y, viewport.w, viewport.h, 0.0, 1.0 };
+    return MTLViewport { viewport.x, viewport.h - viewport.y, viewport.w, -viewport.h, 0.0, 1.0 };
 }
 
 //----------------------------------------------------------------------------------------------------------------------

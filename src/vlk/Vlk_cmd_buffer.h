@@ -6,6 +6,9 @@
 #ifndef GFX_VLK_CMD_BUFFER_GUARD
 #define GFX_VLK_CMD_BUFFER_GUARD
 
+#include <map>
+#include <deque>
+#include <functional>
 #include <vulkan/vulkan.h>
 #include "Cmd_buffer.h"
 
@@ -18,7 +21,75 @@ class Vlk_buffer;
 class Vlk_image;
 class Vlk_sampler;
 class Vlk_pipeline;
-class Vlk_swap_chain;
+class Vlk_cmd_buffer;
+class Vlk_render_pass;
+class Vlk_framebuffer;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Vlk_render_encoder final : public Render_encoder {
+public:
+    Vlk_render_encoder(const Render_encoder_desc& desc, Vlk_cmd_buffer* cmd_buffer);
+
+    void end() override;
+
+    void draw(uint32_t count, uint32_t first = 0) override;
+
+    void draw_indexed(uint32_t count, uint32_t first = 0) override;
+
+    void vertex_buffer(Buffer* buffer, uint32_t index) override;
+
+    void index_buffer(Buffer* buffer, Index_type index_type) override;
+
+    void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
+
+    void shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index) override;
+
+    void pipeline(Pipeline* pipeline) override;
+
+    void viewport(const Viewport& viewport) override;
+
+    void scissor(const Scissor& scissor) override;
+
+    Cmd_buffer* cmd_buffer() const override;
+
+private:
+    void begin_render_pass_(const Render_encoder_desc& desc);
+
+    void end_render_pass_();
+
+private:
+    Vlk_cmd_buffer* cmd_buffer_;
+    std::map<uint32_t, std::deque<std::function<void ()>>> cmds_;
+    std::array<Vlk_buffer*, 2> vertex_buffers_;
+    Vlk_buffer* index_buffer_;
+    Vlk_pipeline* pipeline_;
+    Vlk_render_pass* render_pass_;
+    Vlk_framebuffer* framebuffer_;
+    Viewport viewport_;
+    Scissor scissor_;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Vlk_blit_encoder final : public Blit_encoder {
+public:
+    Vlk_blit_encoder(const Blit_encoder_desc& desc, Vlk_cmd_buffer* cmd_buffer);
+
+    void copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region) override;
+
+    void copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region) override;
+
+    void copy(Image* src_buffer, Buffer* dst_image, const Buffer_image_copy_region& region) override;
+
+    void end() override;
+
+    Cmd_buffer* cmd_buffer() const override;
+
+private:
+    Vlk_cmd_buffer* cmd_buffer_;
+    std::deque<std::function<void ()>> cmds_;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -28,41 +99,13 @@ public:
 
     ~Vlk_cmd_buffer() override;
 
-    void start() override;
+    std::unique_ptr<Render_encoder> create(const Render_encoder_desc& desc) override;
 
-    void stop() override;
-
-    void reset() override;
-
-    void bind(Buffer* buffer, uint32_t index) override;
-
-    void bind(Buffer* buffer, Index_type type) override;
-
-    void bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index) override;
-
-    void bind(Image* image, const Pipeline_stages& stages, uint32_t index) override;
-
-    void bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index) override;
-
-    void bind(Pipeline* pipeline) override;
-
-    void begin(const Render_pass_state& state) override;
+    std::unique_ptr<Blit_encoder> create(const Blit_encoder_desc& desc) override;
 
     void end() override;
 
-    void set(const Viewport& viewport) override;
-
-    void set(const Scissor& scissor) override;
-
-    void draw(uint32_t count, uint32_t first = 0) override;
-
-    void draw_indexed(uint32_t count, uint32_t first = 0) override;
-
-    void copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region) override;
-
-    void copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region) override;
-
-    void copy(Image* src_buffer, Buffer* dst_image, const Buffer_image_copy_region& region) override;
+    void reset() override;
 
     Device* device() const override;
 
@@ -74,12 +117,11 @@ private:
 
     void fini_command_buffer_();
 
+    void begin_command_buffer_();
+
 private:
     Vlk_device* device_;
     VkCommandBuffer command_buffer_;
-    std::array<Vlk_buffer*, 2> vertex_buffers_;
-    Vlk_buffer* index_buffer_;
-    Vlk_pipeline* pipeline_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

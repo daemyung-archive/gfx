@@ -42,7 +42,7 @@ public:
 
     std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) override;
 
-    std::unique_ptr<Cmd_buffer> make_cmd_buffer() override;
+    std::unique_ptr<Cmd_buffer> make(const Cmd_buffer_desc& desc) override;
 
     std::unique_ptr<Fence> make(const Fence_desc& desc) override;
 
@@ -50,11 +50,11 @@ public:
 
     void wait_idle() override;
 
-    Vlk_render_pass* render_pass(const Render_pass_state& state);
+    Vlk_render_pass* render_pass(const Render_encoder_desc& render_pass);
 
-    Vlk_render_pass* render_pass(const Output_merger_stage& state);
+    Vlk_render_pass* render_pass(const Output_merger& output_merger);
 
-    Vlk_framebuffer* framebuffer(const Render_pass_state& state);
+    Vlk_framebuffer* framebuffer(const Render_encoder_desc& render_pass);
 
     inline auto instance() const noexcept
     { return instance_; }

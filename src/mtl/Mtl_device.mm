@@ -75,7 +75,7 @@ std::unique_ptr<Swap_chain> Mtl_device::make(const Swap_chain_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Cmd_buffer> Mtl_device::make_cmd_buffer()
+std::unique_ptr<Cmd_buffer> Mtl_device::make(const Cmd_buffer_desc& desc)
 {
     return make_unique<Mtl_cmd_buffer>(this);
 }

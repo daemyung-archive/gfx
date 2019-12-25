@@ -12,6 +12,10 @@
 #include "Vlk_cmd_buffer.h"
 #include "Vlk_fence.h"
 
+#if TARGET_OS_OSX
+#include <QuartzCore/CAMetalLayer.h>
+#endif
+
 using namespace std;
 
 namespace Gfx_lib {
@@ -78,7 +82,6 @@ void Vlk_swap_chain::present()
     // reset a fence and a command buffer.
     cur_fence_()->reset();
     cur_cmd_buffer_()->reset();
-    cur_cmd_buffer_()->start();
 
     // configure an image barrier.
     VkImageMemoryBarrier image_barrier {};
@@ -104,7 +107,7 @@ void Vlk_swap_chain::present()
                          0, nullptr,
                          0, nullptr,
                          1, &image_barrier);
-    cur_cmd_buffer_()->stop();
+    cur_cmd_buffer_()->end();
 
     // configure a wait destination stage mask.
     VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -187,29 +190,56 @@ uint64_t Vlk_swap_chain::frame_count() const
 
 void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
 {
-#if VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
     auto window = static_cast<ANativeWindow*>(desc.window);
 
-    // configure the surface create info.
-    assert(window);
+    // configure an android surface create info.
     VkAndroidSurfaceCreateInfoKHR create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
     create_info.window = window;
 
+    // try to create an android surface.
     if (vkCreateAndroidSurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
         throw runtime_error("fail to create a swap chain");
-#elif VK_USE_PLATFORM_WIN32_KHR
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
     auto window = static_cast<HWND>(desc.window);
 
-    assert(window);
-    VkWin32SurfaceCreateInfoKHR create_info{};
+    // configure a win32 surface create info.
+    VkWin32SurfaceCreateInfoKHR create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     create_info.hinstance = GetModuleHandle(NULL);
     create_info.hwnd = window;
 
+    // try to create an win32 surface.
     if (vkCreateWin32SurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
+        throw runtime_error("fail to create a swap chain");
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+    auto window = (__bridge NSWindow*)desc.window;
+
+    // create a metal layer.
+    auto layer = [CAMetalLayer layer];
+
+    if (!layer)
+        throw runtime_error("fail to create a swap chain");
+
+    // configure a metal layer.
+    layer.pixelFormat = convert<MTLPixelFormat>(desc.image_format);
+    layer.framebufferOnly = NO;
+    layer.maximumDrawableCount = desc.image_count;
+
+    // set a metal layer to a view.
+    [[window contentView] setLayer:layer];
+
+    // configure an osx surface create info.
+    VkMacOSSurfaceCreateInfoMVK create_info {};
+
+    create_info.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+    create_info.pView = (__bridge void*)[window contentView];
+
+    // try to create an osx surface.
+    if (vkCreateMacOSSurfaceMVK(device_->instance(), &create_info, nullptr, &surface_))
         throw runtime_error("fail to create a swap chain");
 #endif
 

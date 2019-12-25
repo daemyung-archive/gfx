@@ -6,12 +6,16 @@
 #ifndef GFX_VLK_LIB_MODULES_GUARD
 #define GFX_VLK_LIB_MODULES_GUARD
 
+#include <platform/build_target.h>
+
 #define VK_NO_PROTOTYPES 1
 
 #if defined(__ANDROID__)
-#define VK_USE_PLATFORM_ANDROID_KHR 1
+#define VK_USE_PLATFORM_ANDROID_KHR
 #elif defined(_WIN32)
-#define VK_USE_PLATFORM_WIN32_KHR 1
+#define VK_USE_PLATFORM_WIN32_KHR
+#elif TARGET_OS_OSX
+#define VK_USE_PLATFORM_MACOS_MVK
 #endif
 
 #include <stdexcept>
@@ -30,6 +34,7 @@
     macro(vkEnumerateInstanceLayerProperties) \
     macro(vkEnumeratePhysicalDevices) \
     macro(vkGetPhysicalDeviceProperties )
+
 #define APPLY_VLK_INSTANCE_CORE_SYMBOLS(macro) \
     macro(vkGetDeviceProcAddr) \
     macro(vkGetPhysicalDeviceFeatures) \
@@ -42,29 +47,41 @@
     macro(vkDestroyDevice) \
     macro(vkEnumerateDeviceExtensionProperties) \
     macro(vkEnumerateDeviceLayerProperties)
+
 #define APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(macro) \
     macro(vkDestroySurfaceKHR) \
     macro(vkGetPhysicalDeviceSurfaceSupportKHR) \
     macro(vkGetPhysicalDeviceSurfaceCapabilitiesKHR) \
     macro(vkGetPhysicalDeviceSurfaceFormatsKHR) \
     macro(vkGetPhysicalDeviceSurfacePresentModesKHR)
-#if defined(__ANDROID__)
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 #define APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(macro) \
     macro(vkCreateAndroidSurfaceKHR)
 #else
 #define APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(macro)
 #endif
-#if defined(_WIN32)
+
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 #define APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(macro) \
     macro(vkCreateWin32SurfaceKHR) \
     macro(vkGetPhysicalDeviceWin32PresentationSupportKHR)
 #else
 #define APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(macro)
 #endif
+
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#define APPLY_VLK_INSTANCE_OSX_SURFACE_SYMBOLS(macro) \
+    macro(vkCreateMacOSSurfaceMVK)
+#else
+#define APPLY_VLK_INSTANCE_OSX_SURFACE_SYMBOLS(macro)
+#endif
+
 #define APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(macro) \
     macro(vkCreateDebugReportCallbackEXT) \
     macro(vkDebugReportMessageEXT) \
     macro(vkDestroyDebugReportCallbackEXT)
+
 #define APPLY_VLK_DEVICE_CORE_SYMBOLS(macro) \
     macro(vkGetDeviceQueue) \
     macro(vkQueueSubmit) \
@@ -184,13 +201,15 @@
     macro(vkCmdBeginRenderPass) \
     macro(vkCmdNextSubpass) \
     macro(vkCmdEndRenderPass) \
-    macro(vkCmdExecuteCommands )
+    macro(vkCmdExecuteCommands)
+
 #define APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(macro) \
     macro(vkCreateSwapchainKHR) \
     macro(vkDestroySwapchainKHR) \
     macro(vkGetSwapchainImagesKHR) \
     macro(vkAcquireNextImageKHR) \
-    macro(vkQueuePresentKHR )
+    macro(vkQueuePresentKHR)
+
 #define DECLARE_VLK_SYMBOL(name) extern PFN_##name name;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -204,6 +223,7 @@ APPLY_VLK_INSTANCE_CORE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_OSX_SURFACE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_CORE_SYMBOLS(DECLARE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DECLARE_VLK_SYMBOL)
@@ -527,6 +547,21 @@ inline VkIndexType convert(Index_type type)
         default:
             throw std::runtime_error("invalid the index type");
     }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+template<>
+inline VkViewport convert(Viewport viewport)
+{
+    return {viewport.x, viewport.h - viewport.y, viewport.w, -viewport.h, 0.0f, 1.0f};
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<>
+inline VkRect2D convert(Scissor scissor)
+{
+    return {{static_cast<int32_t>(scissor.x), static_cast<int32_t>(scissor.y)}, {scissor.w, scissor.h}};
 }
 
 //----------------------------------------------------------------------------------------------------------------------

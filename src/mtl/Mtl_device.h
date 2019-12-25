@@ -31,7 +31,7 @@ public:
 
     std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) override;
 
-    std::unique_ptr<Cmd_buffer> make_cmd_buffer() override;
+    std::unique_ptr<Cmd_buffer> make(const Cmd_buffer_desc& desc) override;
 
     std::unique_ptr<Fence> make(const Fence_desc& desc) override;
 

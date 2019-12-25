@@ -40,7 +40,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     {
         // cast to the implementation.
-        auto shader_impl = static_cast<Vlk_shader*>(desc.vertex_shader_stage);
+        auto shader_impl = static_cast<Vlk_shader*>(desc.vertex_shader);
 
         shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -50,7 +50,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     {
         // cast to the implementation.
-        auto shader_impl = static_cast<Vlk_shader*>(desc.fragment_shader_stage);
+        auto shader_impl = static_cast<Vlk_shader*>(desc.fragment_shader);
 
         shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -63,7 +63,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     {
         for (auto i = 0; i != 2; ++i) {
-            auto& binding = desc.vertex_state.bindings[i];
+            auto& binding = desc.vertex_input.bindings[i];
 
             if (UINT32_MAX == binding.stride)
                 continue;
@@ -83,7 +83,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     {
         for (auto i = 0; i != 16; ++i) {
-            auto& attribute = desc.vertex_state.attributes[i];
+            auto& attribute = desc.vertex_input.attributes[i];
 
             if (UINT32_MAX == attribute.binding)
                 continue;
@@ -114,11 +114,11 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     VkPipelineInputAssemblyStateCreateInfo input_assembly_state {};
 
     {
-        auto& input_assembly_stage = desc.input_assembly_stage;
+        auto& input_assembly = desc.input_assembly;
 
         input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        input_assembly_state.topology = convert<VkPrimitiveTopology>(input_assembly_stage.topology);
-        input_assembly_state.primitiveRestartEnable = input_assembly_stage.restart;
+        input_assembly_state.topology = convert<VkPrimitiveTopology>(input_assembly.topology);
+        input_assembly_state.primitiveRestartEnable = input_assembly.restart;
     }
 
     // configure a viewport state create info.
@@ -136,17 +136,17 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     VkPipelineRasterizationStateCreateInfo rasterization_state {};
 
     {
-        auto& rasterization_stage = desc.rasterization_stage;
+        auto& rasterization = desc.rasterization;
 
         rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterization_state.depthClampEnable = rasterization_stage.enable_depth_clamp;
+        rasterization_state.depthClampEnable = rasterization.depth_clamp;
         rasterization_state.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterization_state.cullMode = convert<VkCullModeFlags>(rasterization_stage.cull_mode);
-        rasterization_state.frontFace = convert<VkFrontFace>(rasterization_stage.front_face);
-        rasterization_state.depthBiasEnable = rasterization_stage.enable_depth_bias;
-        rasterization_state.depthBiasConstantFactor = rasterization_stage.depth_bias_constant_factor;
-        rasterization_state.depthBiasClamp = rasterization_stage.depth_bias_clamp;
-        rasterization_state.depthBiasSlopeFactor = rasterization_stage.depth_bias_slope_factor;
+        rasterization_state.cullMode = convert<VkCullModeFlags>(rasterization.cull_mode);
+        rasterization_state.frontFace = convert<VkFrontFace>(rasterization.front_face);
+        rasterization_state.depthBiasEnable = rasterization.depth_bias;
+        rasterization_state.depthBiasConstantFactor = rasterization.depth_bias_constant_factor;
+        rasterization_state.depthBiasClamp = rasterization.depth_bias_clamp;
+        rasterization_state.depthBiasSlopeFactor = rasterization.depth_bias_slope_factor;
     }
 
     // configure a multisample state create info.
@@ -163,13 +163,13 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state {};
 
     {
-        auto& depth_stencil_stage = desc.depth_stencil_stage;
+        auto& depth_stencil = desc.depth_stencil;
 
         depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depth_stencil_state.depthTestEnable = depth_stencil_stage.enable_depth_test;
-        depth_stencil_state.depthWriteEnable = depth_stencil_stage.enable_depth_write;
-        depth_stencil_state.depthCompareOp = convert<VkCompareOp>(depth_stencil_stage.depth_compare_op);
-        depth_stencil_state.stencilTestEnable = depth_stencil_stage.enable_stencil_test;
+        depth_stencil_state.depthTestEnable = depth_stencil.depth_test;
+        depth_stencil_state.depthWriteEnable = depth_stencil.write_mask;
+        depth_stencil_state.depthCompareOp = convert<VkCompareOp>(depth_stencil.depth_compare_op);
+        depth_stencil_state.stencilTestEnable = depth_stencil.stencil_test;
 
         // todo: front back stencil
 
@@ -181,16 +181,16 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachment_states;
 
     {
-        for (auto& attachment : desc.color_blend_stage.attachments) {
+        for (auto& attachment : desc.color_blend.attachments) {
             VkPipelineColorBlendAttachmentState state {};
 
-            state.blendEnable = attachment.enable_blend;
+            state.blendEnable = attachment.blend;
             state.srcColorBlendFactor = convert<VkBlendFactor>(attachment.src_rgb_blend_factor);
             state.dstColorBlendFactor = convert<VkBlendFactor>(attachment.dst_rgb_blend_factor);
             state.colorBlendOp = convert<VkBlendOp>(attachment.rgb_blend_op);
-            state.srcAlphaBlendFactor = convert<VkBlendFactor>(attachment.src_alpha_blend_factor);
-            state.dstAlphaBlendFactor = convert<VkBlendFactor>(attachment.dst_alpha_blend_factor);
-            state.alphaBlendOp = convert<VkBlendOp>(attachment.alpha_blend_op);
+            state.srcAlphaBlendFactor = convert<VkBlendFactor>(attachment.src_a_blend_factor);
+            state.dstAlphaBlendFactor = convert<VkBlendFactor>(attachment.dst_a_blend_factor);
+            state.alphaBlendOp = convert<VkBlendOp>(attachment.a_blend_op);
             state.colorWriteMask = attachment.write_mask;
 
             color_blend_attachment_states.push_back(state);
@@ -202,16 +202,16 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     {
         auto& create_info = color_blend_state_create_info;
-        auto& stage = desc.color_blend_stage;
+        auto& color_blend = desc.color_blend;
 
         create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         // create_info.attachmentCount = color_blend_attachment_states.size();
         create_info.attachmentCount = 1;
         create_info.pAttachments = &color_blend_attachment_states[0];
-        create_info.blendConstants[0] = stage.constant[0];
-        create_info.blendConstants[1] = stage.constant[1];
-        create_info.blendConstants[2] = stage.constant[2];
-        create_info.blendConstants[3] = stage.constant[3];
+        create_info.blendConstants[0] = color_blend.constant[0];
+        create_info.blendConstants[1] = color_blend.constant[1];
+        create_info.blendConstants[2] = color_blend.constant[2];
+        create_info.blendConstants[3] = color_blend.constant[3];
     }
 
     vector<VkDynamicState> dynamic_states {
@@ -255,7 +255,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     create_info.pColorBlendState = &color_blend_state_create_info;
     create_info.pDynamicState = &dynamic_state_create_info;
     create_info.layout = layout;
-    create_info.renderPass = device_->render_pass(desc.output_merger_stage)->render_pass();
+    create_info.renderPass = device_->render_pass(desc.output_merger)->render_pass();
 
     // try to create a graphics pipeline.
     if (vkCreateGraphicsPipelines(device_->device(), VK_NULL_HANDLE, 1, &create_info, nullptr, &pipeline_))

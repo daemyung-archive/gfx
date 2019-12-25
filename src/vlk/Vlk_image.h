@@ -82,7 +82,8 @@ private:
     VkImageAspectFlags aspect_mask_;
 
     friend class Vlk_swap_chain;
-    friend class Vlk_cmd_buffer;
+    friend class Vlk_render_encoder;
+    friend class Vlk_blit_encoder;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

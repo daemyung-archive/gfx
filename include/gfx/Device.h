@@ -39,7 +39,7 @@ public:
 
     virtual std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) = 0;
 
-    virtual std::unique_ptr<Cmd_buffer> make_cmd_buffer() = 0;
+    virtual std::unique_ptr<Cmd_buffer> make(const Cmd_buffer_desc& desc) = 0;
 
     virtual std::unique_ptr<Fence> make(const Fence_desc& desc) = 0;
 

@@ -21,32 +21,16 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-constexpr auto max_arg_num = 16;
+constexpr auto max_arg_count = 16;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-inline bool operator!=(const Mtl_arg<T>& lhs, const Mtl_arg<T>& rhs)
-{
-    return lhs.res != rhs.res;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template<>
-inline bool operator!=(const Mtl_arg<Mtl_buffer>& lhs, const Mtl_arg<Mtl_buffer>& rhs)
-{
-    return lhs.res != rhs.res || lhs.offset != rhs.offset;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto byte_size(MTLIndexType type)
+inline auto byte_size(Index_type type)
 {
     switch (type) {
-        case MTLIndexTypeUInt16:
+        case Index_type::uint16:
             return sizeof(uint16_t);
-        case MTLIndexTypeUInt32:
+        case Index_type::uint32:
             return sizeof(uint32_t);
         default:
             throw runtime_error("invalid the index type");
@@ -55,16 +39,9 @@ inline auto byte_size(MTLIndexType type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto is_valid(const Render_pass_attachment_state& attachment)
+inline auto valid(const Attachment& attachment)
 {
     return attachment.image;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto operator&(const Pipeline_stage& stage, const Pipeline_stages& stages)
-{
-    return stages.to_ulong() & etoi(stage);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -76,9 +53,8 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_arg_table::Mtl_arg_table() :
-    buffers_ { max_arg_num },
-    images_ { max_arg_num },
-    samplers_ { max_arg_num }
+    arg_buffers_ {max_arg_count},
+    arg_textures_ {max_arg_count}
 {
 }
 
@@ -86,193 +62,226 @@ Mtl_arg_table::Mtl_arg_table() :
 
 void Mtl_arg_table::clear()
 {
-    buffers_.empty();
-    images_.empty();
-    samplers_.empty();
+    arg_buffers_.clear();
+    arg_textures_.clear();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool Mtl_arg_table::set(Mtl_arg<Mtl_buffer>&& arg, uint32_t index)
+void Mtl_arg_table::arg_buffer(const Mtl_arg_buffer& arg_buffer, uint32_t index)
 {
-    auto changed = (arg != buffers_[index]);
-
-    if (changed)
-        buffers_[index] = arg;
-
-    return changed;
+    arg_buffers_[index] = arg_buffer;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool Mtl_arg_table::set(Mtl_arg<Mtl_image>&& arg, uint32_t index)
+void Mtl_arg_table::arg_texture(const Mtl_arg_texture& arg_texture, uint32_t index)
 {
-    auto changed = (arg != images_[index]);
-
-    if (changed)
-        images_[index] = arg;
-
-    return changed;
+    arg_textures_[index] = arg_texture;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool Mtl_arg_table::set(Mtl_arg<Mtl_sampler>&& arg, uint32_t index)
-{
-    auto changed = (arg != samplers_[index]);
-
-    if (changed)
-        samplers_[index] = arg;
-
-    return changed;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Mtl_cmd_buffer::Mtl_cmd_buffer(Mtl_device* device) :
-    device_ { device },
-    command_buffer_ { nil },
-    render_encoder_ { nil },
-    compute_encoder_ { nil },
-    vertex_buffers_ { nullptr, nullptr },
-    index_buffer_ { nullptr },
-    index_type_ { MTLIndexTypeUInt16 },
+Mtl_render_encoder::Mtl_render_encoder(const Render_encoder_desc& desc, Mtl_cmd_buffer* cmd_buffer) :
+    Render_encoder(),
+    cmd_buffer_ {cmd_buffer},
+    render_command_encoder_ {nil},
+    vertex_buffers_ {nullptr, nullptr},
+    index_buffer_ {nullptr},
+    index_type_ { Index_type::invalid },
     arg_tables_ {},
-    pipeline_ { nullptr }
+    pipeline_ {nullptr}
 {
+    init_render_command_encoder_(desc);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::start()
+void Mtl_render_encoder::end()
 {
-    command_buffer_ = [device_->command_queue() commandBuffer];
+    [render_command_encoder_ endEncoding];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::stop()
+void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 {
-    vertex_buffers_.fill(nullptr);
-    index_buffer_ = nullptr;
-    index_type_ = MTLIndexTypeUInt16;
-    arg_tables_.clear();
-    pipeline_ = nullptr;
+    [render_command_encoder_ drawPrimitives:pipeline_->primitive_type()
+                                vertexStart:first
+                                vertexCount:count];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::reset()
+void Mtl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
-    command_buffer_ = nil;
+    [render_command_encoder_ drawIndexedPrimitives:pipeline_->primitive_type()
+                                        indexCount:count
+                                         indexType:convert<MTLIndexType>(index_type_)
+                                       indexBuffer:index_buffer_->buffer()
+                                 indexBufferOffset:first * byte_size(index_type_)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind(Buffer* buffer, uint32_t index)
+void Mtl_render_encoder::vertex_buffer(Buffer* buffer, uint32_t index)
 {
-    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
+    auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
 
-    if (mtl_buffer == vertex_buffers_[index])
+    // skip if a vertex buffer at index is same.
+    if (buffer_impl == vertex_buffers_[index])
         return;
 
-    if (render_encoder_ && mtl_buffer)
-        bind_buffer_(mtl_buffer, index);
+    // set a vertex buffer.
+    [render_command_encoder_ setVertexBuffer:buffer_impl->buffer() offset:0
+                                     atIndex:index + vertex_buffer_index_offset];
 
-    vertex_buffers_[index] = mtl_buffer;
+    // update a vertex buffer at index.
+    vertex_buffers_[index] = buffer_impl;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind(Buffer* buffer, Index_type type)
+void Mtl_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
 {
-    index_buffer_ = static_cast<Mtl_buffer*>(buffer);
-    index_type_ = convert<MTLIndexType>(type);
-}
+    auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
 
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index)
-{
-    auto mtl_buffer = static_cast<Mtl_buffer*>(buffer);
-
-    if (Pipeline_stage::vertex & stages) {
-        auto& arg_table = arg_tables_[Pipeline_stage::vertex];
-
-        if (render_encoder_ && arg_table.set({ mtl_buffer, 0 }, index))
-            bind_buffer_(mtl_buffer, Pipeline_stage::vertex, index);
-    }
-
-    if (Pipeline_stage::fragment & stages) {
-        auto& arg_table = arg_tables_[Pipeline_stage::fragment];
-
-        if (render_encoder_ && arg_table.set({ mtl_buffer, 0 }, index))
-            bind_buffer_(mtl_buffer, Pipeline_stage::fragment, index);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind(Image* image, const Pipeline_stages& stages, uint32_t index)
-{
-    auto mtl_image = static_cast<Mtl_image*>(image);
-
-    if (Pipeline_stage::vertex & stages) {
-        auto& arg_table = arg_tables_[Pipeline_stage::vertex];
-
-        if (render_encoder_ && arg_table.set({ mtl_image }, index))
-            bind_image_(mtl_image, Pipeline_stage::vertex, index);
-    }
-
-    if (Pipeline_stage::fragment & stages) {
-        auto& arg_table = arg_tables_[Pipeline_stage::fragment];
-
-        if (render_encoder_ && arg_table.set({ mtl_image }, index))
-            bind_image_(mtl_image, Pipeline_stage::fragment, index);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index)
-{
-    auto mtl_sampler = static_cast<Mtl_sampler*>(sampler);
-
-    if (Pipeline_stage::vertex & stages) {
-        [render_encoder_ setVertexSamplerState:mtl_sampler->sampler_state() atIndex:index];
-    }
-
-    if (Pipeline_stage::fragment & stages) {
-        [render_encoder_ setFragmentSamplerState:mtl_sampler->sampler_state() atIndex:index];
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind(Pipeline* pipeline)
-{
-    auto mtl_pipeline = static_cast<Mtl_pipeline*>(pipeline);
-
-    if (mtl_pipeline == pipeline_)
+    // skip if a index buffer is same.
+    if (buffer_impl == index_buffer_)
         return;
 
-    if (render_encoder_ && mtl_pipeline)
-        bind_pipeline_(pipeline_);
-
-    pipeline_ = mtl_pipeline;
+    // update an index buffer and an index type.
+    index_buffer_ = buffer_impl;
+    index_type_ = index_type;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::begin(const Render_pass_state& state)
+void Mtl_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index)
+{
+    auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
+    auto arg_buffer = arg_tables_[stage].arg_buffer(index);
+
+    // skip if a shader buffer and offset are same.
+    if (buffer_impl == arg_buffer.buffer && offset == arg_buffer.offset)
+        return;
+
+    // set a shader buffer with offset at stage.
+    switch (stage) {
+        case Pipeline_stage::vertex_shader: {
+            if (buffer_impl != arg_buffer.buffer)
+                [render_command_encoder_ setVertexBuffer:buffer_impl->buffer() offset:offset atIndex:index];
+            else
+                [render_command_encoder_ setVertexBufferOffset:offset atIndex:index];
+
+            break;
+        }
+        case Pipeline_stage::fragment_shader: {
+            if (buffer_impl != arg_buffer.buffer)
+                [render_command_encoder_ setFragmentBuffer:buffer_impl->buffer() offset:0 atIndex:index];
+            else
+                [render_command_encoder_ setFragmentBufferOffset:offset atIndex:index];
+
+            break;
+        }
+        default:
+            assert(false);
+    }
+
+    // update an arg tables.
+    arg_tables_[stage].arg_buffer({buffer_impl, offset}, index);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index)
+{
+    auto image_impl = static_cast<Mtl_image*>(image);
+    auto sampler_impl = static_cast<Mtl_sampler*>(sampler);
+    auto arg_texture = arg_tables_[stage].arg_texture(index);
+
+    // skip if a shader image and shader sampler are same.
+    if (image_impl == arg_texture.image && sampler_impl == arg_texture.sampler)
+        return;
+
+    // set a shader image and a shader sampler at stage.
+    switch (stage) {
+        case Pipeline_stage::vertex_shader: {
+            if (image_impl != arg_texture.image)
+                [render_command_encoder_ setVertexTexture:image_impl->texture() atIndex:index];
+
+            if (sampler_impl != arg_texture.sampler)
+                [render_command_encoder_ setVertexSamplerState:sampler_impl->sampler_state() atIndex:index];
+
+            break;
+        }
+        case Pipeline_stage::fragment_shader: {
+            if (image_impl != arg_texture.image)
+                [render_command_encoder_ setFragmentTexture:image_impl->texture() atIndex:index];
+
+            if (sampler_impl != arg_texture.sampler)
+                [render_command_encoder_ setFragmentSamplerState:sampler_impl->sampler_state() atIndex:index];
+
+            break;
+        }
+        default:
+            assert(false);
+    }
+
+    // update an arg tables.
+    arg_tables_[stage].arg_texture({image_impl, sampler_impl}, index);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::pipeline(Pipeline* pipeline)
+{
+    pipeline_ = static_cast<Mtl_pipeline*>(pipeline);
+
+    [render_command_encoder_ setCullMode:pipeline_->cull_mode()];
+    [render_command_encoder_ setFrontFacingWinding:pipeline_->winding()];
+    [render_command_encoder_ setRenderPipelineState:pipeline_->render_pipeline_state()];
+
+    if (pipeline_->depth_test())
+        [render_command_encoder_ setDepthStencilState:pipeline_->depth_stencil_state()];
+
+    if (pipeline_->stencil_test())
+        [render_command_encoder_ setStencilFrontReferenceValue:pipeline_->front_stencil_reference()
+                                            backReferenceValue:pipeline_->back_stencil_reference()];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::viewport(const Viewport& viewport)
+{
+    [render_command_encoder_ setViewport:convert<MTLViewport>(viewport)];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::scissor(const Scissor& scissor)
+{
+    [render_command_encoder_ setScissorRect:convert<MTLScissorRect>(scissor)];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Cmd_buffer* Mtl_render_encoder::cmd_buffer() const
+{
+    return cmd_buffer_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc& desc)
 {
     // configure a render pass descriptor.
     auto descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 
-    for( auto i = 0; i != state.colors.size(); ++i) {
-        auto& color = state.colors[i];
+    for( auto i = 0; i != desc.colors.size(); ++i) {
+        auto& color = desc.colors[i];
 
-        if (is_valid(color)) {
+        if (valid(color)) {
             auto mtl_image = static_cast<Mtl_image*>(color.image);
 
             // set up the color attachment descriptor at the index.
@@ -283,9 +292,9 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
         }
     }
 
-    auto& depth_stencil = state.depth_stencil;
+    auto& depth_stencil = desc.depth_stencil;
 
-    if (is_valid(depth_stencil)) {
+    if (valid(depth_stencil)) {
         auto mtl_image = static_cast<Mtl_image*>(depth_stencil.image);
 
         // set up the depth attachment descriptor.
@@ -302,138 +311,41 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
     }
 
     // start render encoding.
-    render_encoder_ = [command_buffer_ renderCommandEncoderWithDescriptor:descriptor];
-
-    // bind vertex buffers.
-    for (auto i = 0; i != vertex_buffers_.size(); ++i) {
-        auto& binding_vertex_buffer = vertex_buffers_[i];
-
-        if (!binding_vertex_buffer)
-            continue;
-
-        bind_buffer_(binding_vertex_buffer, i);
-    }
-
-    // bind argument buffers.
-    for (auto& [stage, arg_table] : arg_tables_) {
-        for (auto i = 0; i != max_arg_num; ++i) {
-            auto arg = arg_table.get<Mtl_buffer>(i);
-
-            if (!arg.res)
-                continue;
-
-            bind_buffer_(arg.res, stage, i, arg.offset);
-        }
-    }
-
-    // bind argument images.
-    for (auto& [stage, arg_table] : arg_tables_) {
-        for (auto i = 0; i != max_arg_num; ++i) {
-            auto arg = arg_table.get<Mtl_image>(i);
-
-            if (!arg.res)
-                continue;
-
-            bind_image_(arg.res, stage, i);
-        }
-    }
-
-    // bind samplers.
-    for (auto& [stage, arg_table] : arg_tables_) {
-        for (auto i = 0; i != max_arg_num; ++i) {
-            auto arg = arg_table.get<Mtl_sampler>(i);
-
-            if (!arg.res)
-                continue;
-
-            bind_sampler_(arg.res, stage, i);
-        }
-    }
-
-    // bind pipeline.
-    if (pipeline_)
-        bind_pipeline_(pipeline_);
+    render_command_encoder_ = [cmd_buffer_->command_buffer() renderCommandEncoderWithDescriptor:descriptor];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::end()
+Mtl_blit_encoder::Mtl_blit_encoder(const Blit_encoder_desc& desc, Mtl_cmd_buffer* cmd_buffer) :
+    Blit_encoder(),
+    cmd_buffer_ {cmd_buffer},
+    blit_command_encoder_ {nil}
 {
-    [render_encoder_ endEncoding];
-    render_encoder_ = nil;
+    init_blit_command_encoder_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::set(const Viewport& viewport)
-{
-    assert(render_encoder_);
-
-    [render_encoder_ setViewport:convert<MTLViewport>(viewport)];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::set(const Scissor& scissor)
-{
-    assert(render_encoder_);
-
-    [render_encoder_ setScissorRect:convert<MTLScissorRect>(scissor)];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::draw(uint32_t count, uint32_t first)
-{
-    assert(render_encoder_);
-
-    [render_encoder_ drawPrimitives:pipeline_->primitive_type()
-                        vertexStart:first
-                        vertexCount:count];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::draw_indexed(uint32_t count, uint32_t first)
-{
-    assert(render_encoder_);
-
-    [render_encoder_ drawIndexedPrimitives:pipeline_->primitive_type()
-                                indexCount:count
-                                 indexType:index_type_
-                               indexBuffer:index_buffer_->buffer()
-                         indexBufferOffset:first * byte_size(index_type_)];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region)
+void Mtl_blit_encoder::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region)
 {
     auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
 
-    assert(mtl_src_buffer && mtl_dst_buffer);
-    auto blit_encoder = [command_buffer_ blitCommandEncoder];
-
-    [blit_encoder copyFromBuffer:mtl_src_buffer->buffer()
+    [blit_command_encoder_ copyFromBuffer:mtl_src_buffer->buffer()
                     sourceOffset:region.src_offset
                         toBuffer:mtl_dst_buffer->buffer()
                destinationOffset:region.dst_offset
                             size:region.size];
-    [blit_encoder endEncoding];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region)
+void Mtl_blit_encoder::copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region)
 {
     auto mtl_src_buffer = static_cast<Mtl_buffer*>(src_buffer);
     auto mtl_dst_image = static_cast<Mtl_image*>(dst_image);
 
-    assert(mtl_src_buffer && mtl_dst_image);
-    auto blit_encoder = [command_buffer_ blitCommandEncoder];
-
-    [blit_encoder copyFromBuffer:mtl_src_buffer->buffer()
+    [blit_command_encoder_ copyFromBuffer:mtl_src_buffer->buffer()
                     sourceOffset:region.buffer_offset
                sourceBytesPerRow:region.buffer_row_size
              sourceBytesPerImage:region.buffer_row_size * region.buffer_image_height
@@ -442,20 +354,16 @@ void Mtl_cmd_buffer::copy(Buffer* src_buffer, Image* dst_image, const Buffer_ima
                 destinationSlice:region.image_subresource.array_layer
                 destinationLevel:region.image_subresource.mip_level
                destinationOrigin:convert<MTLOrigin>(region.image_offset)];
-    [blit_encoder endEncoding];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region)
+void Mtl_blit_encoder::copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region)
 {
     auto mtl_src_image = static_cast<Mtl_image*>(src_image);
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
 
-    assert(mtl_src_image && mtl_dst_buffer);
-    auto blit_encoder = [command_buffer_ blitCommandEncoder];
-
-    [blit_encoder copyFromTexture:mtl_src_image->texture()
+    [blit_command_encoder_ copyFromTexture:mtl_src_image->texture()
                       sourceSlice:region.image_subresource.array_layer
                       sourceLevel:region.image_subresource.mip_level
                      sourceOrigin:convert<MTLOrigin>(region.image_offset)
@@ -464,7 +372,63 @@ void Mtl_cmd_buffer::copy(Image* src_image, Buffer* dst_buffer, const Buffer_ima
                 destinationOffset:region.buffer_offset
            destinationBytesPerRow:region.buffer_row_size
          destinationBytesPerImage:region.buffer_row_size * region.buffer_image_height];
-    [blit_encoder endEncoding];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_blit_encoder::end()
+{
+    [blit_command_encoder_ endEncoding];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Cmd_buffer* Mtl_blit_encoder::cmd_buffer() const
+{
+    return cmd_buffer_;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_blit_encoder::init_blit_command_encoder_()
+{
+    blit_command_encoder_ = [cmd_buffer_->command_buffer() blitCommandEncoder];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Mtl_cmd_buffer::Mtl_cmd_buffer(Mtl_device* device) :
+    device_ { device },
+    command_buffer_ { nil }
+{
+    init_command_buffer_();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+std::unique_ptr<Render_encoder> Mtl_cmd_buffer::create(const Render_encoder_desc& desc)
+{
+    return make_unique<Mtl_render_encoder>(desc, this);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+std::unique_ptr<Blit_encoder> Mtl_cmd_buffer::create(const Blit_encoder_desc& desc)
+{
+    return make_unique<Mtl_blit_encoder>(desc, this);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::end()
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_cmd_buffer::reset()
+{
+    init_command_buffer_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -476,96 +440,9 @@ Device* Mtl_cmd_buffer::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind_buffer_(Mtl_buffer* buffer, uint32_t index)
+void Mtl_cmd_buffer::init_command_buffer_()
 {
-    assert(render_encoder_);
-
-    [render_encoder_ setVertexBuffer:buffer->buffer() offset:0 atIndex:index + vertex_buffer_index_offset];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind_buffer_(Mtl_buffer* buffer, Pipeline_stage stage, uint32_t index, uint32_t offset)
-{
-    assert(render_encoder_);
-
-    switch (stage) {
-        case Pipeline_stage::vertex:
-            [render_encoder_ setVertexBuffer:buffer->buffer() offset:offset
-                                     atIndex:index];
-            break;
-        case Pipeline_stage::fragment:
-            [render_encoder_ setFragmentBuffer:buffer->buffer() offset:offset
-                                       atIndex:index];
-            break;
-        case Pipeline_stage::compute:
-            [compute_encoder_ setBuffer:buffer->buffer() offset:offset
-                                atIndex:index];
-            break;
-        default:
-            break;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind_image_(Mtl_image* image, Pipeline_stage stage, uint32_t index)
-{
-    assert(render_encoder_);
-
-    switch (stage) {
-        case Pipeline_stage::vertex:
-            [render_encoder_ setVertexTexture:image->texture() atIndex:index];
-            break;
-        case Pipeline_stage::fragment:
-            [render_encoder_ setFragmentTexture:image->texture() atIndex:index];
-
-            break;
-        case Pipeline_stage::compute:
-            [compute_encoder_ setTexture:image->texture() atIndex:index];
-            break;
-        default:
-            break;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind_sampler_(Mtl_sampler* sampler, Pipeline_stage stage, uint32_t index)
-{
-    assert(render_encoder_);
-
-    switch (stage) {
-        case Pipeline_stage::vertex:
-            [render_encoder_ setVertexSamplerState:sampler->sampler_state() atIndex:index];
-            break;
-        case Pipeline_stage::fragment:
-            [render_encoder_ setFragmentSamplerState:sampler->sampler_state() atIndex:index];
-            break;
-        case Pipeline_stage::compute:
-            [compute_encoder_ setSamplerState:sampler->sampler_state() atIndex:index];
-            break;
-        default:
-            break;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind_pipeline_(Mtl_pipeline* pipeline)
-{
-    assert(render_encoder_);
-
-    [render_encoder_ setCullMode:pipeline->cull_mode()];
-    [render_encoder_ setFrontFacingWinding:pipeline->winding()];
-    [render_encoder_ setRenderPipelineState:pipeline->render_pipeline_state()];
-
-    if (pipeline->depth_test_enabled())
-        [render_encoder_ setDepthStencilState:pipeline->depth_stencil_state()];
-
-    if (pipeline->stencil_test_enabled())
-        [render_encoder_ setStencilFrontReferenceValue:pipeline->front_stencil_reference()
-                                    backReferenceValue:pipeline->back_stencil_reference()];
+    command_buffer_ = [device_->command_queue() commandBuffer];
 }
 
 //----------------------------------------------------------------------------------------------------------------------

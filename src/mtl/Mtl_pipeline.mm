@@ -21,21 +21,21 @@ namespace Gfx_lib {
 Mtl_pipeline::Mtl_pipeline(const Pipeline_desc& desc, Mtl_device* device) :
     Pipeline(),
     device_ { device },
-    primitive_type_ { convert<MTLPrimitiveType>(desc.input_assembly_stage.topology) },
-    cull_mode_ { convert<MTLCullMode>(desc.rasterization_stage.cull_mode) },
-    winding_ { convert<MTLWinding>(desc.rasterization_stage.front_face) },
-    depth_test_enabled_ { desc.depth_stencil_stage.enable_depth_test },
-    stencil_test_enabled_ { desc.depth_stencil_stage.enable_stencil_test },
-    front_stencil_reference_ { desc.depth_stencil_stage.front_stencil_state.referece },
-    back_stencil_reference_ { desc.depth_stencil_stage.back_stencil_state.referece },
+    primitive_type_ { convert<MTLPrimitiveType>(desc.input_assembly.topology) },
+    cull_mode_ { convert<MTLCullMode>(desc.rasterization.cull_mode) },
+    winding_ { convert<MTLWinding>(desc.rasterization.front_face) },
+    depth_test_ { desc.depth_stencil.depth_test },
+    stencil_test_ { desc.depth_stencil.stencil_test },
+    front_stencil_reference_ { desc.depth_stencil.front_stencil.referece },
+    back_stencil_reference_ { desc.depth_stencil.back_stencil.referece },
     render_pipeline_state_ { nil },
     depth_stencil_state_ { nil }
 {
     init_render_pipeline_state_(desc);
 
-    auto& depth_stencil_stage = desc.depth_stencil_stage;
+    auto& depth_stencil_stage = desc.depth_stencil;
 
-    if (depth_stencil_stage.enable_depth_test)
+    if (depth_stencil_stage.depth_test)
         init_depth_stencil_state_(depth_stencil_stage);
 }
 
@@ -55,26 +55,26 @@ void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc& desc)
 
     // configure vertex functions.
     {
-        auto mtl_shader = static_cast<Mtl_shader*>(desc.vertex_shader_stage);
+        auto shader_impl = static_cast<Mtl_shader*>(desc.vertex_shader);
 
-        assert(mtl_shader);
-        descriptor.vertexFunction = mtl_shader->function();
+        assert(shader_impl);
+        descriptor.vertexFunction = shader_impl->function();
     }
 
     // configure fragment functions.
     {
-        auto mtl_shader = static_cast<Mtl_shader*>(desc.fragment_shader_stage);
+        auto shader_impl = static_cast<Mtl_shader*>(desc.fragment_shader);
 
-        assert(mtl_shader);
-        descriptor.fragmentFunction = mtl_shader->function();
+        assert(shader_impl);
+        descriptor.fragmentFunction = shader_impl->function();
     }
 
     // configure buffer layouts and fetch behavior.
     {
-        auto& vertex_state = desc.vertex_state;
+        auto& vertex_input = desc.vertex_input;
 
-        for (auto i = 0; i != vertex_state.bindings.size(); ++i) {
-            auto& binding = vertex_state.bindings[i];
+        for (auto i = 0; i != vertex_input.bindings.size(); ++i) {
+            auto& binding = vertex_input.bindings[i];
 
             if (UINT32_MAX == binding.stride)
                 continue;
@@ -86,49 +86,51 @@ void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc& desc)
             descriptor.vertexDescriptor.layouts[index].stepFunction = convert<MTLVertexStepFunction>(binding.step_rate);
         }
 
-        for (auto i = 0; i != vertex_state.attributes.size(); ++i ){
-            auto& attribute = vertex_state.attributes[i];
+        for (auto i = 0; i != vertex_input.attributes.size(); ++i ){
+            auto& attribute = vertex_input.attributes[i];
 
             if (UINT32_MAX == attribute.binding)
                 continue;
 
+            auto index = attribute.binding + vertex_buffer_index_offset;
+
             descriptor.vertexDescriptor.attributes[i].format = convert<MTLVertexFormat>(attribute.format);
             descriptor.vertexDescriptor.attributes[i].offset = attribute.offset;
-            descriptor.vertexDescriptor.attributes[i].bufferIndex = attribute.binding + vertex_buffer_index_offset;
+            descriptor.vertexDescriptor.attributes[i].bufferIndex = index;
         }
     }
 
     // configure the multisample state.
     {
-        auto& multisample_stage = desc.multisample_stage;
+        auto& multisample = desc.multisample;
 
-        descriptor.sampleCount = multisample_stage.samples;
+        descriptor.sampleCount = multisample.samples;
     }
 
     // configure rendering pipeline state.
     {
-        auto& color_blend_stage = desc.color_blend_stage;
-        auto& output_merger_stage = desc.output_merger_stage;
+        auto& color_blend = desc.color_blend;
+        auto& output_merger = desc.output_merger;
 
         for (auto i = 0; i != 4; ++i) {
-            auto& color_format = output_merger_stage.color_formats[i];
-            auto& attachment = color_blend_stage.attachments[i];
+            auto& color_format = output_merger.color_formats[i];
+            auto& attachment = color_blend.attachments[i];
 
             if (Format::invalid == color_format)
                 continue;
 
             descriptor.colorAttachments[i].pixelFormat = convert<MTLPixelFormat>(color_format);
             descriptor.colorAttachments[i].writeMask = attachment.write_mask;
-            descriptor.colorAttachments[i].blendingEnabled = attachment.enable_blend;
+            descriptor.colorAttachments[i].blendingEnabled = attachment.blend;
             descriptor.colorAttachments[i].sourceRGBBlendFactor = convert<MTLBlendFactor>(attachment.src_rgb_blend_factor);
             descriptor.colorAttachments[i].destinationRGBBlendFactor = convert<MTLBlendFactor>(attachment.dst_rgb_blend_factor);
             descriptor.colorAttachments[i].rgbBlendOperation = convert<MTLBlendOperation>(attachment.rgb_blend_op);
-            descriptor.colorAttachments[i].sourceAlphaBlendFactor = convert<MTLBlendFactor>(attachment.src_alpha_blend_factor);
-            descriptor.colorAttachments[i].destinationAlphaBlendFactor = convert<MTLBlendFactor>(attachment.dst_alpha_blend_factor);
-            descriptor.colorAttachments[i].alphaBlendOperation = convert<MTLBlendOperation>(attachment.alpha_blend_op);
+            descriptor.colorAttachments[i].sourceAlphaBlendFactor = convert<MTLBlendFactor>(attachment.src_a_blend_factor);
+            descriptor.colorAttachments[i].destinationAlphaBlendFactor = convert<MTLBlendFactor>(attachment.dst_a_blend_factor);
+            descriptor.colorAttachments[i].alphaBlendOperation = convert<MTLBlendOperation>(attachment.a_blend_op);
         }
 
-        auto& depth_stencil_format = output_merger_stage.depth_stencil;
+        auto& depth_stencil_format = output_merger.depth_stencil_format;
 
         if (Format::invalid != depth_stencil_format) {
             descriptor.depthAttachmentPixelFormat = convert<MTLPixelFormat>(depth_stencil_format);
@@ -138,9 +140,9 @@ void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc& desc)
 
     // configure rasterization and visibility state.
     {
-        auto& input_assembly_stage = desc.input_assembly_stage;
+        auto& input_assembly = desc.input_assembly;
 
-        descriptor.inputPrimitiveTopology = convert<MTLPrimitiveTopologyClass>(input_assembly_stage.topology);
+        descriptor.inputPrimitiveTopology = convert<MTLPrimitiveTopologyClass>(input_assembly.topology);
     }
 
     // try to create a render pipeline state.
@@ -153,34 +155,34 @@ void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_pipeline::init_depth_stencil_state_(const Depth_stencil_stage& stage)
+void Mtl_pipeline::init_depth_stencil_state_(const Depth_stencil& stage)
 {
     // configure the depth stencil descriptor.
     auto descriptor = [[MTLDepthStencilDescriptor alloc] init];
 
-    if (stage.enable_depth_test) {
+    if (stage.depth_test) {
         descriptor.depthCompareFunction = convert<MTLCompareFunction>(stage.depth_compare_op);
-        descriptor.depthWriteEnabled = stage.enable_depth_write;
+        descriptor.depthWriteEnabled = stage.write_mask;
     }
 
-    if (stage.enable_stencil_test) {
-        auto& front_stencil_state = stage.front_stencil_state;
+    if (stage.stencil_test) {
+        auto& front_stencil = stage.front_stencil;
 
-        descriptor.frontFaceStencil.stencilFailureOperation = convert<MTLStencilOperation>(front_stencil_state.stencil_fail_op);
-        descriptor.frontFaceStencil.depthFailureOperation = convert<MTLStencilOperation>(front_stencil_state.depth_fail_op );
-        descriptor.frontFaceStencil.depthStencilPassOperation = convert<MTLStencilOperation>(front_stencil_state.depth_stencil_pass_op);
-        descriptor.frontFaceStencil.stencilCompareFunction = convert<MTLCompareFunction>(front_stencil_state.compare_op);
-        descriptor.frontFaceStencil.readMask = front_stencil_state.read_mask;
-        descriptor.frontFaceStencil.writeMask = front_stencil_state.write_mask;
+        descriptor.frontFaceStencil.stencilFailureOperation = convert<MTLStencilOperation>(front_stencil.stencil_fail_op);
+        descriptor.frontFaceStencil.depthFailureOperation = convert<MTLStencilOperation>(front_stencil.depth_fail_op );
+        descriptor.frontFaceStencil.depthStencilPassOperation = convert<MTLStencilOperation>(front_stencil.depth_stencil_pass_op);
+        descriptor.frontFaceStencil.stencilCompareFunction = convert<MTLCompareFunction>(front_stencil.compare_op);
+        descriptor.frontFaceStencil.readMask = front_stencil.read_mask;
+        descriptor.frontFaceStencil.writeMask = front_stencil.write_mask;
 
-        auto& back_stencil_state = stage.back_stencil_state;
+        auto& back_stencil = stage.back_stencil;
 
-        descriptor.backFaceStencil.stencilFailureOperation = convert<MTLStencilOperation>(back_stencil_state.stencil_fail_op);
-        descriptor.backFaceStencil.depthFailureOperation = convert<MTLStencilOperation>(back_stencil_state.depth_fail_op );
-        descriptor.backFaceStencil.depthStencilPassOperation = convert<MTLStencilOperation>(back_stencil_state.depth_stencil_pass_op);
-        descriptor.backFaceStencil.stencilCompareFunction = convert<MTLCompareFunction>(back_stencil_state.compare_op);
-        descriptor.backFaceStencil.readMask = back_stencil_state.read_mask;
-        descriptor.backFaceStencil.writeMask = back_stencil_state.write_mask;
+        descriptor.backFaceStencil.stencilFailureOperation = convert<MTLStencilOperation>(back_stencil.stencil_fail_op);
+        descriptor.backFaceStencil.depthFailureOperation = convert<MTLStencilOperation>(back_stencil.depth_fail_op );
+        descriptor.backFaceStencil.depthStencilPassOperation = convert<MTLStencilOperation>(back_stencil.depth_stencil_pass_op);
+        descriptor.backFaceStencil.stencilCompareFunction = convert<MTLCompareFunction>(back_stencil.compare_op);
+        descriptor.backFaceStencil.readMask = back_stencil.read_mask;
+        descriptor.backFaceStencil.writeMask = back_stencil.write_mask;
     }
 
     // try to create a depth stencil state.

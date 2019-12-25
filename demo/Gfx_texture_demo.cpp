@@ -85,9 +85,11 @@ void Gfx_texture_demo::init_resources_()
 
     swap_chain_ = device_->make(swap_chain_desc);
 
+    Cmd_buffer_desc cmd_buffer_desc {};
+
     // create cmd lists.
     for (auto& cmd_buffer : cmd_buffers_)
-        cmd_buffer = device_->make_cmd_buffer();
+        cmd_buffer = device_->make(cmd_buffer_desc);
 
     // create fences.
     for (auto& fence : fences_)
@@ -119,9 +121,7 @@ void Gfx_texture_demo::init_resources_()
 
     image_ = device_->make(image_desc);
 
-    auto cmd_buffer = device_->make_cmd_buffer();
-
-    cmd_buffer->start();
+    auto cmd_buffer = device_->make(cmd_buffer_desc);
 
     Buffer_image_copy_region copy_region;
 
@@ -129,8 +129,11 @@ void Gfx_texture_demo::init_resources_()
     copy_region.buffer_image_height = h;
     copy_region.image_extent = image_desc.extent;
 
-    cmd_buffer->copy(staging_buffer.get(), image_.get(), copy_region);
-    cmd_buffer->end();
+    auto encoder = cmd_buffer->create(Blit_encoder_desc {});
+
+    encoder->copy(staging_buffer.get(), image_.get(), copy_region);
+    encoder->end();
+    
     device_->submit(cmd_buffer.get());
     device_->wait_idle();
 
@@ -158,16 +161,16 @@ void Gfx_texture_demo::init_resources_()
     // create a render pipeline.
     Pipeline_desc render_pipeline_desc;
 
-    render_pipeline_desc.vertex_state.attributes[0].binding = 0;
-    render_pipeline_desc.vertex_state.attributes[0].format = Format::rgb32_float;
-    render_pipeline_desc.vertex_state.attributes[1].binding = 0;
-    render_pipeline_desc.vertex_state.attributes[1].format = Format::rg32_float;
-    render_pipeline_desc.vertex_state.attributes[1].offset = sizeof(float) * 3;
-    render_pipeline_desc.vertex_state.bindings[0].stride = sizeof(Vertex);
-    render_pipeline_desc.vertex_shader_stage = vertex_shader.get();
-    render_pipeline_desc.input_assembly_stage.topology = Topology::triangle_strip;
-    render_pipeline_desc.fragment_shader_stage = fragment_shader.get();
-    render_pipeline_desc.output_merger_stage.color_formats[0] = swap_chain_->image_format();
+    render_pipeline_desc.vertex_input.attributes[0].binding = 0;
+    render_pipeline_desc.vertex_input.attributes[0].format = Format::rgb32_float;
+    render_pipeline_desc.vertex_input.attributes[1].binding = 0;
+    render_pipeline_desc.vertex_input.attributes[1].format = Format::rg32_float;
+    render_pipeline_desc.vertex_input.attributes[1].offset = sizeof(float) * 3;
+    render_pipeline_desc.vertex_input.bindings[0].stride = sizeof(Vertex);
+    render_pipeline_desc.vertex_shader = vertex_shader.get();
+    render_pipeline_desc.input_assembly.topology = Topology::triangle_strip;
+    render_pipeline_desc.fragment_shader = fragment_shader.get();
+    render_pipeline_desc.output_merger.color_formats[0] = swap_chain_->image_format();
 
     render_pipeline_ = device_->make(render_pipeline_desc);
 }
@@ -199,24 +202,25 @@ void Gfx_texture_demo::on_render_()
     fence->reset();
     cmd_buffer->reset();
 
-    Render_pass_state render_pass_state;
+    Render_encoder_desc render_pass;
 
-    render_pass_state.colors[0].image = swap_chain_->acquire();
-    render_pass_state.colors[0].load_op = Load_op::clear;
-    render_pass_state.colors[0].clear_value.r = 1.0f;
-    render_pass_state.colors[0].clear_value.g = 1.0f;
-    render_pass_state.colors[0].clear_value.b = 1.0f;
-    render_pass_state.colors[0].clear_value.a = 1.0f;
+    render_pass.colors[0].image = swap_chain_->acquire();
+    render_pass.colors[0].load_op = Load_op::clear;
+    render_pass.colors[0].clear_value.r = 1.0f;
+    render_pass.colors[0].clear_value.g = 1.0f;
+    render_pass.colors[0].clear_value.b = 1.0f;
+    render_pass.colors[0].clear_value.a = 1.0f;
 
-    cmd_buffer->start();
-    cmd_buffer->begin(render_pass_state);
-    cmd_buffer->bind(vertex_buffer_.get(), 0);
-    cmd_buffer->bind(image_.get(), static_cast<uint32_t>(Pipeline_stage::fragment),0);
-    cmd_buffer->bind(sampler_.get(), static_cast<uint32_t>(Pipeline_stage::fragment), 0);
-    cmd_buffer->bind(render_pipeline_.get());
-    cmd_buffer->draw(4);
+    auto encoder = cmd_buffer->create(render_pass);
+
+    encoder->viewport({0.0f, 0.0f, 360.0f, 640.0f});
+    encoder->vertex_buffer(vertex_buffer_.get(), 0);
+    encoder->shader_texture(Pipeline_stage::fragment_shader, image_.get(), sampler_.get(), 0);
+    encoder->pipeline(render_pipeline_.get());
+    encoder->draw(4);
+    encoder->end();
+    
     cmd_buffer->end();
-    cmd_buffer->stop();
 
     device_->submit(cmd_buffer.get(), fence.get());
     swap_chain_->present();

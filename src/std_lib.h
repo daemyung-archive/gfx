@@ -13,8 +13,9 @@
 #include <memory>
 #include <array>
 #include <vector>
+#include <deque>
 #include <unordered_map>
-#include <bitset>
+#include <algorithm>
 #include <mutex>
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -23,6 +24,14 @@ template <typename T>
 inline uint32_t etoi(T e) noexcept
 {
     return static_cast<uint32_t>(e);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<typename R, typename F>
+inline F for_each(R& range, F func)
+{
+    return std::for_each(std::begin(range), std::end(range), func);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

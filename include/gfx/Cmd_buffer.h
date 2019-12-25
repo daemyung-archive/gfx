@@ -22,13 +22,11 @@ class Buffer;
 class Image;
 class Sampler;
 class Pipeline;
-
-using Extent = Platform_lib::Extent;
-using Pipeline_stages = std::bitset<8>;
+class Cmd_buffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Render_pass_attachment_state {
+struct Attachment {
     Image* image { nullptr };
     Load_op load_op { Load_op::dont_care };
     Store_op store_op { Store_op::store };
@@ -37,9 +35,38 @@ struct Render_pass_attachment_state {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Render_pass_state {
-    std::array<Render_pass_attachment_state, 4> colors;
-    Render_pass_attachment_state depth_stencil;
+struct Render_encoder_desc {
+    std::array<Attachment, 4> colors;
+    Attachment depth_stencil;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Render_encoder {
+public:
+    virtual ~Render_encoder() = default;
+
+    virtual void end() = 0;
+
+    virtual void draw(uint32_t count, uint32_t first = 0) = 0;
+
+    virtual void draw_indexed(uint32_t count, uint32_t first = 0) = 0;
+
+    virtual void vertex_buffer(Buffer* buffer, uint32_t index) = 0;
+
+    virtual void index_buffer(Buffer* buffer, Index_type index_type) = 0;
+
+    virtual void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) = 0;
+
+    virtual void shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index) = 0;
+
+    virtual void pipeline(Pipeline* pipeline) = 0;
+
+    virtual void viewport(const Viewport& viewport) = 0;
+
+    virtual void scissor(const Scissor& scissor) = 0;
+
+    virtual Cmd_buffer* cmd_buffer() const = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -64,8 +91,35 @@ struct Buffer_image_copy_region {
     uint32_t buffer_image_height { 0 };
     uint32_t buffer_offset { 0 };
     Image_subresource image_subresource;
-    Extent image_extent { 0, 0, 1 };
+    Platform_lib::Extent image_extent { 0, 0, 1 };
     Offset image_offset { 0, 0, 0 };
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Blit_encoder_desc {
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Blit_encoder {
+public:
+    virtual ~Blit_encoder() = default;
+
+    virtual void copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region) = 0;
+
+    virtual void copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region) = 0;
+
+    virtual void copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region) = 0;
+
+    virtual void end() = 0;
+
+    virtual Cmd_buffer* cmd_buffer() const = 0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Cmd_buffer_desc {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -74,41 +128,13 @@ class Cmd_buffer {
 public:
     virtual ~Cmd_buffer() = default;
 
-    virtual void start() = 0;
+    virtual std::unique_ptr<Render_encoder> create(const Render_encoder_desc& desc) = 0;
 
-    virtual void stop() = 0;
-
-    virtual void reset() = 0;
-
-    virtual void bind(Buffer* buffer, uint32_t index) = 0;
-
-    virtual void bind(Buffer* buffer, Index_type type) = 0;
-
-    virtual void bind(Buffer* buffer, const Pipeline_stages& stages, uint32_t index) = 0;
-
-    virtual void bind(Image* image, const Pipeline_stages& stages, uint32_t index) = 0;
-
-    virtual void bind(Sampler* sampler, const Pipeline_stages& stages, uint32_t index) = 0;
-
-    virtual void bind(Pipeline* pipeline) = 0;
-
-    virtual void begin(const Render_pass_state& state) = 0;
+    virtual std::unique_ptr<Blit_encoder> create(const Blit_encoder_desc& desc) = 0;
 
     virtual void end() = 0;
 
-    virtual void set(const Viewport& viewport) = 0;
-
-    virtual void set(const Scissor& scissor) = 0;
-
-    virtual void draw(uint32_t count, uint32_t first = 0) = 0;
-
-    virtual void draw_indexed(uint32_t count, uint32_t first = 0) = 0;
-
-    virtual void copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer_copy_region& region) = 0;
-
-    virtual void copy(Buffer* src_buffer, Image* dst_image, const Buffer_image_copy_region& region) = 0;
-
-    virtual void copy(Image* src_image, Buffer* dst_buffer, const Buffer_image_copy_region& region) = 0;
+    virtual void reset() = 0;
 
     virtual Device* device() const = 0;
 };

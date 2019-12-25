@@ -73,6 +73,7 @@ APPLY_VLK_INSTANCE_CORE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
+APPLY_VLK_INSTANCE_OSX_SURFACE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_CORE_SYMBOLS(DEFINE_VLK_SYMBOL)
 APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DEFINE_VLK_SYMBOL)
@@ -162,7 +163,7 @@ std::unique_ptr<Swap_chain> Vlk_device::make(const Swap_chain_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Cmd_buffer> Vlk_device::make_cmd_buffer()
+std::unique_ptr<Cmd_buffer> Vlk_device::make(const Cmd_buffer_desc& desc)
 {
     return make_unique<Vlk_cmd_buffer>(this);
 }
@@ -202,13 +203,13 @@ void Vlk_device::wait_idle()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_render_pass* Vlk_device::render_pass(const Render_pass_state& state)
+Vlk_render_pass* Vlk_device::render_pass(const Render_encoder_desc& render_pass)
 {
     // configure a render pass desc.
     Vlk_render_pass_desc desc {};
 
     for (auto i = 0; i != 4; ++i) {
-        auto& color = state.colors[i];
+        auto& color = render_pass.colors[i];
 
         if (!color.image)
             continue;
@@ -219,7 +220,7 @@ Vlk_render_pass* Vlk_device::render_pass(const Render_pass_state& state)
         desc.colors[i].store_op = color.store_op;
     }
 
-    auto& depth_stencil = state.depth_stencil;
+    auto& depth_stencil = render_pass.depth_stencil;
 
     if (depth_stencil.image) {
         desc.depth_stencil.format = depth_stencil.image->format();
@@ -243,17 +244,17 @@ Vlk_render_pass* Vlk_device::render_pass(const Render_pass_state& state)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_render_pass* Vlk_device::render_pass(const Output_merger_stage& state)
+Vlk_render_pass* Vlk_device::render_pass(const Output_merger& output_merger)
 {
     // configure a render pass desc.
     Vlk_render_pass_desc desc {};
 
     for (auto i = 0; i != 4; ++i) {
-        desc.colors[i].format = state.color_formats[i];
+        desc.colors[i].format = output_merger.color_formats[i];
         desc.colors[i].samples = 1;
     }
 
-    desc.depth_stencil.format = state.depth_stencil;
+    desc.depth_stencil.format = output_merger.depth_stencil_format;
     desc.depth_stencil.samples = 1;
 
     // calculate a hash value.
@@ -271,16 +272,16 @@ Vlk_render_pass* Vlk_device::render_pass(const Output_merger_stage& state)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_framebuffer* Vlk_device::framebuffer(const Render_pass_state& state)
+Vlk_framebuffer* Vlk_device::framebuffer(const Render_encoder_desc& render_pass)
 {
     // configure a framebuffer desc.
     Vlk_framebuffer_desc desc {};
 
-    desc.render_pass = render_pass(state);
+    desc.render_pass = this->render_pass(render_pass);
 
     for (auto i = 0; i != 4; ++i) {
         // cast to the implementation.
-        auto image_impl = static_cast<Vlk_image*>(state.colors[i].image);
+        auto image_impl = static_cast<Vlk_image*>(render_pass.colors[i].image);
 
         if (!image_impl)
             continue;
@@ -289,7 +290,7 @@ Vlk_framebuffer* Vlk_device::framebuffer(const Render_pass_state& state)
     }
 
     // cast to the implementation.
-    desc.images[4] = static_cast<Vlk_image*>(state.depth_stencil.image);
+    desc.images[4] = static_cast<Vlk_image*>(render_pass.depth_stencil.image);
 
     // calculate a hash value.
     uint64_t key { 0 };
@@ -313,10 +314,12 @@ void Vlk_device::init_library_()
         library_ = Library { "libvulkan.so" };
 #elif defined(_WIN32)
         library_ = Library { "vulkan-1.dll" };
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+        library_ = Library { "libvulkan.dylib" };
 #endif
     }
     catch (exception& e) {
-        throw runtime_error("fail to create a device");;
+        throw runtime_error("fail to create a device");
     }
 }
 
@@ -336,10 +339,12 @@ void Vlk_device::init_instance_()
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 #endif
         VK_KHR_SURFACE_EXTENSION_NAME,
-#if VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
         VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
-#elif VK_USE_PLATFORM_WIN32_KHR
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+        VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 #endif
     };
 
@@ -370,6 +375,7 @@ void Vlk_device::init_instance_symbols_()
     APPLY_VLK_INSTANCE_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
     APPLY_VLK_INSTANCE_ANDROID_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
     APPLY_VLK_INSTANCE_WIN32_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
+    APPLY_VLK_INSTANCE_OSX_SURFACE_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
     APPLY_VLK_INSTANCE_DEBUG_REPORT_SYMBOLS(LOAD_VLK_INSTANCE_SYMBOL)
 }
 

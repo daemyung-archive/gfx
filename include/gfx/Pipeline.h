@@ -18,7 +18,7 @@ class Shader;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_attribute_state {
+struct Vertex_input_attribute {
     uint32_t binding { UINT32_MAX };
     Format format { Format::invalid };
     uint32_t offset { 0 };
@@ -26,32 +26,32 @@ struct Vertex_attribute_state {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_binding_state {
+struct Vertex_input_binding {
     uint32_t stride { UINT32_MAX };
     Step_rate step_rate { Step_rate::vertex };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_state {
-    std::array<Vertex_attribute_state, 16> attributes;
-    std::array<Vertex_binding_state, 2> bindings;
+struct Vertex_input {
+    std::array<Vertex_input_attribute, 16> attributes;
+    std::array<Vertex_input_binding, 2> bindings;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Input_assembly_stage {
+struct Input_assembly {
     Topology topology { Topology::triangle_list };
     bool restart { false };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Rasterization_stage {
-    bool enable_depth_clamp { false };
+struct Rasterization {
+    bool depth_clamp { false };
     Cull_mode cull_mode { Cull_mode::back };
     Front_face front_face { Front_face::counter_clockwise };
-    bool enable_depth_bias { false };
+    bool depth_bias { false };
     float depth_bias_constant_factor { 0.0f };
     float depth_bias_clamp { 1.0f };
     float depth_bias_slope_factor { 1.0f };
@@ -59,13 +59,13 @@ struct Rasterization_stage {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Multisample_stage {
-    uint32_t samples = { 1 };
+struct Multisample {
+    uint32_t samples { 1 };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Stencil_state {
+struct Stencil {
     Stencil_op stencil_fail_op;
     Stencil_op depth_fail_op;
     Stencil_op depth_stencil_pass_op;
@@ -77,54 +77,54 @@ struct Stencil_state {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Depth_stencil_stage {
-    bool enable_depth_test { false };
-    bool enable_depth_write { false };
+struct Depth_stencil {
+    bool depth_test { false };
+    bool write_mask { false };
     Compare_op depth_compare_op { Compare_op::less };
-    bool enable_stencil_test { false };
-    Stencil_state front_stencil_state;
-    Stencil_state back_stencil_state;
+    bool stencil_test { false };
+    Stencil front_stencil;
+    Stencil back_stencil;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Color_blend_attachment_state {
-    bool enable_blend { false };
+struct Color_blend_attachment {
+    bool blend { false };
     Blend_factor src_rgb_blend_factor { Blend_factor::one };
     Blend_factor dst_rgb_blend_factor { Blend_factor::zero };
     Blend_op rgb_blend_op { Blend_op::add };
-    Blend_factor src_alpha_blend_factor { Blend_factor::one };
-    Blend_factor dst_alpha_blend_factor { Blend_factor::zero };
-    Blend_op alpha_blend_op { Blend_op::add };
+    Blend_factor src_a_blend_factor { Blend_factor::one };
+    Blend_factor dst_a_blend_factor { Blend_factor::zero };
+    Blend_op a_blend_op { Blend_op::add };
     uint32_t write_mask { 0xF };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Color_blend_stage {
-    std::array<Color_blend_attachment_state, 4> attachments;
+struct Color_blend {
+    std::array<Color_blend_attachment, 4> attachments;
     std::array<float, 4> constant;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Output_merger_stage {
+struct Output_merger {
     std::array<Format, 4> color_formats { Format::invalid, Format::invalid, Format::invalid, Format::invalid };
-    Format depth_stencil { Format::invalid };
+    Format depth_stencil_format { Format::invalid };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Pipeline_desc {
-    Vertex_state vertex_state;
-    Input_assembly_stage input_assembly_stage;
-    Shader* vertex_shader_stage;
-    Rasterization_stage rasterization_stage;
-    Shader* fragment_shader_stage;
-    Multisample_stage multisample_stage;
-    Depth_stencil_stage depth_stencil_stage;
-    Color_blend_stage color_blend_stage;
-    Output_merger_stage output_merger_stage;
+    Vertex_input vertex_input;
+    Input_assembly input_assembly;
+    Shader* vertex_shader;
+    Rasterization rasterization;
+    Shader* fragment_shader;
+    Multisample multisample;
+    Depth_stencil depth_stencil;
+    Color_blend color_blend;
+    Output_merger output_merger;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
