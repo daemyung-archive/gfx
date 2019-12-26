@@ -256,13 +256,8 @@ void Mtl_cmd_buffer::bind(Pipeline* pipeline)
     if (mtl_pipeline == pipeline_)
         return;
 
-    if (render_encoder_ && mtl_pipeline) {
-        if (Pipeline_type::render == mtl_pipeline->type())
-            bind_render_pipeline_(mtl_pipeline);
-        else {
-            bind_compute_pipeline_(mtl_pipeline);
-        }
-    }
+    if (render_encoder_ && mtl_pipeline)
+        bind_pipeline_(pipeline_);
 
     pipeline_ = mtl_pipeline;
 }
@@ -356,12 +351,8 @@ void Mtl_cmd_buffer::begin(const Render_pass_state& state)
     }
 
     // bind pipeline.
-    if (pipeline_) {
-        if (Pipeline_type::render == pipeline_->type())
-            bind_render_pipeline_(pipeline_);
-        else
-            bind_compute_pipeline_(pipeline_);
-    }
+    if (pipeline_)
+        bind_pipeline_(pipeline_);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -561,7 +552,7 @@ void Mtl_cmd_buffer::bind_sampler_(Mtl_sampler* sampler, Pipeline_stage stage, u
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_cmd_buffer::bind_render_pipeline_(Mtl_pipeline* pipeline)
+void Mtl_cmd_buffer::bind_pipeline_(Mtl_pipeline* pipeline)
 {
     assert(render_encoder_);
 
@@ -575,13 +566,6 @@ void Mtl_cmd_buffer::bind_render_pipeline_(Mtl_pipeline* pipeline)
     if (pipeline->stencil_test_enabled())
         [render_encoder_ setStencilFrontReferenceValue:pipeline->front_stencil_reference()
                                     backReferenceValue:pipeline->back_stencil_reference()];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_cmd_buffer::bind_compute_pipeline_(Mtl_pipeline* pipeline)
-{
-    // [compute_encoder_ setComputePipelineState]
 }
 
 //----------------------------------------------------------------------------------------------------------------------

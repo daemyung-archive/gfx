@@ -127,9 +127,7 @@ private:
 
     void bind_sampler_(Mtl_sampler* sampler, Pipeline_stage stage, uint32_t index);
 
-    void bind_render_pipeline_(Mtl_pipeline* pipeline);
-
-    void bind_compute_pipeline_(Mtl_pipeline* pipeline);
+    void bind_pipeline_(Mtl_pipeline* pipeline);
 
 private:
     Mtl_device* device_;

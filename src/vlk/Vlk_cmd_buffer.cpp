@@ -138,7 +138,7 @@ void Vlk_cmd_buffer::bind(Pipeline* pipeline)
         return;
 
     if (pipeline_impl)
-        vkCmdBindPipeline(command_buffer_, convert<VkPipelineBindPoint>(pipeline_impl->type()), pipeline_impl->pipeline());
+        vkCmdBindPipeline(command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_impl->pipeline());
 
     pipeline_ = pipeline_impl;
 }

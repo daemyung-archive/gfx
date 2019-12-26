@@ -27,7 +27,7 @@ public:
 
     std::unique_ptr<Shader> make(const Shader_desc& desc) override;
 
-    std::unique_ptr<Pipeline> make(const Pipeline_desc<Pipeline_type::render>& desc) override;
+    std::unique_ptr<Pipeline> make(const Pipeline_desc& desc) override;
 
     std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) override;
 

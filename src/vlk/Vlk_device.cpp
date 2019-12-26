@@ -148,7 +148,7 @@ std::unique_ptr<Shader> Vlk_device::make(const Shader_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Pipeline> Vlk_device::make(const Pipeline_desc<Pipeline_type::render>& desc)
+std::unique_ptr<Pipeline> Vlk_device::make(const Pipeline_desc& desc)
 {
     return make_unique<Vlk_pipeline>(desc, this);
 }

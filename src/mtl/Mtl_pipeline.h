@@ -20,11 +20,9 @@ class Mtl_device;
 
 class Mtl_pipeline final : public Pipeline {
 public:
-    Mtl_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Mtl_device* device);
+    Mtl_pipeline(const Pipeline_desc& desc, Mtl_device* device);
 
     Device* device() const override;
-
-    Pipeline_type type() const noexcept override;
 
     inline auto primitive_type() const noexcept
     { return primitive_type_; }
@@ -54,13 +52,12 @@ public:
     { return depth_stencil_state_; }
 
 private:
-    void init_render_pipeline_state_(const Pipeline_desc<Pipeline_type::render>& desc);
+    void init_render_pipeline_state_(const Pipeline_desc& desc);
 
     void init_depth_stencil_state_(const Depth_stencil_stage& stage);
 
 private:
     Mtl_device* device_;
-    Pipeline_type type_;
     MTLPrimitiveType primitive_type_;
     MTLCullMode cull_mode_;
     MTLWinding winding_;

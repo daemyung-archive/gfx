@@ -35,7 +35,7 @@ public:
 
     virtual std::unique_ptr<Shader> make(const Shader_desc& desc) = 0;
 
-    virtual std::unique_ptr<Pipeline> make(const Pipeline_desc<Pipeline_type::render>& desc) = 0;
+    virtual std::unique_ptr<Pipeline> make(const Pipeline_desc& desc) = 0;
 
     virtual std::unique_ptr<Swap_chain> make(const Swap_chain_desc& desc) = 0;
 

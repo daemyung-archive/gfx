@@ -115,13 +115,7 @@ struct Output_merger_stage {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<Pipeline_type>
-struct Pipeline_desc;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template<>
-struct Pipeline_desc<Pipeline_type::render> {
+struct Pipeline_desc {
     Vertex_state vertex_state;
     Input_assembly_stage input_assembly_stage;
     Shader* vertex_shader_stage;
@@ -135,19 +129,11 @@ struct Pipeline_desc<Pipeline_type::render> {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-struct Pipeline_desc<Pipeline_type::compute> {
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
 class Pipeline {
 public:
     virtual ~Pipeline() = default;
 
     virtual Device* device() const = 0;
-
-    virtual Pipeline_type type() const noexcept = 0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

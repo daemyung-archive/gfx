@@ -61,7 +61,7 @@ std::unique_ptr<Shader> Mtl_device::make(const Shader_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Pipeline> Mtl_device::make(const Pipeline_desc<Pipeline_type::render>& desc)
+std::unique_ptr<Pipeline> Mtl_device::make(const Pipeline_desc& desc)
 {
     return make_unique<Mtl_pipeline>(desc, this);
 }

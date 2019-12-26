@@ -61,12 +61,6 @@ enum class Address_mode : uint8_t {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-enum class Pipeline_type : uint8_t {
-    render = 0, compute
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
 enum class Pipeline_stage : uint8_t {
     vertex = 0x1 << 0, fragment = 0x1 << 1, output_merger = 0x1 << 2, compute = 0x1 << 3, transfer = 0x1 << 4
 };

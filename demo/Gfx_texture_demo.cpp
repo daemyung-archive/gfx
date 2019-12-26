@@ -156,7 +156,7 @@ void Gfx_texture_demo::init_resources_()
     auto fragment_shader = device_->make(fragment_shader_desc);
 
     // create a render pipeline.
-    Pipeline_desc<Pipeline_type::render> render_pipeline_desc;
+    Pipeline_desc render_pipeline_desc;
 
     render_pipeline_desc.vertex_state.attributes[0].binding = 0;
     render_pipeline_desc.vertex_state.attributes[0].format = Format::rgb32_float;

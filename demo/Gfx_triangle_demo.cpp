@@ -114,20 +114,20 @@ void Gfx_triangle_demo::init_resources_()
     auto fragment_shader = device_->make(fragment_shader_desc);
 
     // create a render pipeline.
-    Pipeline_desc<Pipeline_type::render> render_pipeline_desc;
+    Pipeline_desc pipeline_desc;
 
-    render_pipeline_desc.vertex_state.attributes[0].binding = 0;
-    render_pipeline_desc.vertex_state.attributes[0].format = Format::rgb32_float;
-    render_pipeline_desc.vertex_state.attributes[1].binding = 0;
-    render_pipeline_desc.vertex_state.attributes[1].format = Format::rgb32_float;
-    render_pipeline_desc.vertex_state.attributes[1].offset = sizeof(float) * 3;
-    render_pipeline_desc.vertex_state.bindings[0].stride = sizeof(Vertex);
-    render_pipeline_desc.vertex_shader_stage = vertex_shader.get();
-    render_pipeline_desc.fragment_shader_stage = fragment_shader.get();
-    render_pipeline_desc.rasterization_stage.cull_mode = Cull_mode::none;
-    render_pipeline_desc.output_merger_stage.color_formats[0] = swap_chain_->image_format();
+    pipeline_desc.vertex_state.attributes[0].binding = 0;
+    pipeline_desc.vertex_state.attributes[0].format = Format::rgb32_float;
+    pipeline_desc.vertex_state.attributes[1].binding = 0;
+    pipeline_desc.vertex_state.attributes[1].format = Format::rgb32_float;
+    pipeline_desc.vertex_state.attributes[1].offset = sizeof(float) * 3;
+    pipeline_desc.vertex_state.bindings[0].stride = sizeof(Vertex);
+    pipeline_desc.vertex_shader_stage = vertex_shader.get();
+    pipeline_desc.fragment_shader_stage = fragment_shader.get();
+    pipeline_desc.rasterization_stage.cull_mode = Cull_mode::none;
+    pipeline_desc.output_merger_stage.color_formats[0] = swap_chain_->image_format();
 
-    render_pipeline_ = device_->make(render_pipeline_desc);
+    render_pipeline_ = device_->make(pipeline_desc);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

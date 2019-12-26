@@ -16,10 +16,9 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_pipeline::Vlk_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Vlk_device* device) :
+Vlk_pipeline::Vlk_pipeline(const Pipeline_desc& desc, Vlk_device* device) :
     Pipeline(),
     device_ { device },
-    type_ { Pipeline_type::render },
     pipeline_ { VK_NULL_HANDLE }
 {
     init_render_pipeline(desc);
@@ -34,14 +33,7 @@ Device* Vlk_pipeline::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Pipeline_type Vlk_pipeline::type() const noexcept
-{
-    return type_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_pipeline::init_render_pipeline(const Pipeline_desc<Pipeline_type::render>& desc)
+void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 {
     // configure a vertex and a fragment shader stages.
     array<VkPipelineShaderStageCreateInfo, 2> shader_stages {};

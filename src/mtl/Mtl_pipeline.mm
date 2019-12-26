@@ -18,10 +18,9 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Mtl_pipeline::Mtl_pipeline(const Pipeline_desc<Pipeline_type::render>& desc, Mtl_device* device) :
+Mtl_pipeline::Mtl_pipeline(const Pipeline_desc& desc, Mtl_device* device) :
     Pipeline(),
     device_ { device },
-    type_ { Pipeline_type::render },
     primitive_type_ { convert<MTLPrimitiveType>(desc.input_assembly_stage.topology) },
     cull_mode_ { convert<MTLCullMode>(desc.rasterization_stage.cull_mode) },
     winding_ { convert<MTLWinding>(desc.rasterization_stage.front_face) },
@@ -49,14 +48,7 @@ Device* Mtl_pipeline::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Pipeline_type Mtl_pipeline::type() const noexcept
-{
-    return type_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc<Pipeline_type::render>& desc)
+void Mtl_pipeline::init_render_pipeline_state_(const Pipeline_desc& desc)
 {
     // configure a render pipeline descriptor.
     auto descriptor = [[MTLRenderPipelineDescriptor alloc] init];

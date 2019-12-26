@@ -531,21 +531,6 @@ inline VkIndexType convert(Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkPipelineBindPoint convert(Pipeline_type type)
-{
-    switch (type) {
-        case Pipeline_type::render:
-            return VK_PIPELINE_BIND_POINT_GRAPHICS;
-        case Pipeline_type::compute:
-            return VK_PIPELINE_BIND_POINT_COMPUTE;
-        default:
-            throw std::runtime_error("invalid the pipeline type");
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 template <>
 inline VkAttachmentLoadOp convert(Load_op op)
 {
