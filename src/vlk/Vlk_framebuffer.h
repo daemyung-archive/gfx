@@ -21,7 +21,8 @@ class Vlk_render_pass;
 
 struct Vlk_framebuffer_desc {
     Vlk_render_pass* render_pass;
-    std::array<Vlk_image*, 4 + 1> images;
+    std::array<Vlk_image*, 4> colors;
+    Vlk_image* depth_stencil;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

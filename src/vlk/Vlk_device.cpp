@@ -185,36 +185,12 @@ void Vlk_device::wait_idle()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_render_pass* Vlk_device::render_pass(const Render_encoder_desc& render_pass)
+Vlk_render_pass* Vlk_device::render_pass(const Vlk_render_pass_desc& desc)
 {
-    // configure a render pass desc.
-    Vlk_render_pass_desc desc {};
-
-    for (auto i = 0; i != 4; ++i) {
-        auto& color = render_pass.colors[i];
-
-        if (!color.image)
-            continue;
-
-        desc.colors[i].format = color.image->format();
-        desc.colors[i].samples = color.image->samples();
-        desc.colors[i].load_op = color.load_op;
-        desc.colors[i].store_op = color.store_op;
-    }
-
-    auto& depth_stencil = render_pass.depth_stencil;
-
-    if (depth_stencil.image) {
-        desc.depth_stencil.format = depth_stencil.image->format();
-        desc.depth_stencil.samples = depth_stencil.image->samples();
-        desc.depth_stencil.load_op = depth_stencil.load_op;
-        desc.depth_stencil.store_op = depth_stencil.store_op;
-    }
-
     // calculate a hash value.
     uint64_t key { 0 };
 
-    MetroHash64::Hash(reinterpret_cast<uint8_t*>(&desc), sizeof(Vlk_render_pass_desc),
+    MetroHash64::Hash(reinterpret_cast<const uint8_t*>(&desc), sizeof(Vlk_render_pass_desc),
                       reinterpret_cast<uint8_t*>(&key));
 
     // check a render pass exists and if not then create it.
@@ -226,58 +202,12 @@ Vlk_render_pass* Vlk_device::render_pass(const Render_encoder_desc& render_pass)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_render_pass* Vlk_device::render_pass(const Output_merger& output_merger)
+Vlk_framebuffer* Vlk_device::framebuffer(const Vlk_framebuffer_desc& desc)
 {
-    // configure a render pass desc.
-    Vlk_render_pass_desc desc {};
-
-    for (auto i = 0; i != 4; ++i) {
-        desc.colors[i].format = output_merger.color_formats[i];
-        desc.colors[i].samples = 1;
-    }
-
-    desc.depth_stencil.format = output_merger.depth_stencil_format;
-    desc.depth_stencil.samples = 1;
-
     // calculate a hash value.
     uint64_t key { 0 };
 
-    MetroHash64::Hash(reinterpret_cast<uint8_t*>(&desc), sizeof(Vlk_render_pass_desc),
-                      reinterpret_cast<uint8_t*>(&key));
-
-    // check a render pass exists and if not then create it.
-    if (!render_pass_pool_.contains(key))
-        render_pass_pool_.emplace(key, desc, this);
-
-    return *render_pass_pool_.find(key);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Vlk_framebuffer* Vlk_device::framebuffer(const Render_encoder_desc& render_pass)
-{
-    // configure a framebuffer desc.
-    Vlk_framebuffer_desc desc {};
-
-    desc.render_pass = this->render_pass(render_pass);
-
-    for (auto i = 0; i != 4; ++i) {
-        // cast to the implementation.
-        auto image_impl = static_cast<Vlk_image*>(render_pass.colors[i].image);
-
-        if (!image_impl)
-            continue;
-
-        desc.images[i] = image_impl;
-    }
-
-    // cast to the implementation.
-    desc.images[4] = static_cast<Vlk_image*>(render_pass.depth_stencil.image);
-
-    // calculate a hash value.
-    uint64_t key { 0 };
-
-    MetroHash64::Hash(reinterpret_cast<uint8_t*>(&desc), sizeof(Vlk_framebuffer_desc),
+    MetroHash64::Hash(reinterpret_cast<const uint8_t*>(&desc), sizeof(Vlk_framebuffer_desc),
                       reinterpret_cast<uint8_t*>(&key));
 
     // check a framebuffer exists and if not then create it.

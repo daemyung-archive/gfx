@@ -11,6 +11,31 @@
 #include "Vlk_render_pass.h"
 
 using namespace std;
+using namespace Gfx_lib;
+
+namespace {
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto to_render_pass_desc(const Multisample& multisample, const Output_merger& output_merger)
+{
+    // configure a render pass desc.
+    Vlk_render_pass_desc render_pass_desc {};
+
+    for (auto i = 0; i != 4; ++i) {
+        render_pass_desc.colors[i].format = output_merger.color_formats[i];
+        render_pass_desc.colors[i].samples = multisample.samples;
+    }
+
+    render_pass_desc.depth_stencil.format = output_merger.depth_stencil_format;
+    render_pass_desc.depth_stencil.samples = multisample.samples;
+
+    return render_pass_desc;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+} // of namespace
 
 namespace Gfx_lib {
 
@@ -240,6 +265,8 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
     vkCreatePipelineLayout(device_->device(), &layout_create_info, nullptr, &layout);
 
+    auto render_pass = device_->render_pass(to_render_pass_desc(desc.multisample, desc.output_merger));
+
     // configure a graphics pipeline create info.
     VkGraphicsPipelineCreateInfo create_info {};
 
@@ -255,7 +282,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     create_info.pColorBlendState = &color_blend_state_create_info;
     create_info.pDynamicState = &dynamic_state_create_info;
     create_info.layout = layout;
-    create_info.renderPass = device_->render_pass(desc.output_merger)->render_pass();
+    create_info.renderPass = render_pass->render_pass();
 
     // try to create a graphics pipeline.
     if (vkCreateGraphicsPipelines(device_->device(), VK_NULL_HANDLE, 1, &create_info, nullptr, &pipeline_))

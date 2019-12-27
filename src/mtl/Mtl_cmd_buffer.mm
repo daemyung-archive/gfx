@@ -39,13 +39,6 @@ inline auto byte_size(Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto valid(const Attachment& attachment)
-{
-    return attachment.image;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 } // of namespace
 
 namespace Gfx_lib {
@@ -281,7 +274,7 @@ void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc&
     for( auto i = 0; i != desc.colors.size(); ++i) {
         auto& color = desc.colors[i];
 
-        if (valid(color)) {
+        if (color.image) {
             auto mtl_image = static_cast<Mtl_image*>(color.image);
 
             // set up the color attachment descriptor at the index.
@@ -294,7 +287,7 @@ void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc&
 
     auto& depth_stencil = desc.depth_stencil;
 
-    if (valid(depth_stencil)) {
+    if (depth_stencil.image) {
         auto mtl_image = static_cast<Mtl_image*>(depth_stencil.image);
 
         // set up the depth attachment descriptor.

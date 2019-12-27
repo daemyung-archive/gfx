@@ -43,23 +43,71 @@ inline void execute(function<void ()>& func)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename R, typename T>
-inline R make(const T&);
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template<>
-inline Viewport make(const Extent& extent)
+inline Viewport to_viewport(const Extent& extent)
 {
     return {0.0f, 0.0f, static_cast<float>(extent.w), static_cast<float>(extent.h)};
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline Scissor make(const Extent& extent)
+inline Scissor to_scissor(const Extent& extent)
 {
     return {0, 0, extent.w, extent.h};
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto to_render_pass_desc(const Render_encoder_desc& desc)
+{
+    Vlk_render_pass_desc render_pass_desc {};
+
+    for (auto i = 0; i != 4; ++i) {
+        auto& color = desc.colors[i];
+
+        if (!color.image)
+            continue;
+
+        render_pass_desc.colors[i].format = color.image->format();
+        render_pass_desc.colors[i].samples = color.image->samples();
+        render_pass_desc.colors[i].load_op = color.load_op;
+        render_pass_desc.colors[i].store_op = color.store_op;
+    }
+
+    auto& depth_stencil = desc.depth_stencil;
+
+    if (depth_stencil.image) {
+        render_pass_desc.depth_stencil.format = depth_stencil.image->format();
+        render_pass_desc.depth_stencil.samples = depth_stencil.image->samples();
+        render_pass_desc.depth_stencil.load_op = depth_stencil.load_op;
+        render_pass_desc.depth_stencil.store_op = depth_stencil.store_op;
+    }
+
+    return render_pass_desc;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto to_framebuffer_desc(Vlk_render_pass* render_pass, const Render_encoder_desc& desc)
+{
+    Vlk_framebuffer_desc framebuffer_desc {};
+
+    framebuffer_desc.render_pass = render_pass;
+
+    for (auto i = 0; i != 4; ++i) {
+        auto& color = desc.colors[i];
+
+        if (!color.image)
+            continue;
+
+        framebuffer_desc.colors[i] = static_cast<Vlk_image*>(color.image);
+    }
+
+    auto& depth_stencil = desc.depth_stencil;
+
+    if (depth_stencil.image)
+        framebuffer_desc.depth_stencil = static_cast<Vlk_image*>(depth_stencil.image);
+
+    return framebuffer_desc;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -83,8 +131,8 @@ Vlk_render_encoder::Vlk_render_encoder(const Render_encoder_desc& desc, Vlk_cmd_
     scissor_ {0, 0, 0, 0}
 {
     begin_render_pass_(desc);
-    viewport(make<Viewport>(framebuffer_->extent()));
-    scissor(make<Scissor>(framebuffer_->extent()));
+    viewport(to_viewport(framebuffer_->extent()));
+    scissor(to_scissor(framebuffer_->extent()));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -229,8 +277,8 @@ void Vlk_render_encoder::begin_render_pass_(const Render_encoder_desc& desc)
 {
     auto device_impl = static_cast<Vlk_device*>(cmd_buffer_->device());
 
-    render_pass_ = device_impl->render_pass(desc);
-    framebuffer_ = device_impl->framebuffer(desc);
+    render_pass_ = device_impl->render_pass(to_render_pass_desc(desc));
+    framebuffer_ = device_impl->framebuffer(to_framebuffer_desc(render_pass_, desc));
 
     cmds_[0].push_back([=]() {
         vector<VkImageMemoryBarrier> barriers;

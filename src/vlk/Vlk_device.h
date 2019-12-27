@@ -10,8 +10,10 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 #include <platform/Library.h>
-#include "gfx/Device.h"
+#include "Device.h"
 #include "Lru_cache.h"
+#include "Vlk_render_pass.h"
+#include "Vlk_framebuffer.h"
 
 namespace Gfx_lib {
 
@@ -19,8 +21,6 @@ namespace Gfx_lib {
 
 class Vlk_device;
 class Vlk_cmd_buffer;
-class Vlk_render_pass;
-class Vlk_framebuffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -50,11 +50,9 @@ public:
 
     void wait_idle() override;
 
-    Vlk_render_pass* render_pass(const Render_encoder_desc& render_pass);
+    Vlk_render_pass* render_pass(const Vlk_render_pass_desc& desc);
 
-    Vlk_render_pass* render_pass(const Output_merger& output_merger);
-
-    Vlk_framebuffer* framebuffer(const Render_encoder_desc& render_pass);
+    Vlk_framebuffer* framebuffer(const Vlk_framebuffer_desc& desc);
 
     inline auto instance() const noexcept
     { return instance_; }
