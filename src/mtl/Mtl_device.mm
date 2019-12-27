@@ -33,56 +33,56 @@ Mtl_device::Mtl_device() :
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Buffer> Mtl_device::make(const Buffer_desc& desc)
+std::unique_ptr<Buffer> Mtl_device::create(const Buffer_desc& desc)
 {
     return make_unique<Mtl_buffer>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Image> Mtl_device::make(const Image_desc& desc)
+std::unique_ptr<Image> Mtl_device::create(const Image_desc& desc)
 {
     return make_unique<Mtl_image>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Sampler> Mtl_device::make(const Sampler_desc& desc)
+std::unique_ptr<Sampler> Mtl_device::create(const Sampler_desc& desc)
 {
     return make_unique<Mtl_sampler>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Shader> Mtl_device::make(const Shader_desc& desc)
+std::unique_ptr<Shader> Mtl_device::create(const Shader_desc& desc)
 {
     return make_unique<Mtl_shader>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Pipeline> Mtl_device::make(const Pipeline_desc& desc)
+std::unique_ptr<Pipeline> Mtl_device::create(const Pipeline_desc& desc)
 {
     return make_unique<Mtl_pipeline>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Swap_chain> Mtl_device::make(const Swap_chain_desc& desc)
+std::unique_ptr<Swap_chain> Mtl_device::create(const Swap_chain_desc& desc)
 {
     return make_unique<Mtl_swap_chain>(desc, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Cmd_buffer> Mtl_device::make(const Cmd_buffer_desc& desc)
+std::unique_ptr<Cmd_buffer> Mtl_device::create(const Cmd_buffer_desc& desc)
 {
     return make_unique<Mtl_cmd_buffer>(this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Fence> Mtl_device::make(const Fence_desc& desc)
+std::unique_ptr<Fence> Mtl_device::create(const Fence_desc& desc)
 {
     return make_unique<Mtl_fence>(desc, this);
 }

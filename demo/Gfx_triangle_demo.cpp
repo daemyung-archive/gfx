@@ -66,7 +66,7 @@ void Gfx_triangle_demo::init_window_(Window* window)
 void Gfx_triangle_demo::init_resources_()
 {
     // create a device.
-    device_ = Device::make();
+    device_ = Device::create();
 
     // create a swap chain.
     Swap_chain_desc swap_chain_desc;
@@ -79,17 +79,17 @@ void Gfx_triangle_demo::init_resources_()
     swap_chain_desc.image_extent = window_->extent();
     swap_chain_desc.window = window_->window();
 
-    swap_chain_ = device_->make(swap_chain_desc);
+    swap_chain_ = device_->create(swap_chain_desc);
 
     Cmd_buffer_desc cmd_buffer_desc {};
 
     // create cmd lists.
     for (auto& cmd_buffer : cmd_buffers_)
-        cmd_buffer = device_->make(cmd_buffer_desc);
+        cmd_buffer = device_->create(cmd_buffer_desc);
 
     // create fences.
     for (auto& fence : fences_)
-        fence = device_->make(Fence_desc { true });
+        fence = device_->create(Fence_desc { true });
 
     // create a vertex buffer.
     Buffer_desc vertex_buffer_desc;
@@ -97,7 +97,7 @@ void Gfx_triangle_demo::init_resources_()
     vertex_buffer_desc.data = static_cast<const void*>(&vertices[0]);
     vertex_buffer_desc.size = sizeof(Vertex) * vertices.size();
 
-    vertex_buffer_ = device_->make(vertex_buffer_desc);
+    vertex_buffer_ = device_->create(vertex_buffer_desc);
 
     // create a vertex shader.
     Shader_desc vertex_shader_desc;
@@ -105,7 +105,7 @@ void Gfx_triangle_demo::init_resources_()
     vertex_shader_desc.type = Shader_type::vertex;
     vertex_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.vert");
 
-    auto vertex_shader = device_->make(vertex_shader_desc);
+    auto vertex_shader = device_->create(vertex_shader_desc);
 
     // create a fragment shader.
     Shader_desc fragment_shader_desc;
@@ -113,7 +113,7 @@ void Gfx_triangle_demo::init_resources_()
     fragment_shader_desc.type = Shader_type::vertex;
     fragment_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_triangle.frag");
 
-    auto fragment_shader = device_->make(fragment_shader_desc);
+    auto fragment_shader = device_->create(fragment_shader_desc);
 
     // create a render pipeline.
     Pipeline_desc pipeline_desc;
@@ -129,7 +129,7 @@ void Gfx_triangle_demo::init_resources_()
     pipeline_desc.rasterization.cull_mode = Cull_mode::none;
     pipeline_desc.output_merger.color_formats[0] = swap_chain_->image_format();
 
-    render_pipeline_ = device_->make(pipeline_desc);
+    render_pipeline_ = device_->create(pipeline_desc);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

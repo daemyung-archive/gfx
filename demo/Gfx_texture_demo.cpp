@@ -70,7 +70,7 @@ void Gfx_texture_demo::init_window_(Window* window)
 void Gfx_texture_demo::init_resources_()
 {
     // create a device.
-    device_ = Device::make();
+    device_ = Device::create();
 
     // create a swap chain.
     Swap_chain_desc swap_chain_desc;
@@ -83,17 +83,17 @@ void Gfx_texture_demo::init_resources_()
     swap_chain_desc.image_extent = window_->extent();
     swap_chain_desc.window = window_->window();
 
-    swap_chain_ = device_->make(swap_chain_desc);
+    swap_chain_ = device_->create(swap_chain_desc);
 
     Cmd_buffer_desc cmd_buffer_desc {};
 
     // create cmd lists.
     for (auto& cmd_buffer : cmd_buffers_)
-        cmd_buffer = device_->make(cmd_buffer_desc);
+        cmd_buffer = device_->create(cmd_buffer_desc);
 
     // create fences.
     for (auto& fence : fences_)
-        fence = device_->make(Fence_desc { true });
+        fence = device_->create(Fence_desc { true });
 
     // create a vertex buffer.
     Buffer_desc vertex_buffer_desc;
@@ -101,7 +101,7 @@ void Gfx_texture_demo::init_resources_()
     vertex_buffer_desc.data = static_cast<const void*>(&vertices[0]);
     vertex_buffer_desc.size = sizeof(Vertex) * vertices.size();
 
-    vertex_buffer_ = device_->make(vertex_buffer_desc);
+    vertex_buffer_ = device_->create(vertex_buffer_desc);
 
     // load a image file.
     int32_t w, h, c;
@@ -112,16 +112,16 @@ void Gfx_texture_demo::init_resources_()
     staging_buffer_desc.data = data;
     staging_buffer_desc.size = w * h * STBI_rgb_alpha;
 
-    auto staging_buffer = device_->make(staging_buffer_desc);
+    auto staging_buffer = device_->create(staging_buffer_desc);
 
     Image_desc image_desc;
 
     image_desc.format = Format::rgba8_unorm;
     image_desc.extent = { narrow_cast<uint32_t>(w), narrow_cast<uint32_t>(h), 1 };
 
-    image_ = device_->make(image_desc);
+    image_ = device_->create(image_desc);
 
-    auto cmd_buffer = device_->make(cmd_buffer_desc);
+    auto cmd_buffer = device_->create(cmd_buffer_desc);
 
     Buffer_image_copy_region copy_region;
 
@@ -140,7 +140,7 @@ void Gfx_texture_demo::init_resources_()
     // create a sampler
     Sampler_desc sampler_desc;
 
-    sampler_ = device_->make(sampler_desc);
+    sampler_ = device_->create(sampler_desc);
 
     // create a vertex shader.
     Shader_desc vertex_shader_desc;
@@ -148,7 +148,7 @@ void Gfx_texture_demo::init_resources_()
     vertex_shader_desc.type = Shader_type::vertex;
     vertex_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_texture.vert");
 
-    auto vertex_shader = device_->make(vertex_shader_desc);
+    auto vertex_shader = device_->create(vertex_shader_desc);
 
     // create a fragment shader.
     Shader_desc fragment_shader_desc;
@@ -156,7 +156,7 @@ void Gfx_texture_demo::init_resources_()
     fragment_shader_desc.type = Shader_type::vertex;
     fragment_shader_desc.src = compiler_.compile("../../../gfx/demo/gfx_texture.frag");
 
-    auto fragment_shader = device_->make(fragment_shader_desc);
+    auto fragment_shader = device_->create(fragment_shader_desc);
 
     // create a render pipeline.
     Pipeline_desc render_pipeline_desc;
@@ -172,7 +172,7 @@ void Gfx_texture_demo::init_resources_()
     render_pipeline_desc.fragment_shader = fragment_shader.get();
     render_pipeline_desc.output_merger.color_formats[0] = swap_chain_->image_format();
 
-    render_pipeline_ = device_->make(render_pipeline_desc);
+    render_pipeline_ = device_->create(render_pipeline_desc);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

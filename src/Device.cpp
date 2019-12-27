@@ -18,7 +18,7 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Device> Device::make()
+std::unique_ptr<Device> Device::create()
 {
 #if TARGET_OS_IOS || TARGET_OS_OSX
     return make_unique<Mtl_device>();
