@@ -22,7 +22,6 @@ Mtl_swap_chain::Mtl_swap_chain(const Swap_chain_desc& desc, Mtl_device* device) 
     image_format_ { desc.image_format },
     image_extent_ { desc.image_extent },
     color_space_ { desc.color_space },
-    present_mode_ { desc.present_mode },
     frame_count_ { 0 },
     window_ { desc.window },
     layer_ { nil },
@@ -87,13 +86,6 @@ Extent Mtl_swap_chain::image_extent() const
 Color_space Mtl_swap_chain::color_space() const
 {
     return color_space_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Present_mode Mtl_swap_chain::present_mode() const
-{
-    return present_mode_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

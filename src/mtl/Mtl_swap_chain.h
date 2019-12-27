@@ -37,8 +37,6 @@ public:
 
     Color_space color_space() const override;
 
-    Present_mode present_mode() const override;
-
     uint64_t frame_count() const override;
 
 private:
@@ -53,7 +51,6 @@ private:
     Format image_format_;
     Extent image_extent_;
     Color_space color_space_;
-    Present_mode present_mode_;
     uint64_t frame_count_;
     void* window_;
     CAMetalLayer* layer_;

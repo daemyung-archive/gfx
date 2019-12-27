@@ -24,7 +24,6 @@ struct Swap_chain_desc {
     Format image_format { Format::invalid };
     Extent image_extent { 0, 0, 1 };
     Color_space color_space { Color_space::srgb_non_linear };
-    Present_mode present_mode { Present_mode::fifo };
     void* window { nullptr };
 };
 
@@ -45,8 +44,6 @@ public:
     virtual Extent image_extent() const = 0;
 
     virtual Color_space color_space() const = 0;
-
-    virtual Present_mode present_mode() const = 0;
 
     virtual uint64_t frame_count() const = 0;
 };

@@ -40,8 +40,6 @@ public:
 
     Color_space color_space() const override;
 
-    Present_mode present_mode() const override;
-
     uint64_t frame_count() const override;
 
     inline auto& swapchain() const noexcept
@@ -89,7 +87,6 @@ private:
     Format image_format_;
     Extent image_extent_;
     Color_space color_space_;
-    Present_mode present_mode_;
     uint64_t frame_count_;
     void* window_;
     VkSurfaceKHR surface_;

@@ -28,7 +28,6 @@ Vlk_swap_chain::Vlk_swap_chain(const Swap_chain_desc& desc, Vlk_device* device) 
     image_format_ { desc.image_format },
     image_extent_ { desc.image_extent },
     color_space_ { desc.color_space },
-    present_mode_ { desc.present_mode },
     frame_count_ { 0 },
     window_ { desc.window },
     surface_ { VK_NULL_HANDLE },
@@ -174,13 +173,6 @@ Color_space Vlk_swap_chain::color_space() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Present_mode Vlk_swap_chain::present_mode() const
-{
-    return present_mode_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 uint64_t Vlk_swap_chain::frame_count() const
 {
     return frame_count_;
@@ -274,7 +266,7 @@ void Vlk_swap_chain::init_swapchain_(const Swap_chain_desc& desc)
     create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     create_info.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
-    create_info.presentMode = convert<VkPresentModeKHR>(desc.present_mode);
+    create_info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
     create_info.clipped = VK_TRUE;
 
     // try to create a swapchain.

@@ -599,25 +599,6 @@ inline VkAttachmentStoreOp convert(Store_op op)
 //----------------------------------------------------------------------------------------------------------------------
 
 template<>
-inline VkPresentModeKHR convert(Present_mode mode)
-{
-    switch (mode) {
-        case Present_mode::immediate:
-            return VK_PRESENT_MODE_IMMEDIATE_KHR;
-        case Present_mode::mailbox:
-            return VK_PRESENT_MODE_MAILBOX_KHR;
-        case Present_mode::fifo:
-            return VK_PRESENT_MODE_FIFO_KHR;
-        case Present_mode::fifo_relaxed:
-            return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
-        default:
-            throw std::runtime_error("invalid the present mode");
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template<>
 inline VkColorSpaceKHR convert(Color_space space)
 {
     switch (space) {
