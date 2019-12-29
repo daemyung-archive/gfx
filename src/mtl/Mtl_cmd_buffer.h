@@ -7,7 +7,6 @@
 #define GFX_MTL_CMD_BUFFER_GUARD
 
 #include <array>
-#include <vector>
 #include <unordered_map>
 #include <Metal/Metal.h>
 #include "Cmd_buffer.h"
@@ -22,6 +21,11 @@ class Mtl_image;
 class Mtl_sampler;
 class Mtl_pipeline;
 class Mtl_cmd_buffer;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template<typename T>
+using Mtl_arg_array = std::array<T, 16>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -56,8 +60,8 @@ public:
     { return arg_textures_[index]; }
 
 private:
-    std::vector<Mtl_arg_buffer> arg_buffers_;
-    std::vector<Mtl_arg_texture> arg_textures_;
+    Mtl_arg_array<Mtl_arg_buffer> arg_buffers_;
+    Mtl_arg_array<Mtl_arg_texture> arg_textures_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
