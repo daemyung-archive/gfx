@@ -13,6 +13,7 @@
 #include "Vlk_pipeline.h"
 #include "Vlk_render_pass.h"
 #include "Vlk_framebuffer.h"
+#include "Vlk_set_layout.h"
 
 using namespace std;
 using namespace Sc_lib;
@@ -118,12 +119,31 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Vlk_render_encoder::Vlk_render_encoder(const Render_encoder_desc& desc, Vlk_cmd_buffer* cmd_buffer) :
+Vlk_arg_table::Vlk_arg_table() :
+    args_ {}
+{
+    clear();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_arg_table::clear()
+{
+    for (auto& args : args_)
+        args.fill({});
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Vlk_render_encoder::Vlk_render_encoder(const Render_encoder_desc& desc,
+                                       Vlk_device* device, Vlk_cmd_buffer* cmd_buffer) :
     Render_encoder(),
+    device_ {device},
     cmd_buffer_ {cmd_buffer},
     cmds_ {},
     vertex_buffers_ {nullptr, nullptr},
     index_buffer_ {nullptr},
+    arg_tables_ {},
     pipeline_ {nullptr},
     render_pass_ {nullptr},
     framebuffer_ {nullptr},
@@ -149,6 +169,9 @@ void Vlk_render_encoder::end()
 
 void Vlk_render_encoder::draw(uint32_t count, uint32_t first)
 {
+    update_desc_sets_();
+    bind_desc_sets_();
+
     cmds_[2].push_back([=]() {
         vkCmdDraw(cmd_buffer_->command_buffer(), count, 1, first, 0);
     });
@@ -158,6 +181,9 @@ void Vlk_render_encoder::draw(uint32_t count, uint32_t first)
 
 void Vlk_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
+    update_desc_sets_();
+    bind_desc_sets_();
+
     cmds_[2].push_back([=]() {
         vkCmdDrawIndexed(cmd_buffer_->command_buffer(), count, 1, first, 0, 0);
     });
@@ -204,14 +230,68 @@ void Vlk_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
 
 void Vlk_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index)
 {
+    auto buffer_impl = static_cast<Vlk_buffer*>(buffer);
+    auto& args = arg_tables_[stage][0];
 
+    if (buffer_impl != args[index].buffer) {
+        args.dirty_flags = 0x1;
+        args[index].buffer = buffer_impl;
+    }
+
+    if (offset != args[index].offset) {
+        args[index].dirty_flags = 0x1;
+        args[index].offset = offset;
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Vlk_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index)
 {
+    auto image_impl = static_cast<Vlk_image*>(image);
+    auto sampler_impl = static_cast<Vlk_sampler*>(sampler);
 
+    cmds_[0].push_back([=]() {
+        // configure an image barrier.
+        VkImageMemoryBarrier barrier {};
+
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.srcAccessMask = image_impl->access_mask();
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.oldLayout = image_impl->layout();
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = image_impl->image();
+        barrier.subresourceRange.aspectMask = image_impl->aspect_mask();
+        barrier.subresourceRange.levelCount = image_impl->mip_levels();
+        barrier.subresourceRange.layerCount = image_impl->array_layers();
+
+        // update image meta data.
+        image_impl->access_mask_ = VK_ACCESS_SHADER_READ_BIT;
+        image_impl->layout_ = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        // record barrier command.
+        vkCmdPipelineBarrier(cmd_buffer_->command_buffer(),
+                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             VK_DEPENDENCY_BY_REGION_BIT,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &barrier);
+    });
+
+    auto& args = arg_tables_[stage][1];
+
+    if (image_impl != args[index].image) {
+        args.dirty_flags |= 0x1;
+        args[index].image = image_impl;
+    }
+
+    if (sampler_impl != args[index].sampler) {
+        args.dirty_flags |= 0x2;
+        args[index].sampler = sampler_impl;
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -275,10 +355,8 @@ Cmd_buffer* Vlk_render_encoder::cmd_buffer() const
 
 void Vlk_render_encoder::begin_render_pass_(const Render_encoder_desc& desc)
 {
-    auto device_impl = static_cast<Vlk_device*>(cmd_buffer_->device());
-
-    render_pass_ = device_impl->render_pass(to_render_pass_desc(desc));
-    framebuffer_ = device_impl->framebuffer(to_framebuffer_desc(render_pass_, desc));
+    render_pass_ = device_->render_pass(to_render_pass_desc(desc));
+    framebuffer_ = device_->framebuffer(to_framebuffer_desc(render_pass_, desc));
 
     cmds_[0].push_back([=]() {
         vector<VkImageMemoryBarrier> barriers;
@@ -400,6 +478,139 @@ void Vlk_render_encoder::end_render_pass_()
     cmds_[3].push_back([=]() {
         vkCmdEndRenderPass(cmd_buffer_->command_buffer());
     });
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_render_encoder::update_desc_sets_()
+{
+    for (auto& [stage, arg_table] : arg_tables_) {
+        unordered_map<uint32_t, VkDescriptorBufferInfo> buffer_infos;
+
+        if (arg_table[0].dirty_flags) {
+            arg_table[0].dirty_flags = 0;
+
+            auto set_layout = pipeline_->set_layout(stage, 0);
+
+            arg_table[0].desc_set = set_layout->desc_set();
+
+            for (auto i = 0; i != 16; ++i) {
+                if (!arg_table[0][i].buffer)
+                    continue;
+
+                VkDescriptorBufferInfo buffer_info {};
+
+                buffer_info.buffer = arg_table[0][i].buffer->buffer();
+                buffer_info.offset = 0;
+                buffer_info.range = VK_WHOLE_SIZE;
+
+                buffer_infos.insert({i, buffer_info});
+            }
+        }
+
+        if (!buffer_infos.empty()) {
+            vector<VkWriteDescriptorSet> write_desc_sets;
+
+            for (auto& [binding, buffer_info] : buffer_infos) {
+                VkWriteDescriptorSet write_desc_set {};
+
+                write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write_desc_set.dstSet = arg_table[0].desc_set;
+                write_desc_set.dstBinding = binding;
+                write_desc_set.descriptorCount = 1;
+                write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                write_desc_set.pBufferInfo = &buffer_info;
+
+                write_desc_sets.push_back(write_desc_set);
+            }
+
+            vkUpdateDescriptorSets(device_->device(),
+                                   write_desc_sets.size(), &write_desc_sets[0],
+                                   0, nullptr);
+        }
+
+        unordered_map<uint32_t, VkDescriptorImageInfo> image_infos;
+
+        if (arg_table[1].dirty_flags) {
+            arg_table[1].dirty_flags = 0;
+
+            auto set_layout = pipeline_->set_layout(stage, 1);
+
+            arg_table[1].desc_set = set_layout->desc_set();
+
+            for (auto i = 0; i != 16; ++i) {
+                if (!arg_table[1][i].image && !arg_table[1][i].sampler)
+                    continue;
+
+                VkDescriptorImageInfo image_info {};
+
+                image_info.sampler = arg_table[1][i].sampler->sampler();
+                image_info.imageView = arg_table[1][i].image->image_view();
+                image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                image_infos.insert({i, image_info});
+            }
+        }
+
+        if (!image_infos.empty()) {
+            vector<VkWriteDescriptorSet> write_desc_sets;
+
+            for (auto& [binding, image_info] : image_infos) {
+                VkWriteDescriptorSet write_desc_set {};
+
+                write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write_desc_set.dstSet = arg_table[1].desc_set;
+                write_desc_set.dstBinding = binding;
+                write_desc_set.descriptorCount = 1;
+                write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write_desc_set.pImageInfo = &image_info;
+
+                write_desc_sets.push_back(write_desc_set);
+            }
+
+            vkUpdateDescriptorSets(device_->device(),
+                                   write_desc_sets.size(), &write_desc_sets[0],
+                                   0, nullptr);
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_render_encoder::bind_desc_sets_()
+{
+    for (auto& [stage, arg_table] : arg_tables_) {
+        vector<VkDescriptorSet> desc_sets;
+        vector<uint32_t> offsets;
+
+        if (arg_table[0].desc_set) {
+            desc_sets.push_back(arg_table[0].desc_set);
+
+            for (auto i = 0; i != 16; ++i) {
+                if (!arg_table[0][i].buffer)
+                    continue;
+
+                offsets.push_back(arg_table[0][i].offset);
+            }
+        }
+
+        if (arg_table[1].desc_set) {
+            desc_sets.push_back(arg_table[1].desc_set);
+        }
+
+        if (desc_sets.empty())
+            continue;
+
+        auto pipeline_layout = pipeline_->pipeline_layout();
+
+        cmds_[2].push_back([=]() {
+            vkCmdBindDescriptorSets(cmd_buffer_->command_buffer(),
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout,
+                                    0,
+                                    static_cast<uint32_t>(desc_sets.size()), &desc_sets[0],
+                                    static_cast<uint32_t>(offsets.size()), &offsets[0]);
+        });
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -588,7 +799,7 @@ Vlk_cmd_buffer::~Vlk_cmd_buffer()
 
 std::unique_ptr<Render_encoder> Vlk_cmd_buffer::create(const Render_encoder_desc& desc)
 {
-    return make_unique<Vlk_render_encoder>(desc, this);
+    return make_unique<Vlk_render_encoder>(desc, device_, this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

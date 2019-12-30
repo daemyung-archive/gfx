@@ -50,7 +50,7 @@ gsl::span<std::byte> Vlk_buffer::map()
 void Vlk_buffer::unmap()
 {
     vmaUnmapMemory(device_->allocator(), alloc_);
-    flush_alloc_();
+    vmaFlushAllocation(device_->allocator(), alloc_, 0, VK_WHOLE_SIZE);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -115,16 +115,6 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
 void Vlk_buffer::fini_buffer_and_alloc_()
 {
     vmaDestroyBuffer(device_->allocator(), buffer_, alloc_);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_buffer::flush_alloc_() const
-{
-    VmaAllocationInfo alloc_info;
-
-    vmaGetAllocationInfo(device_->allocator(), alloc_, &alloc_info);
-    vmaFlushAllocation(device_->allocator(), alloc_, alloc_info.offset, alloc_info.size);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

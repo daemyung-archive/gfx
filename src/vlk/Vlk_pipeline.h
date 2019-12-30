@@ -6,6 +6,9 @@
 #ifndef GFX_VLK_PIPELINE_GUARD
 #define GFX_VLK_PIPELINE_GUARD
 
+#include <memory>
+#include <array>
+#include <unordered_map>
 #include <vulkan/vulkan.h>
 #include "Pipeline.h"
 
@@ -14,6 +17,9 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 class Vlk_device;
+class Vlk_set_layout;
+
+using Vlk_set_layout_array = std::array<std::unique_ptr<Vlk_set_layout>, 2>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -21,16 +27,35 @@ class Vlk_pipeline final : public Pipeline {
 public:
     Vlk_pipeline(const Pipeline_desc& desc, Vlk_device* device);
 
+    ~Vlk_pipeline() override;
+
     Device* device() const override;
+
+    inline auto set_layout(Pipeline_stage stage, uint32_t index) const noexcept
+    { return set_layouts_.at(stage)[index].get(); }
+
+
+    inline auto& pipeline_layout() const noexcept
+    { return pipeline_layout_; }
 
     inline auto& pipeline() const noexcept
     { return pipeline_; }
 
 private:
-    void init_render_pipeline(const Pipeline_desc& desc);
+    void init_set_layouts_(const Pipeline_desc& desc);
+
+    void init_pipeline_layout_();
+
+    void init_pipeline_(const Pipeline_desc& desc);
+
+    void fini_pipeline_layout_();
+
+    void fini_pipeline_();
 
 private:
     Vlk_device* device_;
+    std::unordered_map<Pipeline_stage, Vlk_set_layout_array> set_layouts_;
+    VkPipelineLayout pipeline_layout_;
     VkPipeline pipeline_;
 };
 

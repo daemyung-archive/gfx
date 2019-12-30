@@ -133,6 +133,7 @@ void Gfx_texture_demo::init_resources_()
 
     encoder->copy(staging_buffer.get(), image_.get(), copy_region);
     encoder->end();
+    cmd_buffer->end();
     
     device_->submit(cmd_buffer.get());
     device_->wait_idle();

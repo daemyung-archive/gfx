@@ -42,8 +42,6 @@ int main(int argc, char* argv[])
 
     auto window = make_unique<Window>(window_desc);
 
-    // run<Gfx_texture_demo>(window.get());
-
     if ("triangle" == target)
         run<Gfx_triangle_demo>(window.get());
     else if("texture" == target)

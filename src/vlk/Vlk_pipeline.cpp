@@ -9,8 +9,10 @@
 #include "Vlk_device.h"
 #include "Vlk_shader.h"
 #include "Vlk_render_pass.h"
+#include "Vlk_set_layout.h"
 
 using namespace std;
+using namespace Sc_lib;
 using namespace Gfx_lib;
 
 namespace {
@@ -43,10 +45,21 @@ namespace Gfx_lib {
 
 Vlk_pipeline::Vlk_pipeline(const Pipeline_desc& desc, Vlk_device* device) :
     Pipeline(),
-    device_ { device },
-    pipeline_ { VK_NULL_HANDLE }
+    device_ {device},
+    pipeline_layout_ {VK_NULL_HANDLE},
+    pipeline_ {VK_NULL_HANDLE}
 {
-    init_render_pipeline(desc);
+    init_set_layouts_(desc);
+    init_pipeline_layout_();
+    init_pipeline_(desc);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+Vlk_pipeline::~Vlk_pipeline()
+{
+    fini_pipeline_();
+    fini_pipeline_layout_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -58,7 +71,119 @@ Device* Vlk_pipeline::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
+void Vlk_pipeline::init_set_layouts_(const Pipeline_desc& desc)
+{
+    {
+        auto& set_layouts = set_layouts_[Pipeline_stage::vertex_shader];
+        auto signature = desc.vertex_shader->signature();
+
+        {
+            Vlk_set_layout_desc set_layout_desc {};
+
+            for (auto& buffer : signature.buffers) {
+                VkDescriptorSetLayoutBinding binding {};
+
+                binding.binding = buffer.binding;
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                binding.descriptorCount = 1;
+                binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+                set_layout_desc.bindings.push_back(binding);
+            }
+
+            if (!set_layout_desc.bindings.empty())
+                set_layouts[0] = make_unique<Vlk_set_layout>(set_layout_desc, device_);
+        }
+
+        {
+            Vlk_set_layout_desc set_layout_desc {};
+
+            for (auto& texture : signature.textures) {
+                VkDescriptorSetLayoutBinding binding {};
+
+                binding.binding = texture.binding;
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                binding.descriptorCount = 1;
+                binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+                set_layout_desc.bindings.push_back(binding);
+            }
+
+            if (!set_layout_desc.bindings.empty())
+                set_layouts[1] = make_unique<Vlk_set_layout>(set_layout_desc, device_);
+        }
+    }
+
+    {
+        auto& set_layouts = set_layouts_[Pipeline_stage::fragment_shader];
+        auto signature = desc.fragment_shader->signature();
+
+        {
+            Vlk_set_layout_desc set_layout_desc {};
+
+            for (auto& buffer : signature.buffers) {
+                VkDescriptorSetLayoutBinding binding {};
+
+                binding.binding = buffer.binding;
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                binding.descriptorCount = 1;
+                binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+                set_layout_desc.bindings.push_back(binding);
+            }
+
+            if (!set_layout_desc.bindings.empty())
+                set_layouts[0] = make_unique<Vlk_set_layout>(set_layout_desc, device_);
+        }
+
+        {
+            Vlk_set_layout_desc set_layout_desc {};
+
+            for (auto& texture : signature.textures) {
+                VkDescriptorSetLayoutBinding binding {};
+
+                binding.binding = texture.binding;
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                binding.descriptorCount = 1;
+                binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+                set_layout_desc.bindings.push_back(binding);
+            }
+
+            if (!set_layout_desc.bindings.empty())
+                set_layouts[1] = make_unique<Vlk_set_layout>(set_layout_desc, device_);
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_pipeline::init_pipeline_layout_()
+{
+    std::vector<VkDescriptorSetLayout> desc_set_layouts;
+
+    for (auto& [stage, set_layouts] : set_layouts_) {
+        for (auto& set_layout : set_layouts) {
+            if (!set_layout)
+                continue;
+
+            desc_set_layouts.push_back(set_layout->desc_set_layout());
+        }
+    }
+
+    VkPipelineLayoutCreateInfo create_info {};
+
+    create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    create_info.setLayoutCount = static_cast<uint32_t>(desc_set_layouts.size());
+    create_info.pSetLayouts = &desc_set_layouts[0];
+
+    if (vkCreatePipelineLayout(device_->device(), &create_info, nullptr, &pipeline_layout_))
+        throw runtime_error("fail to create a pipeline.");
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
 {
     // configure a vertex and a fragment shader stages.
     array<VkPipelineShaderStageCreateInfo, 2> shader_stages {};
@@ -255,16 +380,6 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
         dynamic_state_create_info.pDynamicStates = &dynamic_states[0];
     }
 
-    // todo: it's temporary.
-    VkPipelineLayoutCreateInfo layout_create_info {};
-
-    layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-
-    // create a empty pipeline layout.
-    VkPipelineLayout layout;
-
-    vkCreatePipelineLayout(device_->device(), &layout_create_info, nullptr, &layout);
-
     auto render_pass = device_->render_pass(to_render_pass_desc(desc.multisample, desc.output_merger));
 
     // configure a graphics pipeline create info.
@@ -281,7 +396,7 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
     create_info.pDepthStencilState = &depth_stencil_state;
     create_info.pColorBlendState = &color_blend_state_create_info;
     create_info.pDynamicState = &dynamic_state_create_info;
-    create_info.layout = layout;
+    create_info.layout = pipeline_layout_;
     create_info.renderPass = render_pass->render_pass();
 
     // try to create a graphics pipeline.
@@ -291,4 +406,18 @@ void Vlk_pipeline::init_render_pipeline(const Pipeline_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void Vlk_pipeline::fini_pipeline_layout_()
+{
+    vkDestroyPipelineLayout(device_->device(), pipeline_layout_, nullptr);
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_pipeline::fini_pipeline_()
+{
+    vkDestroyPipeline(device_->device(), pipeline_, nullptr);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+} // of namespace Gfx_lib

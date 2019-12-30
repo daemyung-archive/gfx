@@ -42,8 +42,6 @@ private:
 
     void fini_buffer_and_alloc_();
 
-    void flush_alloc_() const;
-
 private:
     Vlk_device* device_;
     Heap_type type_;

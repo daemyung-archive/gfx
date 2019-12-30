@@ -102,7 +102,9 @@ elseif(CMAKE_SYSTEM_NAME MATCHES Android OR CMAKE_SYSTEM_NAME MATCHES Windows)
             src/vlk/Vlk_render_pass.h
             src/vlk/Vlk_render_pass.cpp
             src/vlk/Vlk_framebuffer.h
-            src/vlk/Vlk_framebuffer.cpp)
+            src/vlk/Vlk_framebuffer.cpp
+            src/vlk/Vlk_set_layout.h
+            src/vlk/Vlk_set_layout.cpp)
 
     target_include_directories(gfx
         PRIVATE
