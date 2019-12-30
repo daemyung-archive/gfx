@@ -252,6 +252,9 @@ void Vlk_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Samp
     auto sampler_impl = static_cast<Vlk_sampler*>(sampler);
 
     cmds_[0].push_back([=]() {
+        if (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL == image_impl->layout())
+            return;
+
         // configure an image barrier.
         VkImageMemoryBarrier barrier {};
 
@@ -367,6 +370,9 @@ void Vlk_render_encoder::begin_render_pass_(const Render_encoder_desc& desc)
 
             auto image_impl = static_cast<Vlk_image*>(color.image);
 
+            if (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL == image_impl->layout())
+                continue;
+
             // configure an image barrier.
             VkImageMemoryBarrier barrier {};
 
@@ -393,25 +399,27 @@ void Vlk_render_encoder::begin_render_pass_(const Render_encoder_desc& desc)
         if (depth_stencil.image) {
             auto image_impl = static_cast<Vlk_image*>(depth_stencil.image);
 
-            // configure an image barrier.
-            VkImageMemoryBarrier barrier {};
+            if (VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL != image_impl->layout()) {
+                // configure an image barrier.
+                VkImageMemoryBarrier barrier {};
 
-            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            barrier.oldLayout = image_impl->layout();
-            barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = image_impl->image();
-            barrier.subresourceRange.aspectMask = image_impl->aspect_mask();
-            barrier.subresourceRange.levelCount = image_impl->mip_levels();
-            barrier.subresourceRange.layerCount = image_impl->array_layers();
+                barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                barrier.oldLayout = image_impl->layout();
+                barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.image = image_impl->image();
+                barrier.subresourceRange.aspectMask = image_impl->aspect_mask();
+                barrier.subresourceRange.levelCount = image_impl->mip_levels();
+                barrier.subresourceRange.layerCount = image_impl->array_layers();
 
-            barriers.push_back(barrier);
+                barriers.push_back(barrier);
 
-            // update image meta data.
-            image_impl->access_mask_ = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            image_impl->layout_ = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                // update image meta data.
+                image_impl->access_mask_ = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                image_impl->layout_ = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            }
         }
 
         vkCmdPipelineBarrier(cmd_buffer_->command_buffer(),
@@ -651,11 +659,13 @@ void Vlk_blit_encoder::copy(Buffer* src_buffer, Image* dst_image, const Buffer_i
     auto dst_image_impl = static_cast<Vlk_image*>(dst_image);
 
     cmds_.push_back([=]() {
+        if (VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL == dst_image_impl->layout())
+            return;
+
         // configure an image barrier.
         VkImageMemoryBarrier barrier {};
 
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.srcAccessMask = dst_image_impl->access_mask();
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.oldLayout = dst_image_impl->layout();
         barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -672,7 +682,7 @@ void Vlk_blit_encoder::copy(Buffer* src_buffer, Image* dst_image, const Buffer_i
 
         // recoard a barrier command.
         vkCmdPipelineBarrier(cmd_buffer_->command_buffer(),
-                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                              VK_DEPENDENCY_BY_REGION_BIT,
                              0, nullptr,
                              0, nullptr,
@@ -710,6 +720,9 @@ void Vlk_blit_encoder::copy(Image* src_image, Buffer* dst_buffer, const Buffer_i
     auto dst_buffer_impl = static_cast<Vlk_buffer*>(dst_buffer);
 
     cmds_.push_back([=]() {
+        if (VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL == src_image_impl->layout())
+            return;
+
         // configure an image barrier.
         VkImageMemoryBarrier barrier {};
 
