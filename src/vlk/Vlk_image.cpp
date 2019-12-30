@@ -12,6 +12,37 @@
 using namespace std;
 using namespace Gfx_lib;
 
+namespace {
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline bool is_color(Format format)
+{
+    switch (format) {
+        case Format::rgba8_unorm:
+        case Format::bgra8_unorm:
+            return true;
+        default:
+            return false;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto is_depth_stencil(Format format)
+{
+    switch (format) {
+        case Format::d24_unorm_s8_uint:
+            return true;
+        default:
+            return false;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+}
+
 namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -123,13 +154,15 @@ uint8_t Vlk_image::samples() const
 void Vlk_image::init_image_and_alloc_(const Image_desc& desc)
 {
     // configure the required image usage.
-    constexpr auto usage {
-        VK_IMAGE_USAGE_SAMPLED_BIT |
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT
-    };
+    auto usage {VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT};
+
+    if (is_color(desc.format)) {
+        usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+
+    if (is_depth_stencil(desc.format))
+        usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
     // configure an image create info.
     VkImageCreateInfo create_info {};
