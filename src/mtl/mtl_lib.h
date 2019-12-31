@@ -381,7 +381,7 @@ inline MTLClearColor convert(Clear_value clear_value)
 template<>
 inline MTLViewport convert(Viewport viewport)
 {
-    return MTLViewport { viewport.x, viewport.h - viewport.y, viewport.w, -viewport.h, 0.0, 1.0 };
+    return { viewport.x, viewport.y, viewport.w, viewport.h, 0.0, 1.0 };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
