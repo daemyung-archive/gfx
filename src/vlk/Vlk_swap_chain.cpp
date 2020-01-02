@@ -34,25 +34,26 @@ Vlk_swap_chain::Vlk_swap_chain(const Swap_chain_desc& desc, Vlk_device* device) 
     swapchain_ { VK_NULL_HANDLE },
     images_ { desc.image_count },
     image_index_ { UINT32_MAX },
+    acquire_fence_ { nullptr },
     cmd_buffers_ { desc.image_count },
-    fences_ { desc.image_count },
-    acquire_semaphores_ { desc.image_count },
+    submit_fences_ { desc.image_count },
     submit_semaphores_ { desc.image_count },
     frame_index_ { 0 }
 {
     init_surface_(desc);
     init_swapchain_(desc);
     init_images_();
+    init_acquire_fence_();
     init_cmd_buffers_();
-    init_fences_();
-    init_semaphores_();
+    init_submit_fences_();
+    init_submit_semaphores_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_swap_chain::~Vlk_swap_chain()
 {
-    fini_semaphores_();
+    fini_submit_semaphores_();
     fini_swapchain_();
     fini_surface_();
 }
@@ -62,9 +63,11 @@ Vlk_swap_chain::~Vlk_swap_chain()
 Image* Vlk_swap_chain::acquire()
 {
     if (UINT32_MAX == image_index_) {
+        acquire_fence_->reset();
         vkAcquireNextImageKHR(device_->device(), swapchain_,
-                              UINT64_MAX, cur_acquire_semaphore_(), VK_NULL_HANDLE,
+                              UINT64_MAX, VK_NULL_HANDLE, acquire_fence_->fence(),
                               &image_index_);
+        acquire_fence_->wait_signal();
     }
 
     return images_[image_index_].get();
@@ -75,11 +78,11 @@ Image* Vlk_swap_chain::acquire()
 void Vlk_swap_chain::present()
 {
     // query a fence is signaled or not, if not wait a fence to signal.
-    if (!cur_fence_()->signaled())
-        cur_fence_()->wait_signal();
+    if (!cur_submit_fence_()->signaled())
+        cur_submit_fence_()->wait_signal();
 
     // reset a fence and a command buffer.
-    cur_fence_()->reset();
+    cur_submit_fence_()->reset();
     cur_cmd_buffer_()->reset();
 
     // configure an image barrier.
@@ -108,23 +111,17 @@ void Vlk_swap_chain::present()
                          1, &image_barrier);
     cur_cmd_buffer_()->end();
 
-    // configure a wait destination stage mask.
-    VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
     // configure a submit info.
     VkSubmitInfo submit_info {};
 
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &cur_acquire_semaphore_();
-    submit_info.pWaitDstStageMask = &wait_dst_stage_mask;
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &cur_cmd_buffer_()->command_buffer();
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &cur_submit_semaphore_();
 
     // submit a command buffer.
-    vkQueueSubmit(device_->queue(), 1, &submit_info, cur_fence_()->fence());
+    vkQueueSubmit(device_->queue(), 1, &submit_info, cur_submit_fence_()->fence());
 
     // configure a present info.
     VkPresentInfoKHR present_info {};
@@ -309,6 +306,24 @@ void Vlk_swap_chain::init_images_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void Vlk_swap_chain::init_acquire_fence_()
+{
+    // configure a fence descriptor.
+    Fence_desc desc;
+
+    desc.signaled = true;
+
+    // try to create fences.
+    try {
+        acquire_fence_ = make_unique<Vlk_fence>(desc, device_);
+    }
+    catch (exception& e) {
+        throw runtime_error("fail to create a swap chain");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void Vlk_swap_chain::init_cmd_buffers_()
 {
     // try to create command buffers.
@@ -318,35 +333,35 @@ void Vlk_swap_chain::init_cmd_buffers_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_swap_chain::init_fences_()
+void Vlk_swap_chain::init_submit_fences_()
 {
-    // configure a fence descriptor.
-    Fence_desc desc;
-
-    desc.signaled = true;
-
     // try to create fences.
-    for (auto& fence : fences_)
-        fence = make_unique<Vlk_fence>(desc, device_);
+    for (auto& fence : submit_fences_) {
+        // configure a fence descriptor.
+        Fence_desc desc;
+
+        desc.signaled = true;
+
+        try {
+            fence = make_unique<Vlk_fence>(desc, device_);
+        }
+        catch (exception& e) {
+            throw runtime_error("fail to create a swap chain");
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_swap_chain::init_semaphores_()
+void Vlk_swap_chain::init_submit_semaphores_()
 {
-    // configure a semaphore create info.
-    VkSemaphoreCreateInfo create_info {};
-
-    create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    // try to create acquire semaphores.
-    for (auto& semaphore : acquire_semaphores_) {
-        if (vkCreateSemaphore(device_->device(), &create_info, nullptr, &semaphore))
-            throw runtime_error("fail to create a swap chain");
-    }
-
-    // try to create submit semaphores.
     for (auto& semaphore : submit_semaphores_) {
+        // configure a semaphore create info.
+        VkSemaphoreCreateInfo create_info {};
+
+        create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        // try to create submit semaphores.
         if (vkCreateSemaphore(device_->device(), &create_info, nullptr, &semaphore))
             throw runtime_error("fail to create a swap chain");
     }
@@ -368,12 +383,8 @@ void Vlk_swap_chain::fini_swapchain_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_swap_chain::fini_semaphores_()
+void Vlk_swap_chain::fini_submit_semaphores_()
 {
-    for (auto& semaphore : acquire_semaphores_) {
-        vkDestroySemaphore(device_->device(), semaphore, nullptr);
-    }
-
     for (auto& semaphore : submit_semaphores_) {
         vkDestroySemaphore(device_->device(), semaphore, nullptr);
     }

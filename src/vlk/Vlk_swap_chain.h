@@ -55,17 +55,19 @@ private:
 
     void init_images_();
 
+    void init_acquire_fence_();
+
     void init_cmd_buffers_();
 
-    void init_fences_();
+    void init_submit_fences_();
 
-    void init_semaphores_();
+    void init_submit_semaphores_();
 
     void fini_surface_();
 
     void fini_swapchain_();
 
-    void fini_semaphores_();
+    void fini_submit_semaphores_();
 
     inline auto cur_image_() const noexcept
     { return images_[image_index_].get(); }
@@ -73,11 +75,8 @@ private:
     inline auto cur_cmd_buffer_() const noexcept
     { return cmd_buffers_[frame_index_].get(); }
 
-    inline auto cur_fence_() const noexcept
-    { return fences_[frame_index_].get(); }
-
-    inline auto& cur_acquire_semaphore_() const noexcept
-    { return acquire_semaphores_[frame_index_]; }
+    inline auto cur_submit_fence_() const noexcept
+    { return submit_fences_[frame_index_].get(); }
 
     inline auto& cur_submit_semaphore_() const noexcept
     { return submit_semaphores_[frame_index_]; }
@@ -93,9 +92,9 @@ private:
     VkSwapchainKHR swapchain_;
     std::vector<std::unique_ptr<Vlk_image>> images_;
     uint32_t image_index_;
+    std::unique_ptr<Vlk_fence> acquire_fence_;
     std::vector<std::unique_ptr<Vlk_cmd_buffer>> cmd_buffers_;
-    std::vector<std::unique_ptr<Vlk_fence>> fences_;
-    std::vector<VkSemaphore> acquire_semaphores_;
+    std::vector<std::unique_ptr<Vlk_fence>> submit_fences_;
     std::vector<VkSemaphore> submit_semaphores_;
     uint64_t frame_index_;
 };
