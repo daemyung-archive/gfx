@@ -15,6 +15,10 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+constexpr auto max_set_count = 1024;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline vector<VkDescriptorPoolSize> to_pool_sizes(const Vlk_set_layout_desc& desc)
 {
     unordered_map<VkDescriptorType, uint32_t> counts;
@@ -25,7 +29,7 @@ inline vector<VkDescriptorPoolSize> to_pool_sizes(const Vlk_set_layout_desc& des
     vector<VkDescriptorPoolSize> pool_sizes;
 
     for (auto& [type, count] : counts)
-        pool_sizes.push_back({type, count});
+        pool_sizes.push_back({type, count * max_set_count});
 
     return pool_sizes;
 }
@@ -42,7 +46,7 @@ Vlk_set_layout::Vlk_set_layout(const Vlk_set_layout_desc& desc, Vlk_device* devi
     device_ {device},
     desc_set_layout_ {VK_NULL_HANDLE},
     desc_pool_ {VK_NULL_HANDLE},
-    desc_sets_ {1024},
+    desc_sets_ {max_set_count},
     desc_set_index_ {0}
 {
     init_desc_set_layout_(desc);
@@ -74,7 +78,7 @@ VkDescriptorSet Vlk_set_layout::desc_set()
         vkAllocateDescriptorSets(device_->device(), &alloc_info, &desc_set);
     }
 
-    desc_set_index_ = ++desc_set_index_ % 1024;
+    desc_set_index_ = ++desc_set_index_ % max_set_count;
 
     return desc_set;
 }
@@ -102,7 +106,7 @@ void Vlk_set_layout::init_desc_pool_(const Vlk_set_layout_desc& desc)
     VkDescriptorPoolCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    create_info.maxSets = 1024;
+    create_info.maxSets = max_set_count;
     create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
     create_info.pPoolSizes = &pool_sizes[0];
 
