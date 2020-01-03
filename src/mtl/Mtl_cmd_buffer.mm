@@ -322,10 +322,10 @@ void Mtl_blit_encoder::copy(Buffer* src_buffer, Buffer* dst_buffer, const Buffer
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
 
     [blit_command_encoder_ copyFromBuffer:mtl_src_buffer->buffer()
-                    sourceOffset:region.src_offset
-                        toBuffer:mtl_dst_buffer->buffer()
-               destinationOffset:region.dst_offset
-                            size:region.size];
+                             sourceOffset:region.src_offset
+                                 toBuffer:mtl_dst_buffer->buffer()
+                        destinationOffset:region.dst_offset
+                                     size:region.size];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -336,14 +336,14 @@ void Mtl_blit_encoder::copy(Buffer* src_buffer, Image* dst_image, const Buffer_i
     auto mtl_dst_image = static_cast<Mtl_image*>(dst_image);
 
     [blit_command_encoder_ copyFromBuffer:mtl_src_buffer->buffer()
-                    sourceOffset:region.buffer_offset
-               sourceBytesPerRow:region.buffer_row_size
-             sourceBytesPerImage:region.buffer_row_size * region.buffer_image_height
-                      sourceSize:convert<MTLSize>(region.image_extent)
-                       toTexture:mtl_dst_image->texture()
-                destinationSlice:region.image_subresource.array_layer
-                destinationLevel:region.image_subresource.mip_level
-               destinationOrigin:convert<MTLOrigin>(region.image_offset)];
+                             sourceOffset:region.buffer_offset
+                        sourceBytesPerRow:region.buffer_row_size
+                      sourceBytesPerImage:region.buffer_row_size * region.buffer_image_height
+                               sourceSize:convert<MTLSize>(region.image_extent)
+                                toTexture:mtl_dst_image->texture()
+                         destinationSlice:region.image_subresource.array_layer
+                         destinationLevel:region.image_subresource.mip_level
+                        destinationOrigin:convert<MTLOrigin>(region.image_offset)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -354,14 +354,14 @@ void Mtl_blit_encoder::copy(Image* src_image, Buffer* dst_buffer, const Buffer_i
     auto mtl_dst_buffer = static_cast<Mtl_buffer*>(dst_buffer);
 
     [blit_command_encoder_ copyFromTexture:mtl_src_image->texture()
-                      sourceSlice:region.image_subresource.array_layer
-                      sourceLevel:region.image_subresource.mip_level
-                     sourceOrigin:convert<MTLOrigin>(region.image_offset)
-                       sourceSize:convert<MTLSize>(region.image_extent)
-                         toBuffer:mtl_dst_buffer->buffer()
-                destinationOffset:region.buffer_offset
-           destinationBytesPerRow:region.buffer_row_size
-         destinationBytesPerImage:region.buffer_row_size * region.buffer_image_height];
+                               sourceSlice:region.image_subresource.array_layer
+                               sourceLevel:region.image_subresource.mip_level
+                              sourceOrigin:convert<MTLOrigin>(region.image_offset)
+                                sourceSize:convert<MTLSize>(region.image_extent)
+                                  toBuffer:mtl_dst_buffer->buffer()
+                         destinationOffset:region.buffer_offset
+                    destinationBytesPerRow:region.buffer_row_size
+                  destinationBytesPerImage:region.buffer_row_size * region.buffer_image_height];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
