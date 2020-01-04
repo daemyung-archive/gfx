@@ -6,18 +6,38 @@
 #include <cstdint>
 #include <string>
 #include <cxxopts.hpp>
-#include "Gfx_triangle_demo.h"
-#include "Gfx_texture_demo.h"
+#include <platform/Window.h>
+#include "Triangle_demo.h"
+#include "Texture_demo.h"
 
 using namespace std;
 using namespace cxxopts;
+using namespace Platform_lib;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-void run(Window* window)
+unique_ptr<Window> window_;
+unique_ptr<Demo> demo_;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_startup()
 {
-    T(window).run();
+    demo_->connect(window_.get());
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_shutdown()
+{
+    demo_ = nullptr;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_render()
+{
+    demo_->render();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -40,12 +60,18 @@ int main(int argc, char* argv[])
     window_desc.title = L"GFX Demo";
     window_desc.extent = { result["w"].as<uint32_t>(), result["h"].as<uint32_t>() };
 
-    auto window = make_unique<Window>(window_desc);
+    window_ = make_unique<Window>(window_desc);
+
+    window_->startup_signal.connect(&on_startup);
+    window_->shutdown_signal.connect(&on_shutdown);
+    window_->render_signal.connect(&on_render);
 
     if ("triangle" == target)
-        run<Gfx_triangle_demo>(window.get());
+        demo_ = make_unique<Triangle_demo>();
     else if("texture" == target)
-        run<Gfx_texture_demo>(window.get());
+        demo_ = make_unique<Texture_demo>();
+
+    window_->run();
 
     return 0;
 }
@@ -58,9 +84,15 @@ void android_main(struct android_app* state)
     window_desc.extent = { 360, 640 };
     window_desc.app = state;
 
-    auto window = make_unique<Window>(window_desc);
+    window_ = make_unique<Window>(window_desc);
 
-    run<Gfx_triangle_demo>(window.get());
+    window_->startup_signal.connect(&on_startup);
+    window_->shutdown_signal.connect(&on_shutdown);
+    window_->render_signal.connect(&on_render);
+
+    demo_ = make_unique<Triangle_demo>();
+
+    window_->run();
 }
 #elif defined(_WIN32)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
@@ -70,9 +102,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmd
     window_desc.title = L"GFX Demo";
     window_desc.extent = { 360, 640 };
 
-    auto window = make_unique<Window>(window_desc);
+    window_ = make_unique<Window>(window_desc);
 
-    run<Gfx_triangle_demo>(window.get());
+    window_->startup_signal.connect(&on_startup);
+    window_->shutdown_signal.connect(&on_shutdown);
+    window_->render_signal.connect(&on_render);
+
+    demo_ = make_unique<Triangle_demo>();
+
+    window_->run();
 
     return 0;
 }

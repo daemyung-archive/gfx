@@ -125,15 +125,14 @@ endif()
 
 target_sources(gfx_demo
     PRIVATE
-        demo/gfx_demo.cpp
-        demo/stb_lib_modules.h
-        demo/platform_lib_modules.h
-        demo/sc_lib_modules.h
-        demo/gfx_lib_modules.h
-        demo/Gfx_triangle_demo.h
-        demo/Gfx_triangle_demo.cpp
-        demo/Gfx_texture_demo.h
-        demo/Gfx_texture_demo.cpp)
+        demo/main.cpp
+        demo/stb_lib.h
+        demo/Demo.h
+        demo/Demo.cpp
+        demo/Triangle_demo.h
+        demo/Triangle_demo.cpp
+        demo/Texture_demo.h
+        demo/Texture_demo.cpp)
 
 target_link_libraries(gfx_demo
     PUBLIC
