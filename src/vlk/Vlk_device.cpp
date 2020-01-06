@@ -86,6 +86,7 @@ Vlk_device::Vlk_device() :
     init_queue_();
     init_allocator_();
     init_command_pool_();
+    init_pipeline_cache_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -95,6 +96,7 @@ Vlk_device::~Vlk_device()
     framebuffer_pool_.clear();
     render_pass_pool_.clear();
 
+    fini_pipeline_cache_();
     fini_command_pool_();
     fini_allocator_();
     fini_device_();
@@ -443,6 +445,20 @@ void Vlk_device::init_command_pool_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void Vlk_device::init_pipeline_cache_()
+{
+    // configure a pipeline cache create info.
+    VkPipelineCacheCreateInfo create_info {};
+
+    create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+
+    // try to create a pipeline cache.
+    if (vkCreatePipelineCache(device_, &create_info, nullptr, &pipeline_cache_))
+        throw runtime_error("fail to create a device");
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void Vlk_device::fini_instance_()
 {
     vkDestroyInstance(instance_, nullptr);
@@ -467,6 +483,11 @@ void Vlk_device::fini_allocator_()
 void Vlk_device::fini_command_pool_()
 {
     vkDestroyCommandPool(device_, command_pool_, nullptr);
+}
+
+void Vlk_device::fini_pipeline_cache_()
+{
+    vkDestroyPipelineCache(device_, pipeline_cache_, nullptr);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

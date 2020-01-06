@@ -400,7 +400,7 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
     create_info.renderPass = render_pass->render_pass();
 
     // try to create a graphics pipeline.
-    if (vkCreateGraphicsPipelines(device_->device(), VK_NULL_HANDLE, 1, &create_info, nullptr, &pipeline_))
+    if (vkCreateGraphicsPipelines(device_->device(), device_->pipeline_cache(), 1, &create_info, nullptr, &pipeline_))
         throw runtime_error("fail to create a pipeline.");
 }
 

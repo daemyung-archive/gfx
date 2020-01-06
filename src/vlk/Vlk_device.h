@@ -75,6 +75,9 @@ public:
     inline auto command_pool() const noexcept
     { return command_pool_; }
 
+    inline auto pipeline_cache() const noexcept
+    { return pipeline_cache_; }
+
 private:
     void init_library_();
 
@@ -98,6 +101,8 @@ private:
 
     void init_command_pool_();
 
+    void init_pipeline_cache_();
+
     void fini_instance_();
 
     void fini_device_();
@@ -105,6 +110,8 @@ private:
     void fini_allocator_();
 
     void fini_command_pool_();
+
+    void fini_pipeline_cache_();
 
 private:
     Platform_lib::Library library_;
@@ -115,6 +122,7 @@ private:
     VkQueue queue_;
     VmaAllocator allocator_;
     VkCommandPool command_pool_;
+    VkPipelineCache pipeline_cache_;
     Lru_cache<Vlk_render_pass> render_pass_pool_;
     Lru_cache<Vlk_framebuffer> framebuffer_pool_;
 };
