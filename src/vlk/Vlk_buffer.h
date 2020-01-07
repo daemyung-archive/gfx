@@ -24,7 +24,7 @@ public:
 
     ~Vlk_buffer();
 
-    gsl::span<std::byte> map() override;
+    void* map() override;
 
     void unmap() override;
 

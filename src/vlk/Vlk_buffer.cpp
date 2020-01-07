@@ -34,7 +34,7 @@ Vlk_buffer::~Vlk_buffer()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-gsl::span<std::byte> Vlk_buffer::map()
+void* Vlk_buffer::map()
 {
     void* ptr { nullptr };
 
@@ -42,7 +42,7 @@ gsl::span<std::byte> Vlk_buffer::map()
     vmaMapMemory(device_->allocator(), alloc_, &ptr);
 
     assert(ptr);
-    return { static_cast<byte*>(ptr), static_cast<ptrdiff_t>(size_) };
+    return ptr;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
         throw runtime_error("fail to create buffer");
 
     if (desc.data && desc.size) {
-        memcpy(map().data(), desc.data, desc.size);
+        memcpy(map(), desc.data, desc.size);
         unmap();
     }
 }

@@ -25,9 +25,9 @@ Mtl_buffer::Mtl_buffer(const Buffer_desc& desc, Mtl_device* device) :
 
 //----------------------------------------------------------------------------------------------------------------------
 
-gsl::span<std::byte> Mtl_buffer::map()
+void* Mtl_buffer::map()
 {
-    return { static_cast<byte*>([buffer_ contents]), static_cast<ptrdiff_t>([buffer_ allocatedSize]) };
+    return [buffer_ contents];
 }
 
 //----------------------------------------------------------------------------------------------------------------------

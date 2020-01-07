@@ -21,7 +21,7 @@ class Mtl_buffer final : public Buffer {
 public:
     Mtl_buffer(const Buffer_desc& desc, Mtl_device* device);
 
-    gsl::span<std::byte> map() override;
+    void* map() override;
 
     void unmap() override;
 

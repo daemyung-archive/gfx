@@ -7,7 +7,6 @@
 #define GFX_BUFFER_GUARD
 
 #include <cstddef>
-#include <gsl/gsl>
 #include "enums.h"
 
 namespace Gfx_lib {
@@ -30,7 +29,7 @@ class Buffer {
 public:
     virtual ~Buffer() = default;
 
-    virtual gsl::span<std::byte> map() = 0;
+    virtual void* map() = 0;
 
     virtual void unmap() = 0;
 
