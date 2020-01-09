@@ -214,7 +214,7 @@ void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
         throw runtime_error("fail to create a swap chain");
 
     // configure a metal layer.
-    layer.pixelFormat = convert<MTLPixelFormat>(desc.image_format);
+    layer.pixelFormat = to_MTLPixelFormat(desc.image_format);
     layer.framebufferOnly = NO;
     layer.maximumDrawableCount = desc.image_count;
 
@@ -255,8 +255,8 @@ void Vlk_swap_chain::init_swapchain_(const Swap_chain_desc& desc)
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     create_info.surface = surface_;
     create_info.minImageCount = desc.image_count;
-    create_info.imageFormat = convert<VkFormat>(desc.image_format);
-    create_info.imageColorSpace = convert<VkColorSpaceKHR>(desc.color_space);
+    create_info.imageFormat = to_VkFormat(desc.image_format);
+    create_info.imageColorSpace = to_VkColorSpaceKHR(desc.color_space);
     create_info.imageExtent = surface_caps.currentExtent;
     create_info.imageArrayLayers = 1;
     create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

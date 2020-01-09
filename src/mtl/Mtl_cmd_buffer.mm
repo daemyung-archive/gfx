@@ -107,7 +107,7 @@ void Mtl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
     [render_command_encoder_ drawIndexedPrimitives:pipeline_->primitive_type()
                                         indexCount:count
-                                         indexType:convert<MTLIndexType>(index_type_)
+                                         indexType:to_MTLIndexType(index_type_)
                                        indexBuffer:index_buffer_->buffer()
                                  indexBufferOffset:first * byte_size(index_type_)];
 }
@@ -244,14 +244,14 @@ void Mtl_render_encoder::pipeline(Pipeline* pipeline)
 
 void Mtl_render_encoder::viewport(const Viewport& viewport)
 {
-    [render_command_encoder_ setViewport:convert<MTLViewport>(viewport)];
+    [render_command_encoder_ setViewport:to_MTLViewport(viewport)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Mtl_render_encoder::scissor(const Scissor& scissor)
 {
-    [render_command_encoder_ setScissorRect:convert<MTLScissorRect>(scissor)];
+    [render_command_encoder_ setScissorRect:to_MTLScissorRect(scissor)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -276,9 +276,9 @@ void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc&
 
             // set up the color attachment descriptor at the index.
             descriptor.colorAttachments[i].texture = mtl_image->texture();
-            descriptor.colorAttachments[i].loadAction = convert<MTLLoadAction>(color.load_op);
-            descriptor.colorAttachments[i].storeAction = convert<MTLStoreAction>(color.store_op);
-            descriptor.colorAttachments[i].clearColor = convert<MTLClearColor>(color.clear_value);
+            descriptor.colorAttachments[i].loadAction = to_MTLLoadAction(color.load_op);
+            descriptor.colorAttachments[i].storeAction = to_MTLStoreAction(color.store_op);
+            descriptor.colorAttachments[i].clearColor = to_MTLClearColor(color.clear_value);
         }
     }
 
@@ -289,8 +289,8 @@ void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc&
 
         // set up the depth attachment descriptor.
         descriptor.depthAttachment.texture = mtl_image->texture();
-        descriptor.depthAttachment.loadAction = convert<MTLLoadAction>(depth_stencil.load_op);
-        descriptor.depthAttachment.storeAction = convert<MTLStoreAction>(depth_stencil.store_op);
+        descriptor.depthAttachment.loadAction = to_MTLLoadAction(depth_stencil.load_op);
+        descriptor.depthAttachment.storeAction = to_MTLStoreAction(depth_stencil.store_op);
         descriptor.depthAttachment.clearDepth = depth_stencil.clear_value.d;
 
         // set up the stencil attachment descriptor.
@@ -339,11 +339,11 @@ void Mtl_blit_encoder::copy(Buffer* src_buffer, Image* dst_image, const Buffer_i
                              sourceOffset:region.buffer_offset
                         sourceBytesPerRow:region.buffer_row_size
                       sourceBytesPerImage:region.buffer_row_size * region.buffer_image_height
-                               sourceSize:convert<MTLSize>(region.image_extent)
+                               sourceSize:to_MTLSize(region.image_extent)
                                 toTexture:mtl_dst_image->texture()
                          destinationSlice:region.image_subresource.array_layer
                          destinationLevel:region.image_subresource.mip_level
-                        destinationOrigin:convert<MTLOrigin>(region.image_offset)];
+                        destinationOrigin:to_MTLOrigin(region.image_offset)];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -356,8 +356,8 @@ void Mtl_blit_encoder::copy(Image* src_image, Buffer* dst_buffer, const Buffer_i
     [blit_command_encoder_ copyFromTexture:mtl_src_image->texture()
                                sourceSlice:region.image_subresource.array_layer
                                sourceLevel:region.image_subresource.mip_level
-                              sourceOrigin:convert<MTLOrigin>(region.image_offset)
-                                sourceSize:convert<MTLSize>(region.image_extent)
+                              sourceOrigin:to_MTLOrigin(region.image_offset)
+                                sourceSize:to_MTLSize(region.image_extent)
                                   toBuffer:mtl_dst_buffer->buffer()
                          destinationOffset:region.buffer_offset
                     destinationBytesPerRow:region.buffer_row_size

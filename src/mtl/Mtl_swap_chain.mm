@@ -105,7 +105,7 @@ void Mtl_swap_chain::init_layer_(const Swap_chain_desc& desc)
         throw runtime_error("fail to create a swap chain");
 
     layer_.device = device_->device();
-    layer_.pixelFormat = convert<MTLPixelFormat>(desc.image_format);
+    layer_.pixelFormat = to_MTLPixelFormat(desc.image_format);
     layer_.framebufferOnly = NO;
     layer_.maximumDrawableCount = desc.image_count;
     layer_.drawableSize = CGSizeMake(desc.image_extent.w, desc.image_extent.h);

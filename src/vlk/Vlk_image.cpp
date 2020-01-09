@@ -62,7 +62,7 @@ Vlk_image::Vlk_image(const Image_desc& desc, Vlk_device* device) :
     access_mask_ { 0 },
     layout_ { VK_IMAGE_LAYOUT_UNDEFINED },
     image_view_ { VK_NULL_HANDLE },
-    aspect_mask_ { convert<VkImageAspectFlags>(desc.format) }
+    aspect_mask_ { to_VkImageAspectFlags(desc.format) }
 {
     init_image_and_alloc_(desc);
     init_image_view_(desc);
@@ -85,7 +85,7 @@ Vlk_image::Vlk_image(const Image_desc& desc, Vlk_device* device, Vlk_swap_chain*
     alloc_ { VK_NULL_HANDLE },
     layout_ { VK_IMAGE_LAYOUT_UNDEFINED },
     image_view_ { VK_NULL_HANDLE },
-    aspect_mask_ { convert<VkImageAspectFlags>(desc.format) }
+    aspect_mask_ { to_VkImageAspectFlags(desc.format) }
 {
     init_image_view_(desc);
 }
@@ -168,9 +168,9 @@ void Vlk_image::init_image_and_alloc_(const Image_desc& desc)
     VkImageCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    create_info.imageType = convert<VkImageType>(desc.type);
-    create_info.format = convert<VkFormat>(desc.format);
-    create_info.extent = ::convert<VkExtent3D>(desc.extent);
+    create_info.imageType = to_VkImageType(desc.type);
+    create_info.format = to_VkFormat(desc.format);
+    create_info.extent = to_VkExtent3D(desc.extent);
     create_info.mipLevels = desc.mip_levels;
     create_info.arrayLayers = desc.array_layers;
     create_info.samples = static_cast<VkSampleCountFlagBits>(desc.samples);
@@ -198,13 +198,13 @@ void Vlk_image::init_image_view_(const Image_desc& desc)
 
     create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     create_info.image = image_;
-    create_info.viewType = convert<VkImageViewType>(desc.type);
-    create_info.format = convert<VkFormat>(desc.format);
+    create_info.viewType = to_VkImageViewType(desc.type);
+    create_info.format = to_VkFormat(desc.format);
     create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    create_info.subresourceRange.aspectMask = convert<VkImageAspectFlags>(desc.format);
+    create_info.subresourceRange.aspectMask = to_VkImageAspectFlags(desc.format);
     create_info.subresourceRange.levelCount = desc.mip_levels;
     create_info.subresourceRange.layerCount = desc.array_layers;
 

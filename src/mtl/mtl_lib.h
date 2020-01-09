@@ -19,13 +19,7 @@ constexpr auto vertex_buffer_index_offset = 29;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename R, typename T>
-inline R convert(T);
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template<>
-inline MTLResourceOptions convert(Heap_type type)
+inline MTLResourceOptions to_MTLResourceOptions(Heap_type type)
 {
     switch (type) {
         case Heap_type::local:
@@ -41,8 +35,7 @@ inline MTLResourceOptions convert(Heap_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLTextureType convert(Image_type type)
+inline MTLTextureType to_MTLTextureType(Image_type type)
 {
     switch (type) {
         case Image_type::two_dim:
@@ -56,8 +49,7 @@ inline MTLTextureType convert(Image_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLPixelFormat convert(Format format)
+inline MTLPixelFormat to_MTLPixelFormat(Format format)
 {
     switch (format) {
         case Format::rgba8_unorm:
@@ -79,8 +71,7 @@ inline MTLPixelFormat convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLSamplerMinMagFilter convert(Filter filter)
+inline MTLSamplerMinMagFilter to_MTLSamplerMinMagFilter(Filter filter)
 {
     switch (filter) {
         case Filter::nearest:
@@ -94,8 +85,7 @@ inline MTLSamplerMinMagFilter convert(Filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLSamplerMipFilter convert(Mip_filter filter)
+inline MTLSamplerMipFilter to_MTLSamplerMipFilter(Mip_filter filter)
 {
     switch (filter) {
         case Mip_filter::nearest:
@@ -109,8 +99,7 @@ inline MTLSamplerMipFilter convert(Mip_filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLSamplerAddressMode convert(Address_mode mode)
+inline MTLSamplerAddressMode to_MTLSamplerAddressMode(Address_mode mode)
 {
     switch (mode) {
         case Address_mode::repeat:
@@ -124,8 +113,7 @@ inline MTLSamplerAddressMode convert(Address_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLVertexStepFunction convert(Step_rate rate)
+inline MTLVertexStepFunction to_MTLVertexStepFunction(Step_rate rate)
 {
     switch (rate) {
         case Step_rate::vertex:
@@ -139,8 +127,7 @@ inline MTLVertexStepFunction convert(Step_rate rate)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLVertexFormat convert(Format format)
+inline MTLVertexFormat to_MTLVertexFormat(Format format)
 {
     switch (format) {
         case Format::rgb8_unorm:
@@ -160,8 +147,7 @@ inline MTLVertexFormat convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLIndexType convert(Index_type type)
+inline MTLIndexType to_MTLIndexType(Index_type type)
 {
     switch (type) {
         case Index_type::uint16:
@@ -175,8 +161,7 @@ inline MTLIndexType convert(Index_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLBlendFactor convert(Blend_factor factor)
+inline MTLBlendFactor to_MTLBlendFactor(Blend_factor factor)
 {
     switch (factor) {
         case Blend_factor::zero:
@@ -198,8 +183,7 @@ inline MTLBlendFactor convert(Blend_factor factor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLBlendOperation convert(Blend_op op)
+inline MTLBlendOperation to_MTLBlendOperation(Blend_op op)
 {
     switch (op) {
         case Blend_op::add:
@@ -219,8 +203,7 @@ inline MTLBlendOperation convert(Blend_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLPrimitiveTopologyClass convert(Topology topology)
+inline MTLPrimitiveTopologyClass to_MTLPrimitiveTopologyClass(Topology topology)
 {
     switch (topology) {
         case Topology::triangle_list:
@@ -235,8 +218,7 @@ inline MTLPrimitiveTopologyClass convert(Topology topology)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLPrimitiveType convert(Topology topology)
+inline MTLPrimitiveType to_MTLPrimitiveType(Topology topology)
 {
     switch (topology) {
         case Topology::triangle_list:
@@ -252,8 +234,7 @@ inline MTLPrimitiveType convert(Topology topology)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLCullMode convert(Cull_mode mode)
+inline MTLCullMode to_MTLCullMode(Cull_mode mode)
 {
     switch (mode) {
         case Cull_mode::front:
@@ -269,8 +250,7 @@ inline MTLCullMode convert(Cull_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLWinding convert(Front_face face)
+inline MTLWinding to_MTLWinding(Front_face face)
 {
     switch (face) {
         case Front_face::counter_clockwise:
@@ -284,8 +264,7 @@ inline MTLWinding convert(Front_face face)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLStencilOperation convert(Stencil_op op)
+inline MTLStencilOperation to_MTLStencilOperation(Stencil_op op)
 {
     switch (op) {
         case Stencil_op::keep:
@@ -311,8 +290,7 @@ inline MTLStencilOperation convert(Stencil_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLCompareFunction convert(Compare_op op)
+inline MTLCompareFunction to_MTLCompareFunction(Compare_op op)
 {
     switch (op) {
         case Compare_op::never:
@@ -338,8 +316,7 @@ inline MTLCompareFunction convert(Compare_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLLoadAction convert(Load_op op)
+inline MTLLoadAction to_MTLLoadAction(Load_op op)
 {
     switch (op) {
         case Load_op::load:
@@ -355,8 +332,7 @@ inline MTLLoadAction convert(Load_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLStoreAction convert(Store_op op)
+inline MTLStoreAction to_MTLStoreAction(Store_op op)
 {
     switch (op) {
         case Store_op::store:
@@ -370,40 +346,35 @@ inline MTLStoreAction convert(Store_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLClearColor convert(Clear_value clear_value)
+inline MTLClearColor to_MTLClearColor(Clear_value clear_value)
 {
     return MTLClearColorMake(clear_value.r, clear_value.g, clear_value.b, clear_value.a);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLViewport convert(Viewport viewport)
+inline MTLViewport to_MTLViewport(Viewport viewport)
 {
     return { viewport.x, viewport.y, viewport.w, viewport.h, 0.0, 1.0 };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLScissorRect convert(Scissor scissor)
+inline MTLScissorRect to_MTLScissorRect(Scissor scissor)
 {
     return { scissor.x, scissor.y, scissor.w, scissor.h };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLOrigin convert(Offset offset)
+inline MTLOrigin to_MTLOrigin(Offset offset)
 {
     return MTLOriginMake(offset.x, offset.y, offset.z);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline MTLSize convert(Extent extent)
+inline MTLSize to_MTLSize(Extent extent)
 {
     return MTLSizeMake(extent.w, extent.h, extent.d);
 }

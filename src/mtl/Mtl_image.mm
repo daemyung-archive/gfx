@@ -83,8 +83,8 @@ void Mtl_image::init_texture_(const Image_desc& desc)
     // configure a texture descriptor.
     auto descriptor = [MTLTextureDescriptor new];
 
-    descriptor.textureType = convert<MTLTextureType>(desc.type);
-    descriptor.pixelFormat = convert<MTLPixelFormat>(desc.format);
+    descriptor.textureType = to_MTLTextureType(desc.type);
+    descriptor.pixelFormat = to_MTLPixelFormat(desc.format);
     descriptor.width = desc.extent.w;
     descriptor.height = desc.extent.h;
     descriptor.depth = desc.extent.d;

@@ -83,12 +83,12 @@ void Mtl_sampler::init_sampler_state_(const Sampler_desc& desc)
     // configure a sampler descriptor.
     auto descriptor = [MTLSamplerDescriptor new];
 
-    descriptor.minFilter = convert<MTLSamplerMinMagFilter>(desc.min);
-    descriptor.magFilter = convert<MTLSamplerMinMagFilter>(desc.mag);
-    descriptor.mipFilter = convert<MTLSamplerMipFilter>(desc.mip);
-    descriptor.sAddressMode = convert<MTLSamplerAddressMode>(desc.u);
-    descriptor.tAddressMode = convert<MTLSamplerAddressMode>(desc.v);
-    descriptor.rAddressMode = convert<MTLSamplerAddressMode>(desc.w);
+    descriptor.minFilter = to_MTLSamplerMinMagFilter(desc.min);
+    descriptor.magFilter = to_MTLSamplerMinMagFilter(desc.mag);
+    descriptor.mipFilter = to_MTLSamplerMipFilter(desc.mip);
+    descriptor.sAddressMode = to_MTLSamplerAddressMode(desc.u);
+    descriptor.tAddressMode = to_MTLSamplerAddressMode(desc.v);
+    descriptor.rAddressMode = to_MTLSamplerAddressMode(desc.w);
 
     // try to create a sampler state.
     sampler_state_ = [device_->device() newSamplerStateWithDescriptor:descriptor];

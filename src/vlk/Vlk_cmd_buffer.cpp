@@ -219,7 +219,7 @@ void Vlk_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
 
     cmds_[2].push_back([=]() {
         vkCmdBindIndexBuffer(cmd_buffer_->command_buffer(),
-                             buffer_impl->buffer(), 0, convert<VkIndexType>(index_type));
+                             buffer_impl->buffer(), 0, to_VkIndexType(index_type));
     });
 
     // update an index buffer.
@@ -323,7 +323,7 @@ void Vlk_render_encoder::viewport(const Viewport& viewport)
         return;
 
     cmds_[2].push_back([=]() {
-        auto vk_viewport = convert<VkViewport>(viewport);
+        auto vk_viewport = to_VkViewport(viewport);
 
         vkCmdSetViewport(cmd_buffer_->command_buffer(), 0, 1, &vk_viewport);
     });
@@ -339,7 +339,7 @@ void Vlk_render_encoder::scissor(const Scissor& scissor)
         return;
 
     cmds_[2].push_back([=]() {
-        auto vk_scissor = convert<VkRect2D>(scissor);
+        auto vk_scissor = to_VkRect2D(scissor);
 
         vkCmdSetScissor(cmd_buffer_->command_buffer(), 0, 1, &vk_scissor);
     });
@@ -471,7 +471,7 @@ void Vlk_render_encoder::begin_render_pass_(const Render_encoder_desc& desc)
         begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         begin_info.renderPass = render_pass_->render_pass();
         begin_info.framebuffer = framebuffer_->framebuffer();
-        begin_info.renderArea.extent = convert<VkExtent2D>(framebuffer_->extent());
+        begin_info.renderArea.extent = to_VkExtent2D(framebuffer_->extent());
         begin_info.clearValueCount = clear_values.size();
         begin_info.pClearValues = &clear_values[0];
 

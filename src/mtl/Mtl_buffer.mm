@@ -61,7 +61,7 @@ uint64_t Mtl_buffer::size() const
 
 void Mtl_buffer::init_buffer_(const Buffer_desc& desc)
 {
-    const auto options = convert<MTLResourceOptions>(desc.type);
+    const auto options = to_MTLResourceOptions(desc.type);
 
     if (desc.data) {
         buffer_ = [device_->device() newBufferWithBytes:desc.data

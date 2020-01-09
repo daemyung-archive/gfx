@@ -222,7 +222,7 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
 
             vertex_input_binding.binding = i;
             vertex_input_binding.stride = binding.stride;
-            vertex_input_binding.inputRate = convert<VkVertexInputRate>(binding.step_rate);
+            vertex_input_binding.inputRate = to_VkVertexInputRate(binding.step_rate);
 
             vertex_input_bindings.push_back(vertex_input_binding);
         }
@@ -242,7 +242,7 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
 
             vertex_input_attribute.location = i;
             vertex_input_attribute.binding = attribute.binding;
-            vertex_input_attribute.format = convert<VkFormat>(attribute.format);
+            vertex_input_attribute.format = to_VkFormat(attribute.format);
             vertex_input_attribute.offset = attribute.offset;
 
             vertex_input_attributes.push_back(vertex_input_attribute);
@@ -267,7 +267,7 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
         auto& input_assembly = desc.input_assembly;
 
         input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        input_assembly_state.topology = convert<VkPrimitiveTopology>(input_assembly.topology);
+        input_assembly_state.topology = to_VkPrimitiveTopology(input_assembly.topology);
         input_assembly_state.primitiveRestartEnable = input_assembly.restart;
     }
 
@@ -291,8 +291,8 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
         rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterization_state.depthClampEnable = rasterization.depth_clamp;
         rasterization_state.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterization_state.cullMode = convert<VkCullModeFlags>(rasterization.cull_mode);
-        rasterization_state.frontFace = convert<VkFrontFace>(rasterization.front_face);
+        rasterization_state.cullMode = to_VkCullModeFlags(rasterization.cull_mode);
+        rasterization_state.frontFace = to_VkFrontFace(rasterization.front_face);
         rasterization_state.depthBiasEnable = rasterization.depth_bias;
         rasterization_state.depthBiasConstantFactor = rasterization.depth_bias_constant_factor;
         rasterization_state.depthBiasClamp = rasterization.depth_bias_clamp;
@@ -318,7 +318,7 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
         depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depth_stencil_state.depthTestEnable = depth_stencil.depth_test;
         depth_stencil_state.depthWriteEnable = depth_stencil.write_mask;
-        depth_stencil_state.depthCompareOp = convert<VkCompareOp>(depth_stencil.depth_compare_op);
+        depth_stencil_state.depthCompareOp = to_VkCompareOp(depth_stencil.depth_compare_op);
         depth_stencil_state.stencilTestEnable = depth_stencil.stencil_test;
 
         // todo: front back stencil
@@ -335,12 +335,12 @@ void Vlk_pipeline::init_pipeline_(const Pipeline_desc& desc)
             VkPipelineColorBlendAttachmentState state {};
 
             state.blendEnable = attachment.blend;
-            state.srcColorBlendFactor = convert<VkBlendFactor>(attachment.src_rgb_blend_factor);
-            state.dstColorBlendFactor = convert<VkBlendFactor>(attachment.dst_rgb_blend_factor);
-            state.colorBlendOp = convert<VkBlendOp>(attachment.rgb_blend_op);
-            state.srcAlphaBlendFactor = convert<VkBlendFactor>(attachment.src_a_blend_factor);
-            state.dstAlphaBlendFactor = convert<VkBlendFactor>(attachment.dst_a_blend_factor);
-            state.alphaBlendOp = convert<VkBlendOp>(attachment.a_blend_op);
+            state.srcColorBlendFactor = to_VkBlendFactor(attachment.src_rgb_blend_factor);
+            state.dstColorBlendFactor = to_VkBlendFactor(attachment.dst_rgb_blend_factor);
+            state.colorBlendOp = to_VkBlendOp(attachment.rgb_blend_op);
+            state.srcAlphaBlendFactor = to_VkBlendFactor(attachment.src_a_blend_factor);
+            state.dstAlphaBlendFactor = to_VkBlendFactor(attachment.dst_a_blend_factor);
+            state.alphaBlendOp = to_VkBlendOp(attachment.a_blend_op);
             state.colorWriteMask = attachment.write_mask;
 
             color_blend_attachment_states.push_back(state);

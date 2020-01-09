@@ -230,29 +230,21 @@ APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(DECLARE_VLK_SYMBOL)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename R, typename T>
-inline R convert(T);
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <>
-inline VkExtent2D convert(Extent extent)
+inline VkExtent2D to_VkExtent2D(Extent extent)
 {
     return { extent.w, extent.h };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkExtent3D convert(Extent extent)
+inline VkExtent3D to_VkExtent3D(Extent extent)
 {
     return { extent.w, extent.h, extent.d };
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VmaMemoryUsage convert(Heap_type type)
+inline VmaMemoryUsage to_VmaMemoryUsage(Heap_type type)
 {
     switch (type) {
         case Heap_type::local:
@@ -268,8 +260,7 @@ inline VmaMemoryUsage convert(Heap_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkImageType convert(Image_type type)
+inline VkImageType to_VkImageType(Image_type type)
 {
     switch (type) {
         case Image_type::two_dim:
@@ -282,8 +273,7 @@ inline VkImageType convert(Image_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkFormat convert(Format format)
+inline VkFormat to_VkFormat(Format format)
 {
     switch (format) {
         case Format::rgb8_unorm:
@@ -309,8 +299,7 @@ inline VkFormat convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkImageAspectFlags convert(Format format)
+inline VkImageAspectFlags to_VkImageAspectFlags(Format format)
 {
     switch (format) {
         case Format::rgba8_unorm:
@@ -332,16 +321,14 @@ inline VkImageAspectFlags convert(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkSampleCountFlagBits convert(uint8_t samples)
+inline VkSampleCountFlagBits to_VkSampleCountFlagBits(uint8_t samples)
 {
     return static_cast<VkSampleCountFlagBits>(0x1 << (samples - 1));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkImageViewType convert(Image_type type)
+inline VkImageViewType to_VkImageViewType(Image_type type)
 {
     switch (type) {
         case Image_type::two_dim:
@@ -356,8 +343,7 @@ inline VkImageViewType convert(Image_type type)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkFilter convert(Filter filter)
+inline VkFilter to_VkFilter(Filter filter)
 {
     switch (filter) {
         case Filter::nearest:
@@ -371,8 +357,7 @@ inline VkFilter convert(Filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkSamplerMipmapMode convert(Mip_filter filter)
+inline VkSamplerMipmapMode to_VkSamplerMipmapMode(Mip_filter filter)
 {
     switch (filter) {
         case Mip_filter::nearest:
@@ -386,8 +371,7 @@ inline VkSamplerMipmapMode convert(Mip_filter filter)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkSamplerAddressMode convert(Address_mode mode)
+inline VkSamplerAddressMode to_VkSamplerAddressMode(Address_mode mode)
 {
     switch (mode) {
         case Address_mode::repeat:
@@ -401,8 +385,7 @@ inline VkSamplerAddressMode convert(Address_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkVertexInputRate convert(Step_rate rate)
+inline VkVertexInputRate to_VkVertexInputRate(Step_rate rate)
 {
     switch (rate) {
         case Step_rate::vertex:
@@ -416,8 +399,7 @@ inline VkVertexInputRate convert(Step_rate rate)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkPrimitiveTopology convert(Topology topology)
+inline VkPrimitiveTopology to_VkPrimitiveTopology(Topology topology)
 {
     switch (topology) {
         case Topology::triangle_list:
@@ -433,8 +415,7 @@ inline VkPrimitiveTopology convert(Topology topology)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkCullModeFlags convert(Cull_mode mode)
+inline VkCullModeFlags to_VkCullModeFlags(Cull_mode mode)
 {
     switch (mode) {
         case Cull_mode::front:
@@ -450,8 +431,7 @@ inline VkCullModeFlags convert(Cull_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkFrontFace convert(Front_face face)
+inline VkFrontFace to_VkFrontFace(Front_face face)
 {
     switch (face) {
         case Front_face::counter_clockwise:
@@ -465,8 +445,7 @@ inline VkFrontFace convert(Front_face face)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkCompareOp convert(Compare_op op)
+inline VkCompareOp to_VkCompareOp(Compare_op op)
 {
     switch (op) {
         case Compare_op::never:
@@ -492,8 +471,7 @@ inline VkCompareOp convert(Compare_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkBlendFactor convert(Blend_factor factor)
+inline VkBlendFactor to_VkBlendFactor(Blend_factor factor)
 {
     switch (factor) {
         case Blend_factor::zero:
@@ -515,8 +493,7 @@ inline VkBlendFactor convert(Blend_factor factor)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkBlendOp convert(Blend_op op)
+inline VkBlendOp to_VkBlendOp(Blend_op op)
 {
     switch (op) {
         case Blend_op::add:
@@ -536,8 +513,7 @@ inline VkBlendOp convert(Blend_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkIndexType convert(Index_type type)
+inline VkIndexType to_VkIndexType(Index_type type)
 {
     switch (type) {
         case Index_type::uint16:
@@ -550,24 +526,22 @@ inline VkIndexType convert(Index_type type)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-template<>
-inline VkViewport convert(Viewport viewport)
+
+inline VkViewport to_VkViewport(Viewport viewport)
 {
     return {viewport.x, viewport.h - viewport.y, viewport.w, -viewport.h, 0.0f, 1.0f};
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkRect2D convert(Scissor scissor)
+inline VkRect2D to_VkRect2D(Scissor scissor)
 {
     return {{static_cast<int32_t>(scissor.x), static_cast<int32_t>(scissor.y)}, {scissor.w, scissor.h}};
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkAttachmentLoadOp convert(Load_op op)
+inline VkAttachmentLoadOp to_VkAttachmentLoadOp(Load_op op)
 {
     switch (op) {
         case Load_op::load:
@@ -583,8 +557,7 @@ inline VkAttachmentLoadOp convert(Load_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <>
-inline VkAttachmentStoreOp convert(Store_op op)
+inline VkAttachmentStoreOp to_VkAttachmentStoreOp(Store_op op)
 {
     switch (op) {
         case Store_op::store:
@@ -598,8 +571,7 @@ inline VkAttachmentStoreOp convert(Store_op op)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<>
-inline VkColorSpaceKHR convert(Color_space space)
+inline VkColorSpaceKHR to_VkColorSpaceKHR(Color_space space)
 {
     switch (space) {
         case Color_space::srgb_non_linear:

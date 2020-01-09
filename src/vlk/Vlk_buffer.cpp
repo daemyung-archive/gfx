@@ -97,7 +97,7 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
     // configure an allocation create info.
     VmaAllocationCreateInfo alloc_create_info {};
 
-    alloc_create_info.usage = convert<VmaMemoryUsage>(desc.type);
+    alloc_create_info.usage = to_VmaMemoryUsage(desc.type);
     alloc_create_info.flags = (Heap_type::local == desc.type) ? 0 : VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
     // try to create a buffer and an allocation.

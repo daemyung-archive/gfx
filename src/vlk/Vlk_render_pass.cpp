@@ -42,10 +42,10 @@ void Vlk_render_pass::init_render_pass_(const Vlk_render_pass_desc& desc)
 
             VkAttachmentDescription attachment {};
 
-            attachment.format = convert<VkFormat>(color.format);
-            attachment.samples = convert<VkSampleCountFlagBits>(color.samples);
-            attachment.loadOp = convert<VkAttachmentLoadOp>(color.load_op);
-            attachment.storeOp = convert<VkAttachmentStoreOp>(color.store_op);
+            attachment.format = to_VkFormat(color.format);
+            attachment.samples = to_VkSampleCountFlagBits(color.samples);
+            attachment.loadOp = to_VkAttachmentLoadOp(color.load_op);
+            attachment.storeOp = to_VkAttachmentStoreOp(color.store_op);
             attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -57,10 +57,10 @@ void Vlk_render_pass::init_render_pass_(const Vlk_render_pass_desc& desc)
         if (Format::invalid != depth_stencil.format) {
             VkAttachmentDescription attachment {};
 
-            attachment.format = convert<VkFormat>(depth_stencil.format);
-            attachment.samples = convert<VkSampleCountFlagBits>(depth_stencil.samples);
-            attachment.loadOp = convert<VkAttachmentLoadOp>(depth_stencil.load_op);
-            attachment.storeOp = convert<VkAttachmentStoreOp>(depth_stencil.store_op);
+            attachment.format = to_VkFormat(depth_stencil.format);
+            attachment.samples = to_VkSampleCountFlagBits(depth_stencil.samples);
+            attachment.loadOp = to_VkAttachmentLoadOp(depth_stencil.load_op);
+            attachment.storeOp = to_VkAttachmentStoreOp(depth_stencil.store_op);
             attachment.stencilLoadOp = attachment.loadOp;
             attachment.stencilStoreOp = attachment.storeOp;
             attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
