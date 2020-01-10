@@ -385,6 +385,20 @@ inline VkSamplerAddressMode to_VkSamplerAddressMode(Address_mode mode)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+inline VkShaderStageFlagBits to_VkShaderStageFlagBits(Sc_lib::Shader_type type)
+{
+    switch (type) {
+        case Sc_lib::Shader_type::vertex:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        case Sc_lib::Shader_type ::fragment:
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        default:
+            throw std::runtime_error("invalid the shader type");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline VkVertexInputRate to_VkVertexInputRate(Step_rate rate)
 {
     switch (rate) {
@@ -464,6 +478,32 @@ inline VkCompareOp to_VkCompareOp(Compare_op op)
             return VK_COMPARE_OP_GREATER_OR_EQUAL;
         case Compare_op::always:
             return VK_COMPARE_OP_ALWAYS;
+        default:
+            throw std::runtime_error("invalid the compare op");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline VkStencilOp to_VkStencilOp(Stencil_op op)
+{
+    switch (op) {
+        case Stencil_op::keep:
+            return VK_STENCIL_OP_KEEP;
+        case Stencil_op::zero:
+            return VK_STENCIL_OP_ZERO;
+        case Stencil_op::replace:
+            return VK_STENCIL_OP_REPLACE;
+        case Stencil_op::increment_and_clamp:
+            return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+        case Stencil_op::decrement_and_clamp:
+            return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+        case Stencil_op::invert:
+            return VK_STENCIL_OP_INVERT;
+        case Stencil_op::increment_and_wrap:
+            return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+        case Stencil_op::decrement_and_wrap:
+            return VK_STENCIL_OP_DECREMENT_AND_WRAP;
         default:
             throw std::runtime_error("invalid the stencil op");
     }

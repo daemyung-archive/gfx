@@ -14,6 +14,7 @@
 
 #if TARGET_OS_OSX
 #include <QuartzCore/CAMetalLayer.h>
+#include "mtl_lib.h"
 #endif
 
 using namespace std;
@@ -23,25 +24,20 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_swap_chain::Vlk_swap_chain(const Swap_chain_desc& desc, Vlk_device* device) :
-    Swap_chain(),
-    device_ { device },
-    image_format_ { desc.image_format },
-    image_extent_ { desc.image_extent },
-    color_space_ { desc.color_space },
-    frame_count_ { 0 },
-    window_ { desc.window },
-    surface_ { VK_NULL_HANDLE },
-    swapchain_ { VK_NULL_HANDLE },
-    images_ { desc.image_count },
-    image_index_ { UINT32_MAX },
-    acquire_fence_ { nullptr },
-    cmd_buffers_ { desc.image_count },
-    submit_fences_ { desc.image_count },
-    submit_semaphores_ { desc.image_count },
-    frame_index_ { 0 }
+    Swap_chain {desc},
+    device_ {device},
+    surface_ {VK_NULL_HANDLE},
+    swapchain_ {VK_NULL_HANDLE},
+    images_ {desc.image_count},
+    image_index_ {UINT32_MAX},
+    acquire_fence_ {nullptr},
+    cmd_buffers_ {desc.image_count},
+    submit_fences_ {desc.image_count},
+    submit_semaphores_ {desc.image_count},
+    frame_index_ {0}
 {
-    init_surface_(desc);
-    init_swapchain_(desc);
+    init_surface_(desc.window);
+    init_swapchain_();
     init_images_();
     init_acquire_fence_();
     init_cmd_buffers_();
@@ -149,64 +145,30 @@ Device* Vlk_swap_chain::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Format Vlk_swap_chain::image_format() const
-{
-    return image_format_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Extent Vlk_swap_chain::image_extent() const
-{
-    return image_extent_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Color_space Vlk_swap_chain::color_space() const
-{
-    return color_space_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-uint64_t Vlk_swap_chain::frame_count() const
-{
-    return frame_count_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
+void Vlk_swap_chain::init_surface_(void* window)
 {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
-    auto window = static_cast<ANativeWindow*>(desc.window);
-
     // configure an android surface create info.
     VkAndroidSurfaceCreateInfoKHR create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
-    create_info.window = window;
+    create_info.window = static_cast<ANativeWindow*>(window);
 
     // try to create an android surface.
     if (vkCreateAndroidSurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
         throw runtime_error("fail to create a swap chain");
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
-    auto window = static_cast<HWND>(desc.window);
-
     // configure a win32 surface create info.
     VkWin32SurfaceCreateInfoKHR create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     create_info.hinstance = GetModuleHandle(NULL);
-    create_info.hwnd = window;
+    create_info.hwnd = static_cast<HWND>(window);
 
     // try to create an win32 surface.
     if (vkCreateWin32SurfaceKHR(device_->instance(), &create_info, nullptr, &surface_))
         throw runtime_error("fail to create a swap chain");
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-    auto window = (__bridge NSWindow*)desc.window;
-
     // create a metal layer.
     auto layer = [CAMetalLayer layer];
 
@@ -214,18 +176,18 @@ void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
         throw runtime_error("fail to create a swap chain");
 
     // configure a metal layer.
-    layer.pixelFormat = to_MTLPixelFormat(desc.image_format);
+    layer.pixelFormat = to_MTLPixelFormat(image_format_);
     layer.framebufferOnly = NO;
-    layer.maximumDrawableCount = desc.image_count;
+    layer.maximumDrawableCount = images_.size();
 
     // set a metal layer to a view.
-    [[window contentView] setLayer:layer];
+    [[(__bridge NSWindow*)window contentView] setLayer:layer];
 
     // configure an osx surface create info.
     VkMacOSSurfaceCreateInfoMVK create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
-    create_info.pView = (__bridge void*)[window contentView];
+    create_info.pView = (__bridge void*)[(__bridge NSWindow*)window contentView];
 
     // try to create an osx surface.
     if (vkCreateMacOSSurfaceMVK(device_->instance(), &create_info, nullptr, &surface_))
@@ -242,7 +204,7 @@ void Vlk_swap_chain::init_surface_(const Swap_chain_desc& desc)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_swap_chain::init_swapchain_(const Swap_chain_desc& desc)
+void Vlk_swap_chain::init_swapchain_()
 {
     // query the surface capabilities.
     VkSurfaceCapabilitiesKHR surface_caps;
@@ -254,9 +216,9 @@ void Vlk_swap_chain::init_swapchain_(const Swap_chain_desc& desc)
 
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     create_info.surface = surface_;
-    create_info.minImageCount = desc.image_count;
-    create_info.imageFormat = to_VkFormat(desc.image_format);
-    create_info.imageColorSpace = to_VkColorSpaceKHR(desc.color_space);
+    create_info.minImageCount = images_.size();
+    create_info.imageFormat = to_VkFormat(image_format_);
+    create_info.imageColorSpace = to_VkColorSpaceKHR(color_space_);
     create_info.imageExtent = surface_caps.currentExtent;
     create_info.imageArrayLayers = 1;
     create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

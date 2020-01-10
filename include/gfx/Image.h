@@ -31,21 +31,44 @@ struct Image_desc {
 
 class Image {
 public:
+    explicit Image(const Image_desc& desc) noexcept :
+        type_ {desc.type},
+        format_ {desc.format},
+        extent_ {desc.extent},
+        mip_levels_ {desc.mip_levels},
+        array_layers_ {desc.array_layers},
+        samples_ { desc.samples }
+    {}
+
     virtual ~Image() = default;
 
     virtual Device* device() const = 0;
 
-    virtual Image_type type() const = 0;
+    inline Image_type type() const noexcept
+    { return type_; }
 
-    virtual Format format() const = 0;
+    inline virtual Format format() const noexcept
+    { return format_; }
 
-    virtual Extent extent() const = 0;
+    inline Extent extent() const noexcept
+    { return extent_; }
 
-    virtual uint8_t mip_levels() const = 0;
+    inline uint8_t mip_levels() const noexcept
+    { return mip_levels_; }
 
-    virtual uint8_t array_layers() const = 0;
+    inline uint8_t array_layers() const noexcept
+    { return array_layers_; }
 
-    virtual uint8_t samples() const = 0;
+    inline uint8_t samples() const noexcept
+    { return samples_; }
+
+protected:
+    Image_type type_;
+    Format format_;
+    Extent extent_;
+    uint8_t mip_levels_;
+    uint8_t array_layers_;
+    uint8_t samples_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

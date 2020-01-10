@@ -36,4 +36,12 @@ inline F for_each(R& range, F func)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+template<typename R, typename O, typename F>
+inline O transform(R& range, O iter, F func)
+{
+    return std::transform(std::begin(range), std::end(range), iter, func);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 #endif // GFX_STD_LIB_MODULES_GUARD

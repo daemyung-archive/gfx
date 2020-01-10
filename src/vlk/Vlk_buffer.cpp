@@ -15,14 +15,13 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_buffer::Vlk_buffer(const Buffer_desc& desc, Vlk_device* device) :
-    Buffer(),
-    device_ { device },
-    type_ { desc.type },
-    size_ { desc.size },
-    buffer_ { VK_NULL_HANDLE },
-    alloc_ { VK_NULL_HANDLE }
+    Buffer {desc},
+    device_ {device},
+    buffer_ {VK_NULL_HANDLE},
+    alloc_ {VK_NULL_HANDLE},
+    contents_ {nullptr}
 {
-    init_buffer_and_alloc_(desc);
+    init_buffer_and_alloc_(desc.data);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -36,20 +35,13 @@ Vlk_buffer::~Vlk_buffer()
 
 void* Vlk_buffer::map()
 {
-    void* ptr { nullptr };
-
-    // get the virtual memory address of a buffer.
-    vmaMapMemory(device_->allocator(), alloc_, &ptr);
-
-    assert(ptr);
-    return ptr;
+    return contents_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Vlk_buffer::unmap()
 {
-    vmaUnmapMemory(device_->allocator(), alloc_);
     vmaFlushAllocation(device_->allocator(), alloc_, 0, VK_WHOLE_SIZE);
 }
 
@@ -62,21 +54,7 @@ Device* Vlk_buffer::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Heap_type Vlk_buffer::type() const
-{
-    return type_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-uint64_t Vlk_buffer::size() const
-{
-    return size_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
+void Vlk_buffer::init_buffer_and_alloc_(const void* data)
 {
     // configure the required buffer usage.
     constexpr auto usage {
@@ -91,22 +69,27 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
     VkBufferCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    create_info.size = desc.size;
+    create_info.size = size_;
     create_info.usage = usage;
 
     // configure an allocation create info.
     VmaAllocationCreateInfo alloc_create_info {};
 
-    alloc_create_info.usage = to_VmaMemoryUsage(desc.type);
-    alloc_create_info.flags = (Heap_type::local == desc.type) ? 0 : VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    alloc_create_info.usage = to_VmaMemoryUsage(heap_type_);
+
+    if (Heap_type::local != heap_type_)
+        alloc_create_info.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
     // try to create a buffer and an allocation.
     if (vmaCreateBuffer(device_->allocator(), &create_info, &alloc_create_info, &buffer_, &alloc_, nullptr))
         throw runtime_error("fail to create buffer");
 
-    if (desc.data && desc.size) {
-        memcpy(map(), desc.data, desc.size);
-        unmap();
+    if (Heap_type::local != heap_type_)
+        vmaMapMemory(device_->allocator(), alloc_, &contents_);
+
+    if (data) {
+        memcpy(contents_, data, size_);
+        vmaFlushAllocation(device_->allocator(), alloc_, 0, VK_WHOLE_SIZE);
     }
 }
 
@@ -114,6 +97,9 @@ void Vlk_buffer::init_buffer_and_alloc_(const Buffer_desc& desc)
 
 void Vlk_buffer::fini_buffer_and_alloc_()
 {
+    if (Heap_type::local != heap_type_)
+        vmaUnmapMemory(device_->allocator(), alloc_);
+
     vmaDestroyBuffer(device_->allocator(), buffer_, alloc_);
 }
 

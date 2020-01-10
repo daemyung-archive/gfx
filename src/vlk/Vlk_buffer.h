@@ -30,24 +30,19 @@ public:
 
     Device* device() const override;
 
-    Heap_type type() const override;
-
-    uint64_t size() const override;
-
     inline auto& buffer() const noexcept
     { return buffer_; }
 
 private:
-    void init_buffer_and_alloc_(const Buffer_desc& desc);
+    void init_buffer_and_alloc_(const void* data);
 
     void fini_buffer_and_alloc_();
 
 private:
     Vlk_device* device_;
-    Heap_type type_;
-    uint64_t size_;
     VkBuffer buffer_;
     VmaAllocation alloc_;
+    void* contents_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

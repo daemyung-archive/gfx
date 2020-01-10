@@ -14,17 +14,11 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_sampler::Vlk_sampler(const Sampler_desc& desc, Vlk_device* device) :
-    Sampler(),
-    device_ { device },
-    min_ { desc.min },
-    mag_ { desc.mag },
-    mip_ { desc.mip },
-    u_ { desc.u },
-    v_ { desc.v },
-    w_ { desc.w },
-    sampler_ { VK_NULL_HANDLE }
+    Sampler {desc},
+    device_ {device},
+    sampler_ {VK_NULL_HANDLE}
 {
-    init_sampler_(desc);
+    init_sampler_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -43,60 +37,18 @@ Device* Vlk_sampler::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Filter Vlk_sampler::min() const noexcept
-{
-    return min_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Filter Vlk_sampler::mag() const noexcept
-{
-    return mag_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Mip_filter Vlk_sampler::mip() const noexcept
-{
-    return mip_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Vlk_sampler::u() const noexcept
-{
-    return u_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Vlk_sampler::v() const noexcept
-{
-    return v_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Vlk_sampler::w() const noexcept
-{
-    return w_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_sampler::init_sampler_(const Sampler_desc& desc)
+void Vlk_sampler::init_sampler_()
 {
     // configure a sampler create info.
     VkSamplerCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    create_info.magFilter = to_VkFilter(desc.mag);
-    create_info.minFilter = to_VkFilter(desc.min);
-    create_info.mipmapMode = to_VkSamplerMipmapMode(desc.mip);
-    create_info.addressModeU = to_VkSamplerAddressMode(desc.u);
-    create_info.addressModeV = to_VkSamplerAddressMode(desc.v);
-    create_info.addressModeW = to_VkSamplerAddressMode(desc.w);
+    create_info.magFilter = to_VkFilter(mag_);
+    create_info.minFilter = to_VkFilter(min_);
+    create_info.mipmapMode = to_VkSamplerMipmapMode(mip_);
+    create_info.addressModeU = to_VkSamplerAddressMode(u_);
+    create_info.addressModeV = to_VkSamplerAddressMode(v_);
+    create_info.addressModeW = to_VkSamplerAddressMode(w_);
 
     // try to create a sampler.
     if (vkCreateSampler(device_->device(), &create_info, nullptr, &sampler_))

@@ -25,34 +25,16 @@ public:
 
     Device* device() const override;
 
-    Filter min() const noexcept override;
-
-    Filter mag() const noexcept override;
-
-    Mip_filter mip() const noexcept override;
-
-    Address_mode u() const noexcept override;
-
-    Address_mode v() const noexcept override;
-
-    Address_mode w() const noexcept override;
-
     inline auto& sampler() const noexcept
     { return sampler_; }
 
 private:
-    void init_sampler_(const Sampler_desc& desc);
+    void init_sampler_();
 
     void fini_sampler_();
 
 private:
     Vlk_device* device_;
-    Filter min_;
-    Filter mag_;
-    Mip_filter mip_;
-    Address_mode u_;
-    Address_mode v_;
-    Address_mode w_;
     VkSampler sampler_;
 };
 

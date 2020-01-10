@@ -34,14 +34,6 @@ public:
 
     Device* device() const override;
 
-    Format image_format() const override;
-
-    Extent image_extent() const override;
-
-    Color_space color_space() const override;
-
-    uint64_t frame_count() const override;
-
     inline auto& swapchain() const noexcept
     { return swapchain_; }
 
@@ -49,9 +41,9 @@ public:
     { return image_index_; }
 
 private:
-    void init_surface_(const Swap_chain_desc& desc);
+    void init_surface_(void* window);
 
-    void init_swapchain_(const Swap_chain_desc& desc);
+    void init_swapchain_();
 
     void init_images_();
 
@@ -83,11 +75,6 @@ private:
 
 private:
     Vlk_device* device_;
-    Format image_format_;
-    Extent image_extent_;
-    Color_space color_space_;
-    uint64_t frame_count_;
-    void* window_;
     VkSurfaceKHR surface_;
     VkSwapchainKHR swapchain_;
     std::vector<std::unique_ptr<Vlk_image>> images_;

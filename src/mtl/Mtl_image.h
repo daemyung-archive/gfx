@@ -23,29 +23,14 @@ public:
 
     Device* device() const override;
 
-    Image_type type() const override;
-
-    Format format() const override;
-
-    Extent extent() const override;
-
-    uint8_t mip_levels() const override;
-
-    uint8_t array_layers() const override;
-
-    uint8_t samples() const override;
-
     inline auto texture() const noexcept
     { return texture_; }
 
 private:
-    void init_texture_(const Image_desc& desc);
+    void init_texture_();
 
 private:
     Mtl_device* device_;
-    Image_type type_;
-    Format format_;
-    Extent extent_;
     id<MTLTexture> texture_;
 
     friend class Mtl_swap_chain;

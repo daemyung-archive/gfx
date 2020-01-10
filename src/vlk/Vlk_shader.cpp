@@ -16,14 +16,13 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_shader::Vlk_shader(const Shader_desc& desc, Vlk_device* device) :
-    Shader(),
-    device_ { device },
-    type_ { desc.type },
+    Shader {desc},
+    device_ {device},
     signature_ {},
-    shader_module_ { VK_NULL_HANDLE }
+    shader_module_ {VK_NULL_HANDLE}
 {
-    init_signature_(desc);
-    init_shader_module_(desc);
+    init_signature_(desc.src);
+    init_shader_module_(desc.src);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -42,35 +41,28 @@ Device* Vlk_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Sc_lib::Signature Vlk_shader::signature() const noexcept
+Sc_lib::Signature Vlk_shader::reflect() const noexcept
 {
     return signature_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Sc_lib::Shader_type Vlk_shader::type() const noexcept
+void Vlk_shader::init_signature_(const std::vector<uint32_t>& src)
 {
-    return type_;
+    signature_ = Spirv_reflector().reflect(src);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_shader::init_signature_(const Shader_desc& desc)
-{
-    signature_ = Spirv_reflector().reflect(desc.src);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Vlk_shader::init_shader_module_(const Shader_desc& desc)
+void Vlk_shader::init_shader_module_(const std::vector<uint32_t>& src)
 {
     // configure a shader module create info.
     VkShaderModuleCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    create_info.codeSize = sizeof(uint32_t) * desc.src.size();
-    create_info.pCode = &desc.src[0];
+    create_info.codeSize = sizeof(uint32_t) * src.size();
+    create_info.pCode = &src[0];
 
     // try to create a shader module.
     if (vkCreateShaderModule(device_->device(), &create_info, nullptr, &shader_module_))

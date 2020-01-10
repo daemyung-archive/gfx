@@ -66,10 +66,10 @@ struct Multisample {
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Stencil {
-    Stencil_op stencil_fail_op;
-    Stencil_op depth_fail_op;
-    Stencil_op depth_stencil_pass_op;
-    Compare_op compare_op;
+    Stencil_op stencil_fail_op {Stencil_op::keep};
+    Stencil_op depth_fail_op {Stencil_op::keep};
+    Stencil_op depth_stencil_pass_op {Stencil_op::keep};
+    Compare_op compare_op {Compare_op::always};
     uint32_t read_mask { 0xFFFF };
     uint32_t write_mask { 0xFFFF };
     uint32_t referece { 0 };
@@ -131,9 +131,49 @@ struct Pipeline_desc {
 
 class Pipeline {
 public:
+    explicit Pipeline(const Pipeline_desc& desc) :
+        vertex_input_ {desc.vertex_input},
+        input_assembly_ {desc.input_assembly},
+        rasterization_ {desc.rasterization},
+        multisample_ {desc.multisample},
+        depth_stencil_ {desc.depth_stencil},
+        color_blend_ {desc.color_blend},
+        output_merger_ {desc.output_merger}
+    {}
+
     virtual ~Pipeline() = default;
 
     virtual Device* device() const = 0;
+
+    inline auto vertex_input() const noexcept
+    { return vertex_input_; }
+
+    inline auto input_assembly() const noexcept
+    { return input_assembly_; }
+
+    inline auto rasterization() const noexcept
+    { return rasterization_; }
+
+    inline auto multisample() const noexcept
+    { return multisample_; }
+
+    inline auto depth_stencil() const noexcept
+    { return depth_stencil_; }
+
+    inline auto color_blend() const noexcept
+    { return color_blend_; }
+
+    inline auto output_merger() const noexcept
+    { return output_merger_; }
+
+protected:
+    Vertex_input vertex_input_;
+    Input_assembly input_assembly_;
+    Rasterization rasterization_;
+    Multisample multisample_;
+    Depth_stencil depth_stencil_;
+    Color_blend color_blend_;
+    Output_merger output_merger_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

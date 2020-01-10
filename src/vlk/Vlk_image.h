@@ -29,18 +29,6 @@ public:
 
     Device* device() const override;
 
-    Image_type type() const override;
-
-    Format format() const override;
-
-    Extent extent() const override;
-
-    uint8_t mip_levels() const override;
-
-    uint8_t array_layers() const override;
-
-    uint8_t samples() const override;
-
     inline auto& image() const noexcept
     { return image_; }
 
@@ -57,9 +45,9 @@ public:
     { return aspect_mask_; }
 
 private:
-    void init_image_and_alloc_(const Image_desc& desc);
+    void init_image_and_alloc_();
 
-    void init_image_view_(const Image_desc& desc);
+    void init_image_view_();
 
     void fini_image_and_alloc_();
 
@@ -68,12 +56,6 @@ private:
 private:
     Vlk_device* device_;
     Vlk_swap_chain* swap_chain_;
-    Image_type type_;
-    Format format_;
-    Extent extent_;
-    uint8_t mip_levels_;
-    uint8_t array_layers_;
-    uint8_t samplers_;
     VkImage image_;
     VmaAllocation alloc_;
     VkAccessFlags access_mask_;

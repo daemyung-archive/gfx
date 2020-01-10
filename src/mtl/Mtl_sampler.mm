@@ -14,17 +14,11 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_sampler::Mtl_sampler(const Sampler_desc& desc, Mtl_device* device) :
-    Sampler(),
-    device_ { device },
-    min_ { desc.min },
-    mag_ { desc.mag },
-    mip_ { desc.mip },
-    u_ { desc.u },
-    v_ { desc.v },
-    w_ { desc.w },
-    sampler_state_ { nil }
+    Sampler {desc},
+    device_ {device},
+    sampler_state_ {nil}
 {
-    init_sampler_state_(desc);
+    init_sampler_state_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -36,66 +30,23 @@ Device* Mtl_sampler::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Filter Mtl_sampler::min() const noexcept
-{
-    return min_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Filter Mtl_sampler::mag() const noexcept
-{
-    return mag_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Mip_filter Mtl_sampler::mip() const noexcept
-{
-    return mip_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Mtl_sampler::u() const noexcept
-{
-    return u_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Mtl_sampler::v() const noexcept
-{
-    return v_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Address_mode Mtl_sampler::w() const noexcept
-{
-    return w_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_sampler::init_sampler_state_(const Sampler_desc& desc)
+void Mtl_sampler::init_sampler_state_()
 {
     // configure a sampler descriptor.
     auto descriptor = [MTLSamplerDescriptor new];
 
-    descriptor.minFilter = to_MTLSamplerMinMagFilter(desc.min);
-    descriptor.magFilter = to_MTLSamplerMinMagFilter(desc.mag);
-    descriptor.mipFilter = to_MTLSamplerMipFilter(desc.mip);
-    descriptor.sAddressMode = to_MTLSamplerAddressMode(desc.u);
-    descriptor.tAddressMode = to_MTLSamplerAddressMode(desc.v);
-    descriptor.rAddressMode = to_MTLSamplerAddressMode(desc.w);
+    descriptor.minFilter = to_MTLSamplerMinMagFilter(min_);
+    descriptor.magFilter = to_MTLSamplerMinMagFilter(mag_);
+    descriptor.mipFilter = to_MTLSamplerMipFilter(mip_);
+    descriptor.sAddressMode = to_MTLSamplerAddressMode(u_);
+    descriptor.tAddressMode = to_MTLSamplerAddressMode(v_);
+    descriptor.rAddressMode = to_MTLSamplerAddressMode(w_);
 
     // try to create a sampler state.
     sampler_state_ = [device_->device() newSamplerStateWithDescriptor:descriptor];
 
     if (!sampler_state_)
         throw runtime_error("fail to create sampler");
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------

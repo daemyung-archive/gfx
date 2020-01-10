@@ -17,20 +17,15 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_swap_chain::Mtl_swap_chain(const Swap_chain_desc& desc, Mtl_device* device) :
-    Swap_chain(),
-    device_ { device },
-    image_format_ { desc.image_format },
-    image_extent_ { desc.image_extent },
-    color_space_ { desc.color_space },
-    frame_count_ { 0 },
-    window_ { desc.window },
+    Swap_chain {desc},
+    device_ {device},
     layer_ { nil },
     images_ { desc.image_count },
     image_index_ { 0 },
     drawable_ { nil }
 {
-    init_layer_(desc);
-    connect_to_window_();
+    init_layer_();
+    connect_to_window_(desc.window);
     init_images();
 }
 
@@ -69,35 +64,7 @@ Device* Mtl_swap_chain::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Format Mtl_swap_chain::image_format() const
-{
-    return image_format_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Extent Mtl_swap_chain::image_extent() const
-{
-    return image_extent_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Color_space Mtl_swap_chain::color_space() const
-{
-    return color_space_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-uint64_t Mtl_swap_chain::frame_count() const
-{
-    return frame_count_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_swap_chain::init_layer_(const Swap_chain_desc& desc)
+void Mtl_swap_chain::init_layer_()
 {
     layer_ = [CAMetalLayer layer];
 
@@ -105,10 +72,10 @@ void Mtl_swap_chain::init_layer_(const Swap_chain_desc& desc)
         throw runtime_error("fail to create a swap chain");
 
     layer_.device = device_->device();
-    layer_.pixelFormat = to_MTLPixelFormat(desc.image_format);
+    layer_.pixelFormat = to_MTLPixelFormat(image_format_);
     layer_.framebufferOnly = NO;
-    layer_.maximumDrawableCount = desc.image_count;
-    layer_.drawableSize = CGSizeMake(desc.image_extent.w, desc.image_extent.h);
+    layer_.maximumDrawableCount = images_.size();
+    layer_.drawableSize = CGSizeMake(image_extent_.w, image_extent_.h);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -133,17 +100,13 @@ void Mtl_swap_chain::init_images()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_swap_chain::connect_to_window_()
+void Mtl_swap_chain::connect_to_window_(void* window)
 {
 #if TARGET_OS_IOS
-    auto window = (__bridge UIWindow*)window_;
-
-    [window.rootViewController.view.layer addSublayer:layer_];
+    [(__bridge UIWindow*)window_.rootViewController.view.layer addSublayer:layer_];
     [layer_ setFrame:CGRectMake(0, 0, image_extent_.w, image_extent_.h)];
 #elif TARGET_OS_OSX
-    auto window = (__bridge NSWindow*)window_;
-
-    [[window contentView] setLayer:layer_];
+    [[(__bridge NSWindow*)window contentView] setLayer:layer_];
 #endif
 }
 

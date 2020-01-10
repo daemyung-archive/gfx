@@ -96,7 +96,9 @@ void Mtl_render_encoder::end()
 
 void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 {
-    [render_command_encoder_ drawPrimitives:pipeline_->primitive_type()
+    auto input_assembly = pipeline_->input_assembly();
+
+    [render_command_encoder_ drawPrimitives:to_MTLPrimitiveType(input_assembly.topology)
                                 vertexStart:first
                                 vertexCount:count];
 }
@@ -105,7 +107,9 @@ void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 
 void Mtl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
-    [render_command_encoder_ drawIndexedPrimitives:pipeline_->primitive_type()
+    auto input_assembly = pipeline_->input_assembly();
+
+    [render_command_encoder_ drawIndexedPrimitives:to_MTLPrimitiveType(input_assembly.topology)
                                         indexCount:count
                                          indexType:to_MTLIndexType(index_type_)
                                        indexBuffer:index_buffer_->buffer()
@@ -228,16 +232,22 @@ void Mtl_render_encoder::pipeline(Pipeline* pipeline)
 {
     pipeline_ = static_cast<Mtl_pipeline*>(pipeline);
 
-    [render_command_encoder_ setCullMode:pipeline_->cull_mode()];
-    [render_command_encoder_ setFrontFacingWinding:pipeline_->winding()];
     [render_command_encoder_ setRenderPipelineState:pipeline_->render_pipeline_state()];
 
-    if (pipeline_->depth_test())
+    auto rasterization = pipeline_->rasterization();
+
+    [render_command_encoder_ setCullMode:to_MTLCullMode(rasterization.cull_mode)];
+    [render_command_encoder_ setFrontFacingWinding:to_MTLWinding(rasterization.front_face)];
+
+    auto depth_stencil = pipeline_->depth_stencil();
+
+    if (depth_stencil.depth_test)
         [render_command_encoder_ setDepthStencilState:pipeline_->depth_stencil_state()];
 
-    if (pipeline_->stencil_test())
-        [render_command_encoder_ setStencilFrontReferenceValue:pipeline_->front_stencil_reference()
-                                            backReferenceValue:pipeline_->back_stencil_reference()];
+    if (depth_stencil.stencil_test) {
+        [render_command_encoder_ setStencilFrontReferenceValue:depth_stencil.front_stencil.referece
+                                            backReferenceValue:depth_stencil.back_stencil.referece];
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------

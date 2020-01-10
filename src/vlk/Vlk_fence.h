@@ -33,7 +33,7 @@ public:
     { return fence_; }
 
 private:
-    void init_fence_(const Fence_desc& desc);
+    void init_fence_(bool signaled);
 
 private:
     Vlk_device* device_;

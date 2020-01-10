@@ -31,28 +31,15 @@ public:
 
     Device* device() const override;
 
-    Format image_format() const override;
-
-    Extent image_extent() const override;
-
-    Color_space color_space() const override;
-
-    uint64_t frame_count() const override;
-
 private:
-    void init_layer_(const Swap_chain_desc& desc);
+    void init_layer_();
 
     void init_images();
 
-    void connect_to_window_();
+    void connect_to_window_(void* window);
 
 private:
     Mtl_device* device_;
-    Format image_format_;
-    Extent image_extent_;
-    Color_space color_space_;
-    uint64_t frame_count_;
-    void* window_;
     CAMetalLayer* layer_;
     std::vector<std::unique_ptr<Mtl_image>> images_;
     uint32_t image_index_;

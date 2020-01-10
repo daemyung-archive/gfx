@@ -25,23 +25,20 @@ public:
 
     Device* device() const override;
 
-    Sc_lib::Shader_type type() const noexcept override;
-
-    Sc_lib::Signature signature() const noexcept override;
+    Sc_lib::Signature reflect() const noexcept override;
 
     inline auto shader_module() const noexcept
     { return shader_module_; }
 
 private:
-    void init_signature_(const Shader_desc& desc);
+    void init_signature_(const std::vector<uint32_t>& src);
 
-    void init_shader_module_(const Shader_desc& desc);
+    void init_shader_module_(const std::vector<uint32_t>& src);
 
     void fini_shader_module();
 
 private:
     Vlk_device* device_;
-    Sc_lib::Shader_type type_;
     Sc_lib::Signature signature_;
     VkShaderModule shader_module_;
 };

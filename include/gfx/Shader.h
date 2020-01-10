@@ -29,13 +29,21 @@ struct Shader_desc {
 
 class Shader {
 public:
+    explicit Shader(const Shader_desc& desc) :
+        type_ {desc.type}
+    {}
+
     virtual ~Shader() = default;
 
     virtual Device* device() const = 0;
 
-    virtual Sc_lib::Shader_type type() const noexcept = 0;
+    virtual Sc_lib::Signature reflect() const noexcept = 0;
 
-    virtual Sc_lib::Signature signature() const noexcept = 0;
+    inline Sc_lib::Shader_type type() const noexcept
+    { return type_; }
+
+protected:
+    Sc_lib::Shader_type type_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

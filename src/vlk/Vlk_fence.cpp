@@ -15,18 +15,18 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Vlk_fence::Vlk_fence(const Fence_desc& desc, Vlk_device* device) :
-    Fence(),
-    device_ { device },
-    fence_ { VK_NULL_HANDLE }
+    Fence {},
+    device_ {device},
+    fence_ {VK_NULL_HANDLE}
 {
-    init_fence_(desc);
+    init_fence_(desc.signaled);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Vlk_fence::wait_signal()
 {
-    vkWaitForFences(device_->device(), 1, &fence_, false, UINT64_MAX);
+    vkWaitForFences(device_->device(), 1, &fence_, VK_FALSE, UINT64_MAX);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -52,13 +52,15 @@ bool Vlk_fence::signaled() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_fence::init_fence_(const Fence_desc& desc)
+void Vlk_fence::init_fence_(bool signaled)
 {
     // configure a fence create info.
     VkFenceCreateInfo create_info {};
 
     create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    create_info.flags = desc.signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+
+    if(signaled)
+        create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     // try to create a fence.
     if (vkCreateFence(device_->device(), &create_info, nullptr, &fence_))

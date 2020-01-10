@@ -29,21 +29,44 @@ struct Sampler_desc {
 
 class Sampler {
 public:
+    explicit Sampler(const Sampler_desc& desc) noexcept :
+        min_ {desc.min},
+        mag_ {desc.mag},
+        mip_ {desc.mip},
+        u_ {desc.u},
+        v_ {desc.v},
+        w_ {desc.w}
+    {}
+
     virtual ~Sampler() = default;
 
     virtual Device* device() const = 0;
 
-    virtual Filter min() const noexcept = 0;
+    inline Filter min() const noexcept
+    { return min_; }
 
-    virtual Filter mag() const noexcept = 0;
+    inline Filter mag() const noexcept
+    { return mag_; }
 
-    virtual Mip_filter mip() const noexcept = 0;
+    inline Mip_filter mip() const noexcept
+    { return mip_; }
 
-    virtual Address_mode u() const noexcept = 0;
+    inline Address_mode u() const noexcept
+    { return u_; }
 
-    virtual Address_mode v() const noexcept = 0;
+    inline Address_mode v() const noexcept
+    { return v_; }
 
-    virtual Address_mode w() const noexcept = 0;
+    inline Address_mode w() const noexcept
+    { return w_; }
+
+protected:
+    Filter min_;
+    Filter mag_;
+    Mip_filter mip_;
+    Address_mode u_;
+    Address_mode v_;
+    Address_mode w_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

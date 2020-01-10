@@ -23,21 +23,18 @@ public:
 
     Device* device() const override;
 
-    Sc_lib::Shader_type type() const noexcept override;
-
-    Sc_lib::Signature signature() const noexcept override;
+    Sc_lib::Signature reflect() const noexcept override;
 
     inline auto function() const noexcept
     { return function_; }
 
 private:
-    void init_signature_(const Shader_desc& desc);
+    void init_signature_(const std::vector<uint32_t>& src);
 
-    void init_function_(const Shader_desc& desc);
+    void init_function_(const std::string& src);
 
 private:
     Mtl_device* device_;
-    Sc_lib::Shader_type type_;
     Sc_lib::Signature signature_;
     id<MTLFunction> function_;
 };

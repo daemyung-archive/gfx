@@ -16,14 +16,13 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_shader::Mtl_shader(const Shader_desc& desc, Mtl_device* device) :
-    Shader(),
-    device_ { device },
-    type_ { desc.type },
+    Shader {desc},
+    device_ {device},
     signature_ {},
-    function_ { nil }
+    function_ {nil}
 {
-    init_signature_(desc);
-    init_function_(desc);
+    init_signature_(desc.src);
+    init_function_(Msl_compiler().compile(desc.src));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -35,39 +34,29 @@ Device* Mtl_shader::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Sc_lib::Shader_type Mtl_shader::type() const noexcept
-{
-    return type_;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-Sc_lib::Signature Mtl_shader::signature() const noexcept
+Sc_lib::Signature Mtl_shader::reflect() const noexcept
 {
     return signature_;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_shader::init_signature_(const Shader_desc& desc)
+void Mtl_shader::init_signature_(const std::vector<uint32_t>& src)
 {
-    signature_ = Spirv_reflector().reflect(desc.src);
+    signature_ = Spirv_reflector().reflect(src);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_shader::init_function_(const Shader_desc& desc)
+void Mtl_shader::init_function_(const std::string& src)
 {
-    // compile to msl from spirv.
-    auto src = Msl_compiler().compile(desc.src);
-
     // create a library.
-    NSError* err;
+    NSError* error;
     auto lib = [device_->device() newLibraryWithSource:@(&src[0])
                                                options:nullptr
-                                                 error:&err];
+                                                 error:&error];
 
-    if (err)
+    if (error)
         throw runtime_error("fail to create shader");
 
     // retrieve a function from a library.

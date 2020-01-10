@@ -31,6 +31,13 @@ struct Swap_chain_desc {
 
 class Swap_chain {
 public:
+    explicit Swap_chain(const Swap_chain_desc& desc) noexcept :
+        image_format_ {desc.image_format},
+        image_extent_ {desc.image_extent},
+        color_space_ {desc.color_space},
+        frame_count_ {0}
+    {}
+
     virtual ~Swap_chain() = default;
 
     virtual Image* acquire() = 0;
@@ -39,13 +46,23 @@ public:
 
     virtual Device* device() const = 0;
 
-    virtual Format image_format() const = 0;
+    inline Format image_format() const noexcept
+    { return image_format_; }
 
-    virtual Extent image_extent() const = 0;
+    inline Extent image_extent() const noexcept
+    { return image_extent_; }
 
-    virtual Color_space color_space() const = 0;
+    inline Color_space color_space() const noexcept
+    { return color_space_; }
 
-    virtual uint64_t frame_count() const = 0;
+    inline uint64_t frame_count() const noexcept
+    { return frame_count_; }
+
+protected:
+    Format image_format_;
+    Extent image_extent_;
+    Color_space color_space_;
+    uint64_t frame_count_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

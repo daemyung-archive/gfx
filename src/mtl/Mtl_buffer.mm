@@ -15,12 +15,11 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_buffer::Mtl_buffer(const Buffer_desc& desc, Mtl_device* device) :
-    Buffer(),
-    device_ { device },
-    type_ { desc.type },
-    buffer_ { nil }
+    Buffer {desc},
+    device_ {device},
+    buffer_ {nil}
 {
-    init_buffer_(desc);
+    init_buffer_(desc.data);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -45,31 +44,17 @@ Device* Mtl_buffer::device() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Heap_type Mtl_buffer::type() const
+void Mtl_buffer::init_buffer_(const void* data)
 {
-    return type_;
-}
+    const auto options = to_MTLResourceOptions(heap_type_);
 
-//----------------------------------------------------------------------------------------------------------------------
-
-uint64_t Mtl_buffer::size() const
-{
-    return [buffer_ length];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_buffer::init_buffer_(const Buffer_desc& desc)
-{
-    const auto options = to_MTLResourceOptions(desc.type);
-
-    if (desc.data) {
-        buffer_ = [device_->device() newBufferWithBytes:desc.data
-                                                 length:desc.size
+    if (data) {
+        buffer_ = [device_->device() newBufferWithBytes:data
+                                                 length:size_
                                                 options:options];
     }
     else {
-        buffer_ = [device_->device() newBufferWithLength:desc.size
+        buffer_ = [device_->device() newBufferWithLength:size_
                                                  options:options];
     }
 }

@@ -18,15 +18,20 @@ class Device;
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Buffer_desc {
-    const void* data { nullptr };
-    size_t size { 0 };
-    Heap_type type { Heap_type::upload };
+    const void* data {nullptr};
+    uint64_t size {0};
+    Heap_type heap_type {Heap_type::upload};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
 class Buffer {
 public:
+    explicit Buffer(const Buffer_desc& desc) noexcept :
+        size_ {desc.size},
+        heap_type_ {desc.heap_type}
+    {}
+
     virtual ~Buffer() = default;
 
     virtual void* map() = 0;
@@ -35,9 +40,15 @@ public:
 
     virtual Device* device() const = 0;
 
-    virtual Heap_type type() const = 0;
+    inline uint64_t size() const noexcept
+    { return size_; }
 
-    virtual uint64_t size() const = 0;
+    inline Heap_type heap_type() const noexcept
+    { return heap_type_; }
+
+protected:
+    uint64_t size_;
+    Heap_type heap_type_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

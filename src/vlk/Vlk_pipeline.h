@@ -34,7 +34,6 @@ public:
     inline auto set_layout(Pipeline_stage stage, uint32_t index) const noexcept
     { return set_layouts_.at(stage)[index].get(); }
 
-
     inline auto& pipeline_layout() const noexcept
     { return pipeline_layout_; }
 
@@ -42,11 +41,11 @@ public:
     { return pipeline_; }
 
 private:
-    void init_set_layouts_(const Pipeline_desc& desc);
+    void init_set_layouts_(Shader* vertex_shader, Shader* fragment_shader);
 
     void init_pipeline_layout_();
 
-    void init_pipeline_(const Pipeline_desc& desc);
+    void init_pipeline_(Shader* vertex_shader, Shader* fragment_shader);
 
     void fini_pipeline_layout_();
 

@@ -27,19 +27,14 @@ public:
 
     Device* device() const override;
 
-    Heap_type type() const override;
-
-    uint64_t size() const override;
-
     inline id<MTLBuffer> buffer() const noexcept
     { return buffer_; }
 
 private:
-    void init_buffer_(const Buffer_desc& desc);
+    void init_buffer_(const void* data);
 
 private:
     Mtl_device* device_;
-    Heap_type type_;
     id<MTLBuffer> buffer_;
 };
 
