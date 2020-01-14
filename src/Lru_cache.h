@@ -3,6 +3,9 @@
 // See "LICENSE" for license information.
 //
 
+#ifndef GFX_LRU_CACHE_GUARD
+#define GFX_LRU_CACHE_GUARD
+
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -68,3 +71,5 @@ private:
 //----------------------------------------------------------------------------------------------------------------------
 
 } // of namespace Gfx_lib
+
+#endif // GFX_LRU_CACHE_GUARD
