@@ -28,6 +28,7 @@ Mtl_device::Mtl_device() :
     queue_mutex_ {}
 {
     init_device_();
+    init_caps_();
     init_command_queue_();
 }
 
@@ -130,6 +131,14 @@ void Mtl_device::init_device_()
 
     if (!device_)
         throw runtime_error("fail to create device");
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_device::init_caps_()
+{
+    caps_.window_coords = Coords::origin_upper_left;
+    caps_.texture_coords = Coords::origin_upper_left;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

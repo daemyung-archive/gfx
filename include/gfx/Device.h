@@ -21,6 +21,13 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Caps {
+    Coords window_coords {Coords::invalid};
+    Coords texture_coords {Coords::invalid};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 class Device {
 public:
     static std::unique_ptr<Device> create();
@@ -46,6 +53,12 @@ public:
     virtual void submit(Cmd_buffer* cmd_buffer, Fence* fence = nullptr) = 0;
 
     virtual void wait_idle() = 0;
+
+    inline auto caps() const noexcept
+    { return caps_; }
+
+protected:
+    Caps caps_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

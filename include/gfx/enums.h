@@ -18,6 +18,13 @@ enum class Vender : uint32_t {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+enum class Coords : uint8_t {
+    invalid = 0,
+    origin_upper_left, origin_lower_left
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 enum class Format : uint32_t {
     invalid = 0,
     rgb8_unorm, rgba8_unorm, bgra8_unorm, r32_float, rg32_float, rgb32_float, rgba32_float, d24_unorm_s8_uint

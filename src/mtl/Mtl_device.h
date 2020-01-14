@@ -48,6 +48,8 @@ public:
 private:
     void init_device_();
 
+    void init_caps_();
+
     void init_command_queue_();
 
 private:

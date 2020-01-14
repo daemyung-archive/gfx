@@ -95,6 +95,8 @@ private:
 
     void init_device_symbols_();
 
+    void init_caps_();
+
     void init_queue_();
 
     void init_allocator_();

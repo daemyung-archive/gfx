@@ -83,6 +83,7 @@ Vlk_device::Vlk_device() :
     init_queue_family_index_();
     init_device_();
     init_device_symbols_();
+    init_caps_();
     init_queue_();
     init_allocator_();
     init_command_pool_();
@@ -382,6 +383,16 @@ void Vlk_device::init_device_symbols_()
     APPLY_VLK_DEVICE_CORE_SYMBOLS(LOAD_VLK_DEVICE_SYMBOL)
     APPLY_VLK_DEVICE_SWAPCHAIN_SYMBOLS(LOAD_VLK_DEVICE_SYMBOL)
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Vlk_device::init_caps_()
+{
+    caps_.window_coords = Coords::origin_upper_left;
+    caps_.texture_coords = Coords::origin_upper_left;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 
 void Vlk_device::init_queue_()
 {
