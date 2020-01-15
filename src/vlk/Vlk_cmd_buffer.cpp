@@ -23,20 +23,6 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto operator==(const Viewport& lhs, const Viewport& rhs)
-{
-    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.w == rhs.w && lhs.h == rhs.h;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto operator==(const Scissor& lhs, const Scissor& rhs)
-{
-    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.w == rhs.w && lhs.h == rhs.h;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 inline void execute(function<void ()>& func)
 {
     func();
