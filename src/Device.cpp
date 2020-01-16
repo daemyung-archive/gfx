@@ -8,8 +8,14 @@
 
 #if TARGET_OS_IOS || TARGET_OS_OSX
 #include "Mtl_device.h"
-#elif defined(__ANDROID__) || defined(_WIN32)
+#endif
+
+#if defined(__ANDROID__) || defined(_WIN32)
 #include "Vlk_device.h"
+#endif
+
+#if defined(__ANDROID__)
+#include "Ogl_device.h"
 #endif
 
 using namespace std;
@@ -22,9 +28,21 @@ std::unique_ptr<Device> Device::create()
 {
 #if TARGET_OS_IOS || TARGET_OS_OSX
     return make_unique<Mtl_device>();
-#elif defined(__ANDROID__) || defined(_WIN32)
+#endif
+
+#if defined(__ANDROID__)
+    try {
+        return make_unique<Vlk_device>();
+    }
+    catch (exception& e) {
+        return make_unique<Ogl_device>();
+    }
+#endif
+
+#if defined(_WIN32)
     return make_unique<Vlk_device>();
 #endif
+
     return nullptr;
 }
 

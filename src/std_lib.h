@@ -44,4 +44,12 @@ inline O transform(R& range, O iter, F func)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+template<typename R, typename F>
+inline auto find_if(R& range, F func)
+{
+    return std::find_if(std::begin(range), std::end(range), func);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 #endif // GFX_STD_LIB_MODULES_GUARD

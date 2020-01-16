@@ -77,7 +77,9 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
     set_target_properties(gfx
         PROPERTIES
             XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
-elseif(CMAKE_SYSTEM_NAME MATCHES Android OR CMAKE_SYSTEM_NAME MATCHES Windows)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES Android OR CMAKE_SYSTEM_NAME MATCHES Windows)
     target_sources(gfx
         PRIVATE
             src/vlk/vlk_lib.h
@@ -109,6 +111,41 @@ elseif(CMAKE_SYSTEM_NAME MATCHES Android OR CMAKE_SYSTEM_NAME MATCHES Windows)
     target_include_directories(gfx
         PRIVATE
             src/vlk)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES Android)
+    target_sources(gfx
+        PRIVATE
+            src/ogl/ogl_lib.h
+            src/ogl/Ogl_device.h
+            src/ogl/Ogl_device.cpp
+            src/ogl/Ogl_buffer.h
+            src/ogl/Ogl_buffer.cpp
+            src/ogl/Ogl_image.h
+            src/ogl/Ogl_image.cpp
+            src/ogl/Ogl_sampler.h
+            src/ogl/Ogl_sampler.cpp
+            src/ogl/Ogl_shader.h
+            src/ogl/Ogl_shader.cpp
+            src/ogl/Ogl_pipeline.h
+            src/ogl/Ogl_pipeline.cpp
+            src/ogl/Ogl_swap_chain.h
+            src/ogl/Ogl_swap_chain.cpp
+            src/ogl/Ogl_cmd_buffer.h
+            src/ogl/Ogl_cmd_buffer.cpp
+            src/ogl/Ogl_fence.h
+            src/ogl/Ogl_fence.cpp
+            src/ogl/Ogl_framebuffer.h
+            src/ogl/Ogl_framebuffer.cpp)
+
+    target_include_directories(gfx
+        PRIVATE
+            src/ogl)
+
+    target_link_libraries(gfx
+        PUBLIC
+            EGL
+            GLESv3)
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Darwin OR CMAKE_SYSTEM_NAME MATCHES iOS)
