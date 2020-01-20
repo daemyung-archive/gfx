@@ -110,8 +110,7 @@ enum class Stencil_op : uint8_t {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-enum class Blend_factor : uint8_t
-{
+enum class Blend_factor : uint8_t {
     zero = 0, one, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha
 };
 
