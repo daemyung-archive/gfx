@@ -9,6 +9,7 @@
 #include <platform/Window.h>
 #include "Triangle_demo.h"
 #include "Texture_demo.h"
+#include "Phong_demo.h"
 
 using namespace std;
 using namespace cxxopts;
@@ -68,8 +69,10 @@ int main(int argc, char* argv[])
 
     if ("triangle" == target)
         demo_ = make_unique<Triangle_demo>();
-    else if("texture" == target)
+    else if ("texture" == target)
         demo_ = make_unique<Texture_demo>();
+    else if ("phong" == target)
+        demo_ = make_unique<Phong_demo>();
 
     window_->run();
 
