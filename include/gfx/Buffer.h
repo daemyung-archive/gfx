@@ -17,7 +17,7 @@ class Device;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Buffer_desc {
+struct Buffer_desc final {
     const void* data {nullptr};
     uint64_t size {0};
     Heap_type heap_type {Heap_type::upload};

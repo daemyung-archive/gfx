@@ -18,104 +18,104 @@ class Shader;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_input_attribute {
-    uint32_t binding { UINT32_MAX };
-    Format format { Format::invalid };
-    uint32_t offset { 0 };
+struct Vertex_input_attribute final {
+    uint32_t binding {UINT32_MAX};
+    Format format {Format::invalid};
+    uint32_t offset {0};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_input_binding {
-    uint32_t stride { UINT32_MAX };
-    Step_rate step_rate { Step_rate::vertex };
+struct Vertex_input_binding final {
+    uint32_t stride {UINT32_MAX};
+    Step_rate step_rate {Step_rate::vertex};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Vertex_input {
+struct Vertex_input final {
     std::array<Vertex_input_attribute, 16> attributes;
     std::array<Vertex_input_binding, 2> bindings;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Input_assembly {
-    Topology topology { Topology::triangle_list };
-    bool restart { false };
+struct Input_assembly final {
+    Topology topology {Topology::triangle_list};
+    bool restart {false};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Rasterization {
-    bool depth_clamp { false };
-    Cull_mode cull_mode { Cull_mode::back };
-    Front_face front_face { Front_face::counter_clockwise };
-    bool depth_bias { false };
-    float depth_bias_constant_factor { 0.0f };
-    float depth_bias_clamp { 1.0f };
-    float depth_bias_slope_factor { 1.0f };
+struct Rasterization final {
+    bool depth_clamp {false};
+    Cull_mode cull_mode {Cull_mode::back};
+    Front_face front_face {Front_face::counter_clockwise};
+    bool depth_bias {false};
+    float depth_bias_constant_factor {0.0f};
+    float depth_bias_clamp {1.0f};
+    float depth_bias_slope_factor {1.0f};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Multisample {
-    uint8_t samples { 1 };
+struct Multisample final {
+    uint8_t samples {1};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Stencil {
+struct Stencil final {
     Stencil_op stencil_fail_op {Stencil_op::keep};
     Stencil_op depth_fail_op {Stencil_op::keep};
     Stencil_op depth_stencil_pass_op {Stencil_op::keep};
     Compare_op compare_op {Compare_op::always};
-    uint32_t read_mask { 0xFFFF };
-    uint32_t write_mask { 0xFFFF };
-    uint32_t referece { 0 };
+    uint32_t read_mask {0xFFFF};
+    uint32_t write_mask {0xFFFF};
+    uint32_t referece {0};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Depth_stencil {
-    bool depth_test { false };
-    bool write_mask { false };
-    Compare_op depth_compare_op { Compare_op::less };
-    bool stencil_test { false };
+struct Depth_stencil final {
+    bool depth_test {false};
+    bool write_mask {false};
+    Compare_op depth_compare_op {Compare_op::less};
+    bool stencil_test {false};
     Stencil front_stencil;
     Stencil back_stencil;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Color_blend_attachment {
-    bool blend { false };
-    Blend_factor src_rgb_blend_factor { Blend_factor::one };
-    Blend_factor dst_rgb_blend_factor { Blend_factor::zero };
-    Blend_op rgb_blend_op { Blend_op::add };
-    Blend_factor src_a_blend_factor { Blend_factor::one };
-    Blend_factor dst_a_blend_factor { Blend_factor::zero };
+struct Color_blend_attachment final {
+    bool blend {false};
+    Blend_factor src_rgb_blend_factor {Blend_factor::one};
+    Blend_factor dst_rgb_blend_factor {Blend_factor::zero};
+    Blend_op rgb_blend_op {Blend_op::add};
+    Blend_factor src_a_blend_factor {Blend_factor::one};
+    Blend_factor dst_a_blend_factor {Blend_factor::zero};
     Blend_op a_blend_op { Blend_op::add };
     uint32_t write_mask { 0xF };
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Color_blend {
+struct Color_blend final {
     std::array<Color_blend_attachment, 4> attachments;
     std::array<float, 4> constant;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Output_merger {
-    std::array<Format, 4> color_formats { Format::invalid, Format::invalid, Format::invalid, Format::invalid };
-    Format depth_stencil_format { Format::invalid };
+struct Output_merger final {
+    std::array<Format, 4> color_formats {Format::invalid, Format::invalid, Format::invalid, Format::invalid};
+    Format depth_stencil_format {Format::invalid};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Pipeline_desc {
+struct Pipeline_desc final {
     Vertex_input vertex_input;
     Input_assembly input_assembly;
     Shader* vertex_shader;

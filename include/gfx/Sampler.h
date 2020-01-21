@@ -16,13 +16,13 @@ class Device;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Sampler_desc {
-    Filter min { Filter::linear };
-    Filter mag { Filter::linear };
-    Mip_filter mip { Mip_filter::linear };
-    Address_mode u { Address_mode::clamp_to_edge };
-    Address_mode v { Address_mode::clamp_to_edge };
-    Address_mode w { Address_mode::clamp_to_edge };
+struct Sampler_desc final {
+    Filter min {Filter::linear};
+    Filter mag {Filter::linear};
+    Mip_filter mip {Mip_filter::linear};
+    Address_mode u {Address_mode::clamp_to_edge};
+    Address_mode v {Address_mode::clamp_to_edge};
+    Address_mode w {Address_mode::clamp_to_edge};
 };
 
 //----------------------------------------------------------------------------------------------------------------------

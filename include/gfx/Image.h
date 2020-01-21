@@ -18,13 +18,13 @@ class Device;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Image_desc {
-    Image_type type { Image_type::two_dim };
-    Format format { Format::invalid };
-    Extent extent { 0, 0, 1 };
-    uint8_t mip_levels { 1 };
-    uint8_t array_layers { 1 };
-    uint8_t samples { 1 };
+struct Image_desc final {
+    Image_type type {Image_type::two_dim};
+    Format format {Format::invalid};
+    Extent extent {0, 0, 1};
+    uint8_t mip_levels {1};
+    uint8_t array_layers {1};
+    uint8_t samples {1};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ public:
         extent_ {desc.extent},
         mip_levels_ {desc.mip_levels},
         array_layers_ {desc.array_layers},
-        samples_ { desc.samples }
+        samples_ {desc.samples}
     {}
 
     virtual ~Image() = default;

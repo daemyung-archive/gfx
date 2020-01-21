@@ -19,12 +19,12 @@ class Image;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Swap_chain_desc {
-    uint32_t image_count { 3 };
-    Format image_format { Format::invalid };
-    Extent image_extent { 0, 0, 1 };
-    Color_space color_space { Color_space::srgb_non_linear };
-    void* window { nullptr };
+struct Swap_chain_desc final {
+    uint32_t image_count {3};
+    Format image_format {Format::invalid};
+    Extent image_extent {0, 0, 1};
+    Color_space color_space {Color_space::srgb_non_linear};
+    void* window {nullptr};
 };
 
 //----------------------------------------------------------------------------------------------------------------------

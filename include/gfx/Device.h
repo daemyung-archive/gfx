@@ -21,7 +21,7 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Caps {
+struct Caps final {
     Coords window_coords {Coords::invalid};
     Coords texture_coords {Coords::invalid};
 };

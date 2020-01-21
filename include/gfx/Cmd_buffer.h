@@ -26,16 +26,16 @@ class Cmd_buffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Attachment {
-    Image* image { nullptr };
-    Load_op load_op { Load_op::dont_care };
-    Store_op store_op { Store_op::store };
+struct Attachment final {
+    Image* image {nullptr};
+    Load_op load_op {Load_op::dont_care};
+    Store_op store_op {Store_op::store};
     Clear_value clear_value;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Render_encoder_desc {
+struct Render_encoder_desc final {
     std::array<Attachment, 4> colors;
     Attachment depth_stencil;
 };
@@ -71,33 +71,33 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Image_subresource {
-    uint32_t mip_level { 0 };
-    uint32_t array_layer { 0 };
+struct Image_subresource final {
+    uint32_t mip_level {0};
+    uint32_t array_layer {0};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Buffer_copy_region {
-    uint64_t size { 0 };
-    uint64_t src_offset { 0 };
-    uint64_t dst_offset { 0 };
+struct Buffer_copy_region final {
+    uint64_t size {0};
+    uint64_t src_offset {0};
+    uint64_t dst_offset {0};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Buffer_image_copy_region {
-    uint32_t buffer_row_size { 0 };
-    uint32_t buffer_image_height { 0 };
-    uint32_t buffer_offset { 0 };
+struct Buffer_image_copy_region final {
+    uint32_t buffer_row_size {0};
+    uint32_t buffer_image_height {0};
+    uint32_t buffer_offset {0};
     Image_subresource image_subresource;
-    Platform_lib::Extent image_extent { 0, 0, 1 };
-    Offset image_offset { 0, 0, 0 };
+    Platform_lib::Extent image_extent {0, 0, 1};
+    Offset image_offset {0, 0, 0};
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Blit_encoder_desc {
+struct Blit_encoder_desc final {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Cmd_buffer_desc {
+struct Cmd_buffer_desc final {
 };
 
 //----------------------------------------------------------------------------------------------------------------------

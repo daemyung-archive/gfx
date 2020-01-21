@@ -20,7 +20,7 @@ class Device;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Shader_desc {
+struct Shader_desc final {
     Sc_lib::Shader_type type;
     std::vector<uint32_t> src;
 };
