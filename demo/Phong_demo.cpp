@@ -212,7 +212,7 @@ void Phong_demo::init_uniform_buffers_()
     for (auto& buffer : signature.buffers) {
         Buffer_desc desc;
 
-        desc.size = pow2_align(buffer.size, 64);
+        desc.size = align_pow2(buffer.size, 64);
         desc.heap_type = Heap_type::upload;
 
         uniform_buffers_[buffer.name] = device_->create(desc);

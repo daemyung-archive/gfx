@@ -37,7 +37,7 @@ void main()
     vec4 cam_coords = matrix.mv * vec4(vertex_position, 1.0);
     mat4 nv = matrix.view * matrix.normal;
     vec3 n = normalize(nv * vec4(vertex_normal, 1.0)).xyz;
-    vec3 s = normalize(nv * vec4(light.position, 1.0) - cam_coords).xyz;
+    vec3 s = normalize(light.position - cam_coords.xyz);
     float s_dot_n = max(dot(s, n), 0.0);
     vec3 diffuse = light.diffuse * material.diffuse * s_dot_n;
 
