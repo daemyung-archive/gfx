@@ -33,12 +33,14 @@ public:
     { return semaphore_; }
 
 private:
-    void init_semaphore_(const Fence_desc& desc);
+    void init_semaphore_();
 
 private:
     Mtl_device* device_;
     bool signaled_;
     dispatch_semaphore_t semaphore_;
+
+    friend class Mtl_device;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

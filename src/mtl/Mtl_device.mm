@@ -22,9 +22,10 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_device::Mtl_device() :
-    device_ { nil },
-    command_queue_ { nil },
-    used_command_buffers_ { [NSMutableSet new] },
+    Device {},
+    device_ {nil},
+    command_queue_ {nil},
+    used_command_buffers_ {[NSMutableSet new]},
     queue_mutex_ {}
 {
     init_device_();
@@ -92,30 +93,32 @@ std::unique_ptr<Fence> Mtl_device::create(const Fence_desc& desc)
 
 void Mtl_device::submit(Cmd_buffer* cmd_buffer, Fence* fence)
 {
-    auto mtl_cmd_buffer = static_cast<Mtl_cmd_buffer*>(cmd_buffer);
-    __block auto mtl_fence = static_cast<Mtl_fence*>(fence);
+    auto cmd_buffer_impl = static_cast<Mtl_cmd_buffer*>(cmd_buffer);
+    __block auto fence_impl = static_cast<Mtl_fence*>(fence);
 
-    [mtl_cmd_buffer->command_buffer() addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+    [cmd_buffer_impl->command_buffer() addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
         if (queue_mutex_.try_lock()) {
             [used_command_buffers_ removeObject:command_buffer];
             queue_mutex_.unlock();
         }
 
-        if (mtl_fence)
-            dispatch_semaphore_signal(mtl_fence->semaphore());
+        if (fence_impl) {
+            dispatch_semaphore_signal(fence_impl->semaphore());
+            fence_impl->signaled_ = true;
+        }
     }];
-    [mtl_cmd_buffer->command_buffer() commit];
+    [cmd_buffer_impl->command_buffer() commit];
 
-    lock_guard<mutex> lock { queue_mutex_ };
+    lock_guard<mutex> lock {queue_mutex_};
 
-    [used_command_buffers_ addObject:mtl_cmd_buffer->command_buffer()];
+    [used_command_buffers_ addObject:cmd_buffer_impl->command_buffer()];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void Mtl_device::wait_idle()
 {
-    lock_guard<mutex> lock { queue_mutex_ };
+    lock_guard<mutex> lock {queue_mutex_};
 
     for (id<MTLCommandBuffer> command_buffer in used_command_buffers_)
         [command_buffer waitUntilCompleted];

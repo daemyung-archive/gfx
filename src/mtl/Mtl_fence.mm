@@ -14,12 +14,12 @@ namespace Gfx_lib {
 //----------------------------------------------------------------------------------------------------------------------
 
 Mtl_fence::Mtl_fence(const Fence_desc& desc, Mtl_device* device) :
-    Fence(),
-    device_ { device },
-    signaled_ { desc.signaled },
-    semaphore_ { nil }
+    Fence {},
+    device_ {device},
+    signaled_ {desc.signaled},
+    semaphore_ {nil}
 {
-    init_semaphore_(desc);
+    init_semaphore_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ Mtl_fence::Mtl_fence(const Fence_desc& desc, Mtl_device* device) :
 void Mtl_fence::wait_signal()
 {
     dispatch_semaphore_wait(semaphore_, DISPATCH_TIME_FOREVER);
-    signaled_ = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,14 +52,14 @@ bool Mtl_fence::signaled() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_fence::init_semaphore_(const Fence_desc& desc)
+void Mtl_fence::init_semaphore_()
 {
     semaphore_ = dispatch_semaphore_create(0);
 
     if (!semaphore_)
         throw runtime_error("fail to create a fence");
 
-    if (desc.signaled)
+    if (signaled_)
         dispatch_semaphore_signal(semaphore_);
 }
 
