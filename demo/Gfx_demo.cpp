@@ -3,7 +3,7 @@
 // See "LICENSE" for license information.
 //
 
-#include "Triangle_demo.h"
+#include "Gfx_demo.h"
 
 using namespace std;
 using namespace Sc_lib;
@@ -11,15 +11,16 @@ using namespace Gfx_lib;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Triangle_demo::Triangle_demo() :
+Gfx_demo::Gfx_demo() :
     Demo()
 {
+    init_images_();
     init_pipeline_();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Triangle_demo::render()
+void Gfx_demo::render()
 {
     if (!fence_->signaled())
         fence_->wait_signal();
@@ -51,7 +52,36 @@ void Triangle_demo::render()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Triangle_demo::init_pipeline_()
+void Gfx_demo::init_images_()
+{
+    try {
+        Image_desc desc;
+
+        desc.format = Format::rgba8_unorm;
+        desc.extent = {720, 1280, 1};
+
+        color_image_ = device_->create(desc);
+    }
+    catch (exception& e) {
+        throw runtime_error("fail to create gfx demo");
+    }
+
+    try {
+        Image_desc desc;
+
+        desc.format = Format::d24_unorm_s8_uint;
+        desc.extent = {720, 1280, 1};
+
+        depth_stencil_image_ = device_->create(desc);
+    }
+    catch (exception& e) {
+        throw runtime_error("fail to create gfx demo");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Gfx_demo::init_pipeline_()
 {
     // create shaders.
     const vector<string> pathes {

@@ -79,7 +79,7 @@ struct Stencil final {
 
 struct Depth_stencil final {
     bool depth_test {false};
-    bool write_mask {false};
+    bool write_mask {true};
     Compare_op depth_compare_op {Compare_op::less};
     bool stencil_test {false};
     Stencil front_stencil;

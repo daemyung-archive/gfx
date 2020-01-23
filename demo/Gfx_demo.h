@@ -10,17 +10,21 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class Triangle_demo : public Demo {
+class Gfx_demo : public Demo {
 public:
-    Triangle_demo();
+    Gfx_demo();
 
     void render() override;
 
 private:
+    void init_images_();
+
     void init_pipeline_();
 
 private:
-     std::unique_ptr<Gfx_lib::Pipeline> pipeline_;
+    std::unique_ptr<Gfx_lib::Image> color_image_;
+    std::unique_ptr<Gfx_lib::Image> depth_stencil_image_;
+    std::unique_ptr<Gfx_lib::Pipeline> pipeline_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
