@@ -37,6 +37,20 @@ inline auto component_count(Format format)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+inline auto byte_size(Index_type type)
+{
+    switch (type) {
+        case Index_type::uint16:
+            return sizeof(uint16_t);
+        case Index_type::uint32:
+            return sizeof(uint32_t);
+        default:
+            throw runtime_error("invalid the index type");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline void execute(function<void ()>& func)
 {
     func();
@@ -99,8 +113,8 @@ Ogl_render_encoder::Ogl_render_encoder(const Render_encoder_desc& desc, Ogl_devi
     device_ {device},
     cmd_buffer_ {cmd_buffer},
     framebuffer_ {nullptr},
-    vertex_buffers_ {nullptr, nullptr},
-    index_buffer_ {nullptr},
+    vertex_streams_ {},
+    index_stream_ {},
     index_type_ {Index_type::invalid},
     arg_table_ {},
     pipeline_ {nullptr},
@@ -139,47 +153,48 @@ void Ogl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
     auto input_assembly = pipeline_->input_assembly();
 
     cmds_.emplace_back([=]() {
-       glDrawElements(to_GLPrimitiveMode(input_assembly.topology),
-                      count, to_GLIndexType(index_type_), reinterpret_cast<void*>(first));
+        auto offset = index_stream_.offset + first * byte_size(index_stream_.index_type);
+
+        glDrawElements(to_GLPrimitiveMode(input_assembly.topology),
+                count, to_GLIndexType(index_type_), reinterpret_cast<void*>(offset));
     });
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Ogl_render_encoder::vertex_buffer(Buffer* buffer, uint32_t index)
+void Ogl_render_encoder::vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index)
 {
-    auto buffer_impl = static_cast<Ogl_buffer*>(buffer);
+    Ogl_vertex_stream vertex_stream {static_cast<Ogl_buffer*>(buffer), offset};
 
-    if (buffer_impl == vertex_buffers_[index])
+    if (vertex_stream == vertex_streams_[index])
         return;
 
-    vertex_buffers_[index] = buffer_impl;
+    vertex_streams_[index] = vertex_stream;
 
     if (!pipeline_)
         return;
 
-    auto vertex_buffers = vertex_buffers_;
+    auto vertex_streams = vertex_streams_;
     auto vertex_input = pipeline_->vertex_input();
 
     cmds_.emplace_back([=]() {
-        set_up_vertex_input_(vertex_buffers, vertex_input);
+        set_up_vertex_input_(vertex_streams, vertex_input);
     });
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Ogl_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
+void Ogl_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type)
 {
-    auto buffer_impl = static_cast<Ogl_buffer*>(buffer);
+    Ogl_index_stream index_stream {static_cast<Ogl_buffer*>(buffer), offset, index_type};
 
-    if (buffer_impl == index_buffer_)
+    if (index_stream == index_stream_)
         return;
 
-    index_buffer_ = buffer_impl;
-    index_type_ = index_type;
+    index_stream_ = index_stream;
 
     cmds_.emplace_back([=]() {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer_impl->buffer());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_stream.buffer->buffer());
     });
 }
 
@@ -236,11 +251,11 @@ void Ogl_render_encoder::pipeline(Pipeline* pipeline)
 
     pipeline_ = pipeline_impl;
 
-    auto vertex_buffers = vertex_buffers_;
+    auto vertex_streams = vertex_streams_;
 
     cmds_.emplace_back([=]() {
         glUseProgram(pipeline_impl->program());
-        set_up_vertex_input_(vertex_buffers, pipeline_impl->vertex_input());
+        set_up_vertex_input_(vertex_streams, pipeline_impl->vertex_input());
         set_up_rasterization_(pipeline_impl->rasterization());
         set_up_depth_stencil_(pipeline_impl->depth_stencil());
         set_up_color_blend_(pipeline_impl->color_blend());
@@ -364,16 +379,18 @@ void Ogl_render_encoder::end_render_pass_()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Ogl_render_encoder::set_up_vertex_input_(const std::array<Ogl_buffer*, 2>& vertex_buffers,
+void Ogl_render_encoder::set_up_vertex_input_(const std::array<Ogl_vertex_stream, 2>& vertex_streams,
                                               const Vertex_input& vertex_input)
 {
     for (auto i = 0; i != 2; ++i) {
-        if (!vertex_buffers[i])
+        auto& vertex_stream = vertex_streams[i];
+
+        if (!vertex_stream.buffer)
             continue;
 
         auto& binding = vertex_input.bindings[i];
 
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[i]->buffer());
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_stream.buffer->buffer());
 
         for (GLuint j = 0; j != 16; ++j) {
             auto& attribute = vertex_input.attributes[j];
@@ -391,7 +408,7 @@ void Ogl_render_encoder::set_up_vertex_input_(const std::array<Ogl_buffer*, 2>& 
                                       to_GLDataType(attribute.format),
                                       GL_FALSE,
                                       binding.stride,
-                                      reinterpret_cast<void*>(attribute.offset));
+                                      reinterpret_cast<void*>(vertex_stream.offset + attribute.offset));
             }
         }
     }

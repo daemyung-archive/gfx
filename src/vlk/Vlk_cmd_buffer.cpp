@@ -127,8 +127,8 @@ Vlk_render_encoder::Vlk_render_encoder(const Render_encoder_desc& desc,
     device_ {device},
     cmd_buffer_ {cmd_buffer},
     cmds_ {},
-    vertex_buffers_ {nullptr, nullptr},
-    index_buffer_ {nullptr},
+    vertex_streams_ {},
+    index_stream_ {},
     arg_tables_ {},
     pipeline_ {nullptr},
     render_pass_ {nullptr},
@@ -177,39 +177,39 @@ void Vlk_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_render_encoder::vertex_buffer(Buffer* buffer, uint32_t index)
+void Vlk_render_encoder::vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index)
 {
-    auto buffer_impl = static_cast<Vlk_buffer*>(buffer);
+    Vlk_vertex_stream vertex_stream {static_cast<Vlk_buffer*>(buffer), offset};
 
-    if (buffer_impl == vertex_buffers_[index])
+    if (vertex_stream == vertex_streams_[index])
         return;
 
     cmds_[2].push_back([=]() {
-        VkDeviceSize offset { 0 };
-        
         vkCmdBindVertexBuffers(cmd_buffer_->command_buffer(),
-                               index, 1, &buffer_impl->buffer(), &offset);
+                               index, 1, &vertex_stream.buffer->buffer(), &vertex_stream.offset);
     });
 
-    vertex_buffers_[index] = buffer_impl;
+    // update a vertex stream.
+    vertex_streams_[index] = vertex_stream;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
+void Vlk_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type)
 {
-    auto buffer_impl = static_cast<Vlk_buffer*>(buffer);
+    Vlk_index_stream index_stream {static_cast<Vlk_buffer*>(buffer), offset, index_type};
 
-    if (buffer_impl == index_buffer_)
+    if (index_stream == index_stream_)
         return;
 
     cmds_[2].push_back([=]() {
         vkCmdBindIndexBuffer(cmd_buffer_->command_buffer(),
-                             buffer_impl->buffer(), 0, to_VkIndexType(index_type));
+                             index_stream.buffer->buffer(), index_stream.offset,
+                             to_VkIndexType(index_stream.index_type));
     });
 
     // update an index buffer.
-    index_buffer_ = buffer_impl;
+    index_stream_ = index_stream;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

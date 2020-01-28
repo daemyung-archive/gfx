@@ -148,7 +148,7 @@ void Sphere::init_vertices_(float r, uint32_t sector, uint32_t stack)
             Vertex vertex;
             
             vertex.position = {xy * cosf(sector_angle), xy * sinf(sector_angle), r * sinf(stack_angle)};
-            vertex.normal = vertex.position / r;
+            vertex.normal = normalize(vertex.position);
             vertex.tex_coords = {static_cast<float>(j) / sector, static_cast<float>(i) / stack};
             
             vertices.push_back(vertex);

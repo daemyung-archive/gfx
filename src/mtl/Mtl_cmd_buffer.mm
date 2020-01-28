@@ -76,9 +76,8 @@ Mtl_render_encoder::Mtl_render_encoder(const Render_encoder_desc& desc, Mtl_cmd_
     Render_encoder(),
     cmd_buffer_ {cmd_buffer},
     render_command_encoder_ {nil},
-    vertex_buffers_ {nullptr, nullptr},
-    index_buffer_ {nullptr},
-    index_type_ { Index_type::invalid },
+    vertex_streams_ {},
+    index_stream_ {},
     arg_tables_ {},
     pipeline_ {nullptr}
 {
@@ -108,45 +107,43 @@ void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 void Mtl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
     auto input_assembly = pipeline_->input_assembly();
+    auto offset = first * byte_size(index_stream_.index_type);
 
     [render_command_encoder_ drawIndexedPrimitives:to_MTLPrimitiveType(input_assembly.topology)
                                         indexCount:count
-                                         indexType:to_MTLIndexType(index_type_)
-                                       indexBuffer:index_buffer_->buffer()
-                                 indexBufferOffset:first * byte_size(index_type_)];
+                                         indexType:to_MTLIndexType(index_stream_.index_type)
+                                       indexBuffer:index_stream_.buffer->buffer()
+                                 indexBufferOffset:offset + index_stream_.offset];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_render_encoder::vertex_buffer(Buffer* buffer, uint32_t index)
+void Mtl_render_encoder::vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index)
 {
-    auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
+    Mtl_vertex_stream vertex_stream {static_cast<Mtl_buffer*>(buffer), offset};
 
-    // skip if a vertex buffer at index is same.
-    if (buffer_impl == vertex_buffers_[index])
+    if (vertex_stream == vertex_streams_[index])
         return;
 
     // set a vertex buffer.
-    [render_command_encoder_ setVertexBuffer:buffer_impl->buffer() offset:0
+    [render_command_encoder_ setVertexBuffer:vertex_stream.buffer->buffer() offset:vertex_stream.offset
                                      atIndex:index + vertex_buffer_index_offset];
 
     // update a vertex buffer at index.
-    vertex_buffers_[index] = buffer_impl;
+    vertex_streams_[index] = vertex_stream;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_render_encoder::index_buffer(Buffer* buffer, Index_type index_type)
+void Mtl_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type)
 {
-    auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
+    Mtl_index_stream index_stream {static_cast<Mtl_buffer*>(buffer), offset, index_type};
 
-    // skip if a index buffer is same.
-    if (buffer_impl == index_buffer_)
+    if (index_stream == index_stream_)
         return;
 
     // update an index buffer and an index type.
-    index_buffer_ = buffer_impl;
-    index_type_ = index_type;
+    index_stream_ = index_stream;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -172,7 +169,7 @@ void Mtl_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uin
         }
         case Pipeline_stage::fragment_shader: {
             if (buffer_impl != arg_buffer.buffer)
-                [render_command_encoder_ setFragmentBuffer:buffer_impl->buffer() offset:0 atIndex:index];
+                [render_command_encoder_ setFragmentBuffer:buffer_impl->buffer() offset:offset atIndex:index];
             else
                 [render_command_encoder_ setFragmentBufferOffset:offset atIndex:index];
 

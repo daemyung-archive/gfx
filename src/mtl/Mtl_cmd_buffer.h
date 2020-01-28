@@ -24,6 +24,35 @@ class Mtl_cmd_buffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Mtl_vertex_stream final {
+    Mtl_buffer* buffer {nullptr};
+    uint64_t offset {0};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Mtl_vertex_stream& lhs, const Mtl_vertex_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Mtl_index_stream final {
+    Mtl_buffer* buffer {nullptr};
+    uint64_t offset {0};
+    Index_type index_type {Index_type::invalid};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Mtl_index_stream& lhs, const Mtl_index_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset) && (lhs.index_type == rhs.index_type);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 template<typename T>
 using Mtl_arg_array = std::array<T, 16>;
 
@@ -76,9 +105,9 @@ public:
 
     void draw_indexed(uint32_t count, uint32_t first = 0) override;
 
-    void vertex_buffer(Buffer* buffer, uint32_t index) override;
+    void vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index) override;
 
-    void index_buffer(Buffer* buffer, Index_type index_type) override;
+    void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) override;
 
     void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
 
@@ -101,9 +130,8 @@ private:
 private:
     Mtl_cmd_buffer* cmd_buffer_;
     id<MTLRenderCommandEncoder> render_command_encoder_;
-    std::array<Mtl_buffer*, 2> vertex_buffers_;
-    Mtl_buffer* index_buffer_;
-    Index_type index_type_;
+    std::array<Mtl_vertex_stream, 2> vertex_streams_;
+    Mtl_index_stream index_stream_;
     std::unordered_map<Pipeline_stage, Mtl_arg_table> arg_tables_;
     Mtl_pipeline* pipeline_;
 };

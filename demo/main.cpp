@@ -7,9 +7,7 @@
 #include <string>
 #include <cxxopts.hpp>
 #include <platform/Window.h>
-#include "Triangle_demo.h"
-#include "Texture_demo.h"
-#include "Phong_demo.h"
+#include "Gfx_demo.h"
 
 using namespace std;
 using namespace cxxopts;
@@ -18,27 +16,48 @@ using namespace Platform_lib;
 //----------------------------------------------------------------------------------------------------------------------
 
 unique_ptr<Window> window_;
-unique_ptr<Demo> demo_;
+unique_ptr<Gfx_demo> gfx_demo_;
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void on_startup()
 {
-    demo_->connect(window_.get());
+    gfx_demo_->connect(window_.get());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void on_shutdown()
 {
-    demo_ = nullptr;
+    gfx_demo_ = nullptr;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void on_render()
 {
-    demo_->render();
+    gfx_demo_->render();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_touch_down()
+{
+    gfx_demo_->touch_down();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_touch_move(float x, float y)
+{
+    gfx_demo_->touch_move(x, y);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void on_touch_up()
+{
+    gfx_demo_->touch_up();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -66,13 +85,11 @@ int main(int argc, char* argv[])
     window_->startup_signal.connect(&on_startup);
     window_->shutdown_signal.connect(&on_shutdown);
     window_->render_signal.connect(&on_render);
+    window_->touch_down_signal.connect(&on_touch_down);
+    window_->touch_move_signal.connect(&on_touch_move);
+    window_->touch_up_signal.connect(&on_touch_up);
 
-    if ("triangle" == target)
-        demo_ = make_unique<Triangle_demo>();
-    else if ("texture" == target)
-        demo_ = make_unique<Texture_demo>();
-    else if ("phong" == target)
-        demo_ = make_unique<Phong_demo>();
+    gfx_demo_ = make_unique<Gfx_demo>();
 
     window_->run();
 
@@ -92,8 +109,11 @@ void android_main(struct android_app* state)
     window_->startup_signal.connect(&on_startup);
     window_->shutdown_signal.connect(&on_shutdown);
     window_->render_signal.connect(&on_render);
+    window_->touch_down_signal.connect(&on_touch_down);
+    window_->touch_move_signal.connect(&on_touch_move);
+    window_->touch_up_signal.connect(&on_touch_up);
 
-    demo_ = make_unique<Triangle_demo>();
+    gfx_demo_ = make_unique<Gfx_demo>();
 
     window_->run();
 }

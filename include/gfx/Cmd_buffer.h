@@ -52,9 +52,9 @@ public:
 
     virtual void draw_indexed(uint32_t count, uint32_t first = 0) = 0;
 
-    virtual void vertex_buffer(Buffer* buffer, uint32_t index) = 0;
+    virtual void vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index) = 0;
 
-    virtual void index_buffer(Buffer* buffer, Index_type index_type) = 0;
+    virtual void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) = 0;
 
     virtual void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) = 0;
 

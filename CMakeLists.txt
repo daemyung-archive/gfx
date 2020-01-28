@@ -166,14 +166,8 @@ target_sources(gfx_demo
         demo/stb_lib.h
         demo/util.h
         demo/util.cpp
-        demo/Demo.h
-        demo/Demo.cpp
-        demo/Triangle_demo.h
-        demo/Triangle_demo.cpp
-        demo/Texture_demo.h
-        demo/Texture_demo.cpp
-        demo/Phong_demo.h
-        demo/Phong_demo.cpp)
+        demo/Gfx_demo.h
+        demo/Gfx_demo.cpp)
 
 target_link_libraries(gfx_demo
     PUBLIC

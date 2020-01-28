@@ -25,6 +25,35 @@ class Ogl_framebuffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Ogl_vertex_stream final {
+    Ogl_buffer* buffer {nullptr};
+    uint64_t offset {0};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Ogl_vertex_stream& lhs, const Ogl_vertex_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Ogl_index_stream final {
+    Ogl_buffer* buffer {nullptr};
+    uint64_t offset {0};
+    Index_type index_type {Index_type::invalid};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Ogl_index_stream& lhs, const Ogl_index_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset) && (lhs.index_type == rhs.index_type);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 template<typename T>
 using Ogl_arg_array = std::array<T, 16>;
 
@@ -77,9 +106,9 @@ public:
 
     void draw_indexed(uint32_t count, uint32_t first = 0) override;
 
-    void vertex_buffer(Buffer* buffer, uint32_t index) override;
+    void vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index) override;
 
-    void index_buffer(Buffer* buffer, Index_type index_type) override;
+    void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) override;
 
     void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
 
@@ -100,7 +129,7 @@ private:
 
     void end_render_pass_();
 
-    void set_up_vertex_input_(const std::array<Ogl_buffer*, 2>& vertex_buffers,
+    void set_up_vertex_input_(const std::array<Ogl_vertex_stream, 2>& vertex_streams,
                               const Vertex_input& vertex_input);
 
     void set_up_rasterization_(const Rasterization& rasterization);
@@ -115,8 +144,8 @@ private:
     Ogl_cmd_buffer* cmd_buffer_;
     Ogl_framebuffer* framebuffer_;
     std::deque<std::function<void ()>> cmds_;
-    std::array<Ogl_buffer*, 2> vertex_buffers_;
-    Ogl_buffer* index_buffer_;
+    std::array<Ogl_vertex_stream, 2> vertex_streams_;
+    Ogl_index_stream index_stream_;
     Index_type index_type_;
     Ogl_arg_table arg_table_;
     Ogl_pipeline* pipeline_;

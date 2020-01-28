@@ -28,6 +28,35 @@ class Vlk_framebuffer;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Vlk_vertex_stream final {
+    Vlk_buffer* buffer {nullptr};
+    uint64_t offset {0};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Vlk_vertex_stream& lhs, const Vlk_vertex_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Vlk_index_stream final {
+    Vlk_buffer* buffer {nullptr};
+    uint64_t offset {0};
+    Index_type index_type {Index_type::invalid};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto operator==(const Vlk_index_stream& lhs, const Vlk_index_stream& rhs)
+{
+    return (lhs.buffer == rhs.buffer) && (lhs.offset == rhs.offset) && (lhs.index_type == rhs.index_type);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 template<typename T>
 class Vlk_arg_array : public std::array<T, 16> {
 public:
@@ -72,9 +101,9 @@ public:
 
     void draw_indexed(uint32_t count, uint32_t first = 0) override;
 
-    void vertex_buffer(Buffer* buffer, uint32_t index) override;
+    void vertex_buffer(Buffer* buffer, uint64_t offset, uint32_t index) override;
 
-    void index_buffer(Buffer* buffer, Index_type index_type) override;
+    void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) override;
 
     void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
 
@@ -101,8 +130,8 @@ private:
     Vlk_device* device_;
     Vlk_cmd_buffer* cmd_buffer_;
     std::map<uint32_t, std::deque<std::function<void ()>>> cmds_;
-    std::array<Vlk_buffer*, 2> vertex_buffers_;
-    Vlk_buffer* index_buffer_;
+    std::array<Vlk_vertex_stream, 2> vertex_streams_;
+    Vlk_index_stream index_stream_;
     std::unordered_map<Pipeline_stage, Vlk_arg_table> arg_tables_;
     Vlk_pipeline* pipeline_;
     Vlk_render_pass* render_pass_;
