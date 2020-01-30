@@ -130,7 +130,13 @@ void Mtl_device::wait_idle()
 
 void Mtl_device::init_device_()
 {
-    device_ = MTLCreateSystemDefaultDevice();
+    for (id<MTLDevice> device in MTLCopyAllDevices()) {
+        if ([device.name  isEqual:@"AMD Radeon Pro 5500M"])
+            continue;
+
+        device_ = device;
+        break;
+    }
 
     if (!device_)
         throw runtime_error("fail to create device");
