@@ -53,44 +53,32 @@ inline auto operator==(const Mtl_index_stream& lhs, const Mtl_index_stream& rhs)
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Mtl_arg_buffer final {
+    Mtl_buffer* buffer {nullptr};
+    uint32_t buffer_stages {0};
+    uint32_t offset {0};
+    uint32_t offset_stages {0};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct Mtl_arg_texture final {
+    Mtl_image* image {nullptr};
+    uint32_t image_stages {0};
+    Mtl_sampler* sampler {nullptr};
+    uint32_t sampler_stages {0};
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 template<typename T>
 using Mtl_arg_array = std::array<T, 16>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-struct Mtl_arg_buffer {
-    Mtl_buffer* buffer {nullptr};
-    uint32_t offset {0};
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-struct Mtl_arg_texture {
-    Mtl_image* image {nullptr};
-    Mtl_sampler* sampler {nullptr};
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class Mtl_arg_table final {
-public:
-    Mtl_arg_table();
-
-    void clear();
-
-    void arg_buffer(const Mtl_arg_buffer& arg_buffer, uint32_t index);
-
-    void arg_texture(const Mtl_arg_texture& arg_texture, uint32_t index);
-
-    inline auto arg_buffer(uint32_t index) const noexcept
-    { return arg_buffers_[index]; }
-
-    inline auto arg_texture(uint32_t index) const noexcept
-    { return arg_textures_[index]; }
-
-private:
-    Mtl_arg_array<Mtl_arg_buffer> arg_buffers_;
-    Mtl_arg_array<Mtl_arg_texture> arg_textures_;
+struct Mtl_arg_table final {
+    Mtl_arg_array<Mtl_arg_buffer> buffers;
+    Mtl_arg_array<Mtl_arg_texture> textures;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -109,9 +97,9 @@ public:
 
     void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) override;
 
-    void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
+    void shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index) override;
 
-    void shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index) override;
+    void shader_texture(Image* image, Sampler* sampler, uint32_t index) override;
 
     void pipeline(Pipeline* pipeline) override;
 
@@ -127,12 +115,18 @@ public:
 private:
     void init_render_command_encoder_(const Render_encoder_desc& desc);
 
+    void bind_arg_table_();
+
+    void bind_arg_buffer_(uint64_t index, uint32_t stages);
+
+    void bind_arg_texture_(uint64_t index, uint32_t stages);
+
 private:
     Mtl_cmd_buffer* cmd_buffer_;
     id<MTLRenderCommandEncoder> render_command_encoder_;
     std::array<Mtl_vertex_stream, 2> vertex_streams_;
     Mtl_index_stream index_stream_;
-    std::unordered_map<Pipeline_stage, Mtl_arg_table> arg_tables_;
+    Mtl_arg_table arg_table_;
     Mtl_pipeline* pipeline_;
 };
 

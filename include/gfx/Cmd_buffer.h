@@ -56,9 +56,9 @@ public:
 
     virtual void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) = 0;
 
-    virtual void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) = 0;
+    virtual void shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index) = 0;
 
-    virtual void shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index) = 0;
+    virtual void shader_texture(Image* image, Sampler* sampler, uint32_t index) = 0;
 
     virtual void pipeline(Pipeline* pipeline) = 0;
 

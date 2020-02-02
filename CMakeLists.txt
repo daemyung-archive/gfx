@@ -17,7 +17,8 @@ add_library(gfx
         include/gfx/Fence.h
         src/std_lib.h
         src/Lru_cache.h
-        src/Device.cpp)
+        src/Device.cpp
+        src/Pipeline.cpp)
 
 target_include_directories(gfx
     PUBLIC

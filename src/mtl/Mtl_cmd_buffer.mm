@@ -21,6 +21,20 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+inline auto& operator|=(uint32_t& stages, Pipeline_stage stage)
+{
+    return stages |= etoi(stage);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline auto is_stage_set(uint64_t stages, Pipeline_stage stage)
+{
+    return stages & etoi(stage);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 inline auto byte_size(Index_type type)
 {
     switch (type) {
@@ -41,44 +55,13 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Mtl_arg_table::Mtl_arg_table() :
-    arg_buffers_ {},
-    arg_textures_ {}
-{
-    clear();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_arg_table::clear()
-{
-    arg_buffers_.fill({nullptr, 0});
-    arg_textures_.fill({nullptr, nullptr});
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_arg_table::arg_buffer(const Mtl_arg_buffer& arg_buffer, uint32_t index)
-{
-    arg_buffers_[index] = arg_buffer;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void Mtl_arg_table::arg_texture(const Mtl_arg_texture& arg_texture, uint32_t index)
-{
-    arg_textures_[index] = arg_texture;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 Mtl_render_encoder::Mtl_render_encoder(const Render_encoder_desc& desc, Mtl_cmd_buffer* cmd_buffer) :
     Render_encoder(),
     cmd_buffer_ {cmd_buffer},
     render_command_encoder_ {nil},
     vertex_streams_ {},
     index_stream_ {},
-    arg_tables_ {},
+    arg_table_ {},
     pipeline_ {nullptr}
 {
     init_render_command_encoder_(desc);
@@ -95,6 +78,8 @@ void Mtl_render_encoder::end()
 
 void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 {
+    bind_arg_table_();
+
     auto input_assembly = pipeline_->input_assembly();
 
     [render_command_encoder_ drawPrimitives:to_MTLPrimitiveType(input_assembly.topology)
@@ -106,6 +91,8 @@ void Mtl_render_encoder::draw(uint32_t count, uint32_t first)
 
 void Mtl_render_encoder::draw_indexed(uint32_t count, uint32_t first)
 {
+    bind_arg_table_();
+
     auto input_assembly = pipeline_->input_assembly();
     auto offset = first * byte_size(index_stream_.index_type);
 
@@ -148,79 +135,39 @@ void Mtl_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_typ
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index)
+void Mtl_render_encoder::shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index)
 {
+    auto& arg_buffer = arg_table_.buffers[index];
     auto buffer_impl = static_cast<Mtl_buffer*>(buffer);
-    auto arg_buffer = arg_tables_[stage].arg_buffer(index);
 
-    // skip if a shader buffer and offset are same.
-    if (buffer_impl == arg_buffer.buffer && offset == arg_buffer.offset)
-        return;
-
-    // set a shader buffer with offset at stage.
-    switch (stage) {
-        case Pipeline_stage::vertex_shader: {
-            if (buffer_impl != arg_buffer.buffer)
-                [render_command_encoder_ setVertexBuffer:buffer_impl->buffer() offset:offset atIndex:index];
-            else
-                [render_command_encoder_ setVertexBufferOffset:offset atIndex:index];
-
-            break;
-        }
-        case Pipeline_stage::fragment_shader: {
-            if (buffer_impl != arg_buffer.buffer)
-                [render_command_encoder_ setFragmentBuffer:buffer_impl->buffer() offset:offset atIndex:index];
-            else
-                [render_command_encoder_ setFragmentBufferOffset:offset atIndex:index];
-
-            break;
-        }
-        default:
-            assert(false);
+    if (arg_buffer.buffer != buffer_impl) {
+        arg_buffer.buffer = buffer_impl;
+        arg_buffer.buffer_stages = etoi(Pipeline_stage::invalid);
     }
 
-    // update an arg tables.
-    arg_tables_[stage].arg_buffer({buffer_impl, offset}, index);
+    if (arg_buffer.offset != offset) {
+        arg_buffer.offset = offset;
+        arg_buffer.offset_stages = etoi(Pipeline_stage::invalid);
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mtl_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index)
+void Mtl_render_encoder::shader_texture(Image* image, Sampler* sampler, uint32_t index)
 {
+    auto& arg_texture = arg_table_.textures[index];
     auto image_impl = static_cast<Mtl_image*>(image);
     auto sampler_impl = static_cast<Mtl_sampler*>(sampler);
-    auto arg_texture = arg_tables_[stage].arg_texture(index);
 
-    // skip if a shader image and shader sampler are same.
-    if (image_impl == arg_texture.image && sampler_impl == arg_texture.sampler)
-        return;
-
-    // set a shader image and a shader sampler at stage.
-    switch (stage) {
-        case Pipeline_stage::vertex_shader: {
-            if (image_impl != arg_texture.image)
-                [render_command_encoder_ setVertexTexture:image_impl->texture() atIndex:index];
-
-            if (sampler_impl != arg_texture.sampler)
-                [render_command_encoder_ setVertexSamplerState:sampler_impl->sampler_state() atIndex:index];
-
-            break;
-        }
-        case Pipeline_stage::fragment_shader: {
-            if (image_impl != arg_texture.image)
-                [render_command_encoder_ setFragmentTexture:image_impl->texture() atIndex:index];
-
-            if (sampler_impl != arg_texture.sampler)
-                [render_command_encoder_ setFragmentSamplerState:sampler_impl->sampler_state() atIndex:index];
-
-            break;
-        }
-        default:
-            assert(false);
+    if (arg_texture.image != image_impl) {
+        arg_texture.image = image_impl;
+        arg_texture.image_stages = etoi(Pipeline_stage::invalid);
     }
 
-    // update an arg tables.
-    arg_tables_[stage].arg_texture({image_impl, sampler_impl}, index);
+    if (arg_texture.sampler != sampler_impl) {
+        arg_texture.sampler = sampler_impl;
+        arg_texture.sampler_stages = etoi(Pipeline_stage::invalid);
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -309,6 +256,91 @@ void Mtl_render_encoder::init_render_command_encoder_(const Render_encoder_desc&
 
     // start render encoding.
     render_command_encoder_ = [cmd_buffer_->command_buffer() renderCommandEncoderWithDescriptor:descriptor];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::bind_arg_table_()
+{
+    auto reflection = pipeline_->reflection();
+
+    for (auto& [index, stages] : reflection.buffers)
+        bind_arg_buffer_(index, stages);
+
+    for (auto& [index, stages] : reflection.textures)
+        bind_arg_texture_(index, stages);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::bind_arg_buffer_(uint64_t index, uint32_t stages)
+{
+    auto& arg_buffer = arg_table_.buffers[index];
+
+    if (is_stage_set(stages, Pipeline_stage::vertex_shader)) {
+        if (!is_stage_set(arg_buffer.buffer_stages, Pipeline_stage::vertex_shader)) {
+            [render_command_encoder_ setVertexBuffer:arg_buffer.buffer->buffer()
+                                              offset:arg_buffer.offset
+                                             atIndex:index];
+            arg_buffer.buffer_stages |= Pipeline_stage::vertex_shader;
+            arg_buffer.offset_stages |= Pipeline_stage::vertex_shader;
+        }
+        else if (!is_stage_set(arg_buffer.offset_stages, Pipeline_stage::vertex_shader)) {
+            [render_command_encoder_ setVertexBufferOffset:arg_buffer.offset
+                                                   atIndex:index];
+            arg_buffer.offset_stages |= Pipeline_stage::vertex_shader;
+        }
+    }
+
+    if (is_stage_set(stages, Pipeline_stage::fragment_shader)) {
+        if (!is_stage_set(arg_buffer.buffer_stages, Pipeline_stage::fragment_shader)) {
+            [render_command_encoder_ setFragmentBuffer:arg_buffer.buffer->buffer()
+                                                offset:arg_buffer.offset
+                                               atIndex:index];
+            arg_buffer.buffer_stages |= Pipeline_stage::fragment_shader;
+            arg_buffer.offset_stages |= Pipeline_stage::fragment_shader;
+        }
+        else if (!is_stage_set(arg_buffer.offset_stages, Pipeline_stage::fragment_shader)) {
+            [render_command_encoder_ setFragmentBufferOffset:arg_buffer.offset
+                                                     atIndex:index];
+            arg_buffer.offset_stages |= Pipeline_stage::fragment_shader;
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void Mtl_render_encoder::bind_arg_texture_(uint64_t index, uint32_t stages)
+{
+    auto& arg_texture = arg_table_.textures[index];
+
+    if (is_stage_set(stages, Pipeline_stage::vertex_shader)) {
+        if (!is_stage_set(arg_texture.image_stages, Pipeline_stage::vertex_shader)) {
+            [render_command_encoder_ setVertexTexture:arg_texture.image->texture()
+                                              atIndex:index];
+            arg_texture.image_stages |= Pipeline_stage::vertex_shader;
+        }
+
+        if (!is_stage_set(arg_texture.sampler_stages, Pipeline_stage::vertex_shader)) {
+            [render_command_encoder_ setVertexSamplerState:arg_texture.sampler->sampler_state()
+                                                   atIndex:index];
+            arg_texture.sampler_stages |= Pipeline_stage::vertex_shader;
+        }
+    }
+
+    if (is_stage_set(stages, Pipeline_stage::fragment_shader)) {
+        if (!is_stage_set(arg_texture.image_stages, Pipeline_stage::fragment_shader)) {
+            [render_command_encoder_ setFragmentTexture:arg_texture.image->texture()
+                                                atIndex:index];
+            arg_texture.image_stages |= Pipeline_stage::fragment_shader;
+        }
+
+        if (!is_stage_set(arg_texture.sampler_stages, Pipeline_stage::fragment_shader)) {
+            [render_command_encoder_ setFragmentSamplerState:arg_texture.sampler->sampler_state()
+                                                     atIndex:index];
+            arg_texture.sampler_stages |= Pipeline_stage::fragment_shader;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------

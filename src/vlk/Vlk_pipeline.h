@@ -19,6 +19,8 @@ namespace Gfx_lib {
 class Vlk_device;
 class Vlk_set_layout;
 
+//----------------------------------------------------------------------------------------------------------------------
+
 using Vlk_set_layout_array = std::array<std::unique_ptr<Vlk_set_layout>, 2>;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -31,8 +33,8 @@ public:
 
     Device* device() const override;
 
-    inline auto set_layout(Pipeline_stage stage, uint32_t index) const noexcept
-    { return set_layouts_.at(stage)[index].get(); }
+    inline auto set_layout(uint32_t index) const noexcept
+    { return set_layouts_[index].get(); }
 
     inline auto& pipeline_layout() const noexcept
     { return pipeline_layout_; }
@@ -53,7 +55,7 @@ private:
 
 private:
     Vlk_device* device_;
-    std::unordered_map<Pipeline_stage, Vlk_set_layout_array> set_layouts_;
+    Vlk_set_layout_array set_layouts_;
     VkPipelineLayout pipeline_layout_;
     VkPipeline pipeline_;
 };
