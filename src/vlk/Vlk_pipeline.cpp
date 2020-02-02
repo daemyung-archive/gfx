@@ -19,16 +19,17 @@ namespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline auto to_Pipeline_stage(Sc_lib::Shader_type type)
+inline auto to_VkShaderStageFlags(uint32_t stages)
 {
-    switch (type) {
-        case Sc_lib::Shader_type::vertex:
-            return Pipeline_stage::vertex_shader;
-        case Sc_lib::Shader_type ::fragment:
-            return Pipeline_stage::fragment_shader;
-        default:
-            throw std::runtime_error("invalid the shader type");
-    }
+    VkShaderStageFlags flags {0};
+
+    if (stages & etoi(Pipeline_stage::vertex_shader))
+        flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+
+    if (stages & etoi(Pipeline_stage::fragment_shader))
+        flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+    return flags;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -118,50 +119,39 @@ Device* Vlk_pipeline::device() const
 
 void Vlk_pipeline::init_set_layouts_(Shader* vertex_shader, Shader* fragment_shader)
 {
-    array<Shader*, 2> shaders { vertex_shader, fragment_shader };
+    Vlk_set_layout_desc buffer_set_layout_desc;
+    auto& buffer_bindings = buffer_set_layout_desc.bindings;
 
-    for (auto shader : shaders) {
-        auto& set_layouts = set_layouts_[to_Pipeline_stage(shader->type())];
-        auto signature = shader->reflect();
+    for (auto& [index, stages] : reflection_.buffers) {
+        VkDescriptorSetLayoutBinding binding {};
 
-        {
-            Vlk_set_layout_desc desc;
-            auto& bindings = desc.bindings;
+        binding.binding = index;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        binding.descriptorCount = 1;
+        binding.stageFlags = to_VkShaderStageFlags(stages);
 
-            for (auto& buffer : signature.buffers) {
-                VkDescriptorSetLayoutBinding binding {};
-
-                binding.binding = buffer.binding;
-                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                binding.descriptorCount = 1;
-                binding.stageFlags = to_VkShaderStageFlagBits(shader->type());
-
-                bindings.push_back(binding);
-            }
-
-            if (!bindings.empty())
-                set_layouts[0] = make_unique<Vlk_set_layout>(desc, device_);
-        }
-        
-        {
-            Vlk_set_layout_desc desc;
-            auto& bindings = desc.bindings;
-
-            for (auto& texture : signature.textures) {
-                VkDescriptorSetLayoutBinding binding {};
-
-                binding.binding = texture.binding;
-                binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                binding.descriptorCount = 1;
-                binding.stageFlags = to_VkShaderStageFlagBits(shader->type());
-
-                bindings.push_back(binding);
-            }
-
-            if (!bindings.empty())
-                set_layouts[1] = make_unique<Vlk_set_layout>(desc, device_);
-        }
+        buffer_bindings.emplace_back(binding);
     }
+
+    if (!buffer_bindings.empty())
+        set_layouts_[0] = make_unique<Vlk_set_layout>(buffer_set_layout_desc, device_);
+
+    Vlk_set_layout_desc texture_set_layout_desc;
+    auto& texture_bindings = texture_set_layout_desc.bindings;
+
+    for (auto& [index, stages] : reflection_.textures) {
+        VkDescriptorSetLayoutBinding binding {};
+
+        binding.binding = index;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        binding.descriptorCount = 1;
+        binding.stageFlags = to_VkShaderStageFlags(stages);
+
+        texture_bindings.push_back(binding);
+    }
+
+    if (!texture_bindings.empty())
+        set_layouts_[1] = make_unique<Vlk_set_layout>(texture_set_layout_desc, device_);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -170,11 +160,8 @@ void Vlk_pipeline::init_pipeline_layout_()
 {
     std::vector<VkDescriptorSetLayout> desc_set_layouts;
 
-    for (auto& [stage, set_layouts] : set_layouts_) {
-        for (auto& set_layout : set_layouts) {
-            if (set_layout)
-                desc_set_layouts.push_back(set_layout->desc_set_layout());
-        }
+    for (auto& set_layout : set_layouts_) {
+        desc_set_layouts.push_back(set_layout->desc_set_layout());
     }
 
     VkPipelineLayoutCreateInfo create_info {};

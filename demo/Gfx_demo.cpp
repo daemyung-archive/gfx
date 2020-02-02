@@ -681,59 +681,44 @@ void Gfx_demo::record_light_render_pass_()
 
     render_encoder->vertex_buffer(buffers_["cube_vertex"].get(), 0, 0);
     render_encoder->index_buffer(buffers_["cube_index"].get(), 0, Index_type::uint16);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 0, 0);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 0, 0);
     render_encoder->pipeline(pipelines_["lamp"].get());
     render_encoder->draw_indexed(draw_counts_["cube"]);
 
     render_encoder->vertex_buffer(buffers_["plane_vertex"].get(), 0, 0);
     render_encoder->index_buffer(buffers_["plane_index"].get(), 0, Index_type::uint16);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 512 * 2, 0);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["material_info"].get(), 256 * 2, 2);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["matrix_info"].get(), 512 * 2, 0);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["material_info"].get(), 256 * 2, 2);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 512 * 2, 0);
+    render_encoder->shader_buffer(buffers_["light_info"].get(), 0, 1);
+    render_encoder->shader_buffer(buffers_["material_info"].get(), 256 * 2, 2);
     render_encoder->pipeline(pipelines_["phong"].get());
     render_encoder->draw_indexed(draw_counts_["plane"]);
 
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 512 * 3, 0);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["material_info"].get(), 256 * 3, 2);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["matrix_info"].get(), 512 * 3, 0);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["material_info"].get(), 256 * 3, 2);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 512 * 3, 0);
+    render_encoder->shader_buffer(buffers_["light_info"].get(), 0, 1);
+    render_encoder->shader_buffer(buffers_["material_info"].get(), 256 * 3, 2);
     render_encoder->draw_indexed(draw_counts_["plane"]);
 
     render_encoder->vertex_buffer(buffers_["cube_vertex"].get(), 0, 0);
     render_encoder->index_buffer(buffers_["cube_index"].get(), 0, Index_type::uint16);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 512 * 4, 0);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["material_info"].get(), 256 * 4, 2);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["matrix_info"].get(), 512 * 4, 0);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["material_info"].get(), 256 * 4, 2);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 512 * 4, 0);
+    render_encoder->shader_buffer(buffers_["light_info"].get(), 0, 1);
+    render_encoder->shader_buffer(buffers_["material_info"].get(), 256 * 4, 2);
     render_encoder->pipeline(pipeline(cfgs_.cube.style));
     render_encoder->draw_indexed(draw_counts_["cube"]);
 
     render_encoder->vertex_buffer(buffers_["torus_vertex"].get(), 0, 0);
     render_encoder->index_buffer(buffers_["torus_index"].get(), 0, Index_type::uint16);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 512 * 5, 0);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["material_info"].get(), 256 * 5, 2);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["matrix_info"].get(), 512 * 5, 0);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["material_info"].get(), 256 * 5, 2);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 512 * 5, 0);
+    render_encoder->shader_buffer(buffers_["light_info"].get(), 0, 1);
+    render_encoder->shader_buffer(buffers_["material_info"].get(), 256 * 5, 2);
     render_encoder->pipeline(pipeline(cfgs_.torus.style));
     render_encoder->draw_indexed(draw_counts_["torus"]);
 
     render_encoder->vertex_buffer(buffers_["sphere_vertex"].get(), 0, 0);
     render_encoder->index_buffer(buffers_["sphere_index"].get(), 0, Index_type::uint16);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["matrix_info"].get(), 512 * 6, 0);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["material_info"].get(), 256 * 6, 2);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["matrix_info"].get(), 512 * 6, 0);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["light_info"].get(), 0, 1);
-    render_encoder->shader_buffer(Pipeline_stage::fragment_shader, buffers_["material_info"].get(), 256 * 6, 2);
+    render_encoder->shader_buffer(buffers_["matrix_info"].get(), 512 * 6, 0);
+    render_encoder->shader_buffer(buffers_["light_info"].get(), 0, 1);
+    render_encoder->shader_buffer(buffers_["material_info"].get(), 256 * 6, 2);
     render_encoder->pipeline(pipeline(cfgs_.sphere.style));
     render_encoder->draw_indexed(draw_counts_["sphere"]);
 
@@ -838,15 +823,13 @@ void Gfx_demo::record_present_render_pass_()
 
     auto render_encoder = cmd_buffer_->create(desc);
 
-    render_encoder->shader_texture(Pipeline_stage::fragment_shader,
-                                   images_["light_color"].get(), samplers_["light_linear"].get(), 0);
+    render_encoder->shader_texture(images_["light_color"].get(), samplers_["light_linear"].get(), 0);
     render_encoder->pipeline(pipelines_["composite"].get());
     render_encoder->draw(3, 0);
 
     if (draw_data->CmdListsCount) {
-        render_encoder->shader_buffer(Pipeline_stage::vertex_shader, buffers_["imgui_shader_Imgui_info"].get(), 0, 0);
-        render_encoder->shader_texture(Pipeline_stage::fragment_shader,
-                                       images_["imgui_font"].get(), samplers_["light_linear"].get(), 0);
+        render_encoder->shader_buffer(buffers_["imgui_shader_Imgui_info"].get(), 0, 0);
+        render_encoder->shader_texture(images_["imgui_font"].get(), samplers_["light_linear"].get(), 0);
         render_encoder->pipeline(pipelines_["imgui"].get());
 
         auto vertex_buffer_offset {0};

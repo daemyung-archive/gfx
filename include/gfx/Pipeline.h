@@ -7,6 +7,7 @@
 #define GFX_PIPELINE_GUARD
 
 #include <array>
+#include <unordered_map>
 #include "enums.h"
 
 namespace Gfx_lib {
@@ -115,6 +116,13 @@ struct Output_merger final {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+struct Reflection {
+    std::unordered_map<uint32_t, uint32_t> buffers;
+    std::unordered_map<uint32_t, uint32_t> textures;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 struct Pipeline_desc final {
     Vertex_input vertex_input;
     Input_assembly input_assembly;
@@ -131,15 +139,7 @@ struct Pipeline_desc final {
 
 class Pipeline {
 public:
-    explicit Pipeline(const Pipeline_desc& desc) :
-        vertex_input_ {desc.vertex_input},
-        input_assembly_ {desc.input_assembly},
-        rasterization_ {desc.rasterization},
-        multisample_ {desc.multisample},
-        depth_stencil_ {desc.depth_stencil},
-        color_blend_ {desc.color_blend},
-        output_merger_ {desc.output_merger}
-    {}
+    explicit Pipeline(const Pipeline_desc& desc);
 
     virtual ~Pipeline() = default;
 
@@ -166,6 +166,12 @@ public:
     inline auto output_merger() const noexcept
     { return output_merger_; }
 
+    inline auto reflection() const noexcept
+    { return reflection_; }
+
+private:
+    void init_reflection_(const std::vector<Shader*> shaders);
+
 protected:
     Vertex_input vertex_input_;
     Input_assembly input_assembly_;
@@ -174,6 +180,7 @@ protected:
     Depth_stencil depth_stencil_;
     Color_blend color_blend_;
     Output_merger output_merger_;
+    Reflection reflection_;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

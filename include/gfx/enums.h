@@ -69,6 +69,7 @@ enum class Address_mode : uint8_t {
 //----------------------------------------------------------------------------------------------------------------------
 
 enum class Pipeline_stage : uint8_t {
+    invalid = 0,
     vertex_shader = 0x01, fragment_shader = 0x02, output_merger = 0x04, transfer = 0x08
 };
 

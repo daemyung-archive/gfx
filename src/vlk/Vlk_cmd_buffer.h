@@ -105,9 +105,9 @@ public:
 
     void index_buffer(Buffer* buffer, uint64_t offset, Index_type index_type) override;
 
-    void shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index) override;
+    void shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index) override;
 
-    void shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index) override;
+    void shader_texture(Image* image, Sampler* sampler, uint32_t index) override;
 
     void pipeline(Pipeline* pipeline) override;
 
@@ -132,7 +132,7 @@ private:
     std::map<uint32_t, std::deque<std::function<void ()>>> cmds_;
     std::array<Vlk_vertex_stream, 2> vertex_streams_;
     Vlk_index_stream index_stream_;
-    std::unordered_map<Pipeline_stage, Vlk_arg_table> arg_tables_;
+    Vlk_arg_table arg_table_;
     Vlk_pipeline* pipeline_;
     Vlk_render_pass* render_pass_;
     Vlk_framebuffer* framebuffer_;

@@ -200,7 +200,7 @@ void Ogl_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_typ
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Ogl_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index)
+void Ogl_render_encoder::shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index)
 {
     auto buffer_impl = static_cast<Ogl_buffer*>(buffer);
     auto arg_buffer = arg_table_.arg_buffer(index);
@@ -220,7 +220,7 @@ void Ogl_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uin
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Ogl_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index)
+void Ogl_render_encoder::shader_texture(Image* image, Sampler* sampler, uint32_t index)
 {
     auto image_impl = static_cast<Ogl_image*>(image);
     auto sampler_impl = static_cast<Ogl_sampler*>(sampler);

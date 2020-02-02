@@ -129,7 +129,7 @@ Vlk_render_encoder::Vlk_render_encoder(const Render_encoder_desc& desc,
     cmds_ {},
     vertex_streams_ {},
     index_stream_ {},
-    arg_tables_ {},
+    arg_table_ {},
     pipeline_ {nullptr},
     render_pass_ {nullptr},
     framebuffer_ {nullptr},
@@ -214,10 +214,10 @@ void Vlk_render_encoder::index_buffer(Buffer* buffer, uint64_t offset, Index_typ
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uint32_t offset, uint32_t index)
+void Vlk_render_encoder::shader_buffer(Buffer* buffer, uint32_t offset, uint32_t index)
 {
     auto buffer_impl = static_cast<Vlk_buffer*>(buffer);
-    auto& args = arg_tables_[stage][0];
+    auto& args = arg_table_[0];
 
     if (buffer_impl != args[index].buffer) {
         args.dirty_flags = 0x1;
@@ -232,7 +232,7 @@ void Vlk_render_encoder::shader_buffer(Pipeline_stage stage, Buffer* buffer, uin
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Vlk_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Sampler* sampler, uint32_t index)
+void Vlk_render_encoder::shader_texture(Image* image, Sampler* sampler, uint32_t index)
 {
     auto image_impl = static_cast<Vlk_image*>(image);
     auto sampler_impl = static_cast<Vlk_sampler*>(sampler);
@@ -270,7 +270,7 @@ void Vlk_render_encoder::shader_texture(Pipeline_stage stage, Image* image, Samp
                              1, &barrier);
     });
 
-    auto& args = arg_tables_[stage][1];
+    auto& args = arg_table_[1];
 
     if (image_impl != args[index].image) {
         args.dirty_flags |= 0x1;
@@ -478,94 +478,92 @@ void Vlk_render_encoder::end_render_pass_()
 
 void Vlk_render_encoder::update_desc_sets_()
 {
-    for (auto& [stage, arg_table] : arg_tables_) {
-        unordered_map<uint32_t, VkDescriptorBufferInfo> buffer_infos;
+    unordered_map<uint32_t, VkDescriptorBufferInfo> buffer_infos;
 
-        if (arg_table[0].dirty_flags) {
-            arg_table[0].dirty_flags = 0;
+    if (arg_table_[0].dirty_flags) {
+        arg_table_[0].dirty_flags = 0;
 
-            auto set_layout = pipeline_->set_layout(stage, 0);
+        auto set_layout = pipeline_->set_layout(0);
 
-            arg_table[0].desc_set = set_layout->desc_set();
+        arg_table_[0].desc_set = set_layout->desc_set();
 
-            for (auto i = 0; i != 16; ++i) {
-                if (!arg_table[0][i].buffer)
-                    continue;
+        for (auto i = 0; i != 16; ++i) {
+            if (!arg_table_[0][i].buffer)
+                continue;
 
-                VkDescriptorBufferInfo buffer_info {};
+            VkDescriptorBufferInfo buffer_info {};
 
-                buffer_info.buffer = arg_table[0][i].buffer->buffer();
-                buffer_info.offset = 0;
-                buffer_info.range = VK_WHOLE_SIZE;
+            buffer_info.buffer = arg_table_[0][i].buffer->buffer();
+            buffer_info.offset = 0;
+            buffer_info.range = VK_WHOLE_SIZE;
 
-                buffer_infos.insert({i, buffer_info});
-            }
+            buffer_infos.insert({i, buffer_info});
+        }
+    }
+
+    if (!buffer_infos.empty()) {
+        vector<VkWriteDescriptorSet> write_desc_sets;
+
+        for (auto& [binding, buffer_info] : buffer_infos) {
+            VkWriteDescriptorSet write_desc_set {};
+
+            write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write_desc_set.dstSet = arg_table_[0].desc_set;
+            write_desc_set.dstBinding = binding;
+            write_desc_set.descriptorCount = 1;
+            write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            write_desc_set.pBufferInfo = &buffer_info;
+
+            write_desc_sets.push_back(write_desc_set);
         }
 
-        if (!buffer_infos.empty()) {
-            vector<VkWriteDescriptorSet> write_desc_sets;
+        vkUpdateDescriptorSets(device_->device(),
+                               write_desc_sets.size(), &write_desc_sets[0],
+                               0, nullptr);
+    }
 
-            for (auto& [binding, buffer_info] : buffer_infos) {
-                VkWriteDescriptorSet write_desc_set {};
+    unordered_map<uint32_t, VkDescriptorImageInfo> image_infos;
 
-                write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                write_desc_set.dstSet = arg_table[0].desc_set;
-                write_desc_set.dstBinding = binding;
-                write_desc_set.descriptorCount = 1;
-                write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                write_desc_set.pBufferInfo = &buffer_info;
+    if (arg_table_[1].dirty_flags) {
+        arg_table_[1].dirty_flags = 0;
 
-                write_desc_sets.push_back(write_desc_set);
-            }
+        auto set_layout = pipeline_->set_layout(1);
 
-            vkUpdateDescriptorSets(device_->device(),
-                                   write_desc_sets.size(), &write_desc_sets[0],
-                                   0, nullptr);
+        arg_table_[1].desc_set = set_layout->desc_set();
+
+        for (auto i = 0; i != 16; ++i) {
+            if (!arg_table_[1][i].image && !arg_table_[1][i].sampler)
+                continue;
+
+            VkDescriptorImageInfo image_info {};
+
+            image_info.sampler = arg_table_[1][i].sampler->sampler();
+            image_info.imageView = arg_table_[1][i].image->image_view();
+            image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            image_infos.insert({i, image_info});
+        }
+    }
+
+    if (!image_infos.empty()) {
+        vector<VkWriteDescriptorSet> write_desc_sets;
+
+        for (auto& [binding, image_info] : image_infos) {
+            VkWriteDescriptorSet write_desc_set {};
+
+            write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write_desc_set.dstSet = arg_table_[1].desc_set;
+            write_desc_set.dstBinding = binding;
+            write_desc_set.descriptorCount = 1;
+            write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write_desc_set.pImageInfo = &image_info;
+
+            write_desc_sets.push_back(write_desc_set);
         }
 
-        unordered_map<uint32_t, VkDescriptorImageInfo> image_infos;
-
-        if (arg_table[1].dirty_flags) {
-            arg_table[1].dirty_flags = 0;
-
-            auto set_layout = pipeline_->set_layout(stage, 1);
-
-            arg_table[1].desc_set = set_layout->desc_set();
-
-            for (auto i = 0; i != 16; ++i) {
-                if (!arg_table[1][i].image && !arg_table[1][i].sampler)
-                    continue;
-
-                VkDescriptorImageInfo image_info {};
-
-                image_info.sampler = arg_table[1][i].sampler->sampler();
-                image_info.imageView = arg_table[1][i].image->image_view();
-                image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-                image_infos.insert({i, image_info});
-            }
-        }
-
-        if (!image_infos.empty()) {
-            vector<VkWriteDescriptorSet> write_desc_sets;
-
-            for (auto& [binding, image_info] : image_infos) {
-                VkWriteDescriptorSet write_desc_set {};
-
-                write_desc_set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                write_desc_set.dstSet = arg_table[1].desc_set;
-                write_desc_set.dstBinding = binding;
-                write_desc_set.descriptorCount = 1;
-                write_desc_set.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                write_desc_set.pImageInfo = &image_info;
-
-                write_desc_sets.push_back(write_desc_set);
-            }
-
-            vkUpdateDescriptorSets(device_->device(),
-                                   write_desc_sets.size(), &write_desc_sets[0],
-                                   0, nullptr);
-        }
+        vkUpdateDescriptorSets(device_->device(),
+                               write_desc_sets.size(), &write_desc_sets[0],
+                               0, nullptr);
     }
 }
 
@@ -573,38 +571,36 @@ void Vlk_render_encoder::update_desc_sets_()
 
 void Vlk_render_encoder::bind_desc_sets_()
 {
-    for (auto& [stage, arg_table] : arg_tables_) {
-        vector<VkDescriptorSet> desc_sets;
-        vector<uint32_t> offsets;
+    vector<VkDescriptorSet> desc_sets;
+    vector<uint32_t> offsets;
 
-        if (arg_table[0].desc_set) {
-            desc_sets.push_back(arg_table[0].desc_set);
+    if (arg_table_[0].desc_set) {
+        desc_sets.push_back(arg_table_[0].desc_set);
 
-            for (auto i = 0; i != 16; ++i) {
-                if (!arg_table[0][i].buffer)
-                    continue;
+        for (auto i = 0; i != 16; ++i) {
+            if (!arg_table_[0][i].buffer)
+                continue;
 
-                offsets.push_back(arg_table[0][i].offset);
-            }
+            offsets.push_back(arg_table_[0][i].offset);
         }
-
-        if (arg_table[1].desc_set) {
-            desc_sets.push_back(arg_table[1].desc_set);
-        }
-
-        if (desc_sets.empty())
-            continue;
-
-        auto pipeline_layout = pipeline_->pipeline_layout();
-
-        cmds_[2].push_back([=]() {
-            vkCmdBindDescriptorSets(cmd_buffer_->command_buffer(),
-                                    VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout,
-                                    0,
-                                    static_cast<uint32_t>(desc_sets.size()), &desc_sets[0],
-                                    static_cast<uint32_t>(offsets.size()), &offsets[0]);
-        });
     }
+
+    if (arg_table_[1].desc_set) {
+        desc_sets.push_back(arg_table_[1].desc_set);
+    }
+
+    if (desc_sets.empty())
+        return;
+
+    auto pipeline_layout = pipeline_->pipeline_layout();
+
+    cmds_[2].push_back([=]() {
+        vkCmdBindDescriptorSets(cmd_buffer_->command_buffer(),
+                                VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout,
+                                0,
+                                static_cast<uint32_t>(desc_sets.size()), &desc_sets[0],
+                                static_cast<uint32_t>(offsets.size()), &offsets[0]);
+    });
 }
 
 //----------------------------------------------------------------------------------------------------------------------
