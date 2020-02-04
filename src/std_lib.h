@@ -20,10 +20,10 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <typename T>
-inline uint32_t etoi(T e) noexcept
+template<typename T>
+inline auto etoi(T e) noexcept
 {
-    return static_cast<uint32_t>(e);
+    return static_cast<typename std::underlying_type<T>::type>(e);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
