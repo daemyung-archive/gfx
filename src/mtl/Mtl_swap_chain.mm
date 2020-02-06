@@ -103,7 +103,7 @@ void Mtl_swap_chain::init_images()
 void Mtl_swap_chain::connect_to_window_(void* window)
 {
 #if TARGET_OS_IOS
-    [(__bridge UIWindow*)window_.rootViewController.view.layer addSublayer:layer_];
+    [((__bridge UIWindow*)window).rootViewController.view.layer addSublayer:layer_];
     [layer_ setFrame:CGRectMake(0, 0, image_extent_.w, image_extent_.h)];
 #elif TARGET_OS_OSX
     [[(__bridge NSWindow*)window contentView] setLayer:layer_];

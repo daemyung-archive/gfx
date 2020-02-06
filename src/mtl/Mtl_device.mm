@@ -3,6 +3,7 @@
 // See "LICENSE" for license information.
 //
 
+#include <platform/build_target.h>
 #include "std_lib.h"
 #include "mtl_lib.h"
 #include "Mtl_device.h"
@@ -130,6 +131,7 @@ void Mtl_device::wait_idle()
 
 void Mtl_device::init_device_()
 {
+#if TARGET_OS_OSX
     for (id<MTLDevice> device in MTLCopyAllDevices()) {
         if ([device.name  isEqual:@"AMD Radeon Pro 5500M"])
             continue;
@@ -137,6 +139,9 @@ void Mtl_device::init_device_()
         device_ = device;
         break;
     }
+#else
+    device_ = MTLCreateSystemDefaultDevice();
+#endif
 
     if (!device_)
         throw runtime_error("fail to create device");
