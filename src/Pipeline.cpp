@@ -11,6 +11,26 @@ using namespace std;
 using namespace Sc_lib;
 using namespace Gfx_lib;
 
+namespace {
+
+//----------------------------------------------------------------------------------------------------------------------
+
+auto to_Pipeline_stage(Shader_type type)
+{
+    switch (type) {
+        case Shader_type::vertex:
+            return Pipeline_stage::vertex_shader;
+        case Shader_type::fragment:
+            return Pipeline_stage::fragment_shader;
+        default:
+            throw runtime_error("invalid Shader_type");
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+} // of namespace
+
 namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -39,28 +59,20 @@ void Pipeline::init_reflection_(const std::vector<Shader*> shaders)
 
     for (auto& [shader_type, signature] : signatures) {
         for (auto& [binding, buffer] : signature.buffers) {
-            switch (shader_type) {
-                case Shader_type::vertex:
-                    reflection_.buffers[binding] |= static_cast<uint8_t>(Pipeline_stage::vertex_shader);
-                    break;
-                case Shader_type::fragment:
-                    reflection_.buffers[binding] |= static_cast<uint8_t>(Pipeline_stage::fragment_shader);
-                    break;
-                default:
-                    throw runtime_error("fail to create a pipeline");
+            try {
+                reflection_.buffers[binding] |= etoi(to_Pipeline_stage(shader_type));
+            }
+            catch (exception& e) {
+                throw runtime_error("fail to create a pipeline");
             }
         }
 
         for (auto& [binding, texture] : signature.textures) {
-            switch (shader_type) {
-                case Shader_type::vertex:
-                    reflection_.textures[binding] |= static_cast<uint8_t>(Pipeline_stage::vertex_shader);
-                    break;
-                case Shader_type::fragment:
-                    reflection_.textures[binding] |= static_cast<uint8_t>(Pipeline_stage::fragment_shader);
-                    break;
-                default:
-                    throw runtime_error("fail to create a pipeline");
+            try {
+                reflection_.textures[binding] |= etoi(to_Pipeline_stage(shader_type));
+            }
+            catch (exception& e) {
+                throw runtime_error("fail to create a pipeline");
             }
         }
     }
