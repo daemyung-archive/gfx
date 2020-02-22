@@ -35,7 +35,7 @@ inline auto to_MTLStencilDescriptor(const Stencil& stencil)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-}
+} // of namespace
 
 namespace Gfx_lib {
 
@@ -70,7 +70,7 @@ void Mtl_pipeline::init_render_pipeline_state_(Shader* vertex_shader, Shader* fr
 
     auto vertexDescriptor = [MTLVertexDescriptor new];
 
-    for (auto i = 0; i != 2; ++i) {
+    for (auto i = 0; i != max_vertex_input_bindings; ++i) {
         if (UINT32_MAX == vertex_input_.bindings[i].stride)
             continue;
 
@@ -83,7 +83,7 @@ void Mtl_pipeline::init_render_pipeline_state_(Shader* vertex_shader, Shader* fr
         vertexDescriptor.layouts[i + vertex_buffer_index_offset] = layout;
     }
 
-    for (auto i = 0; i != 16; ++i ) {
+    for (auto i = 0; i != max_vertex_input_attributes; ++i ) {
         if (UINT32_MAX == vertex_input_.attributes[i].binding)
             continue;
 
@@ -99,7 +99,7 @@ void Mtl_pipeline::init_render_pipeline_state_(Shader* vertex_shader, Shader* fr
     descriptor.vertexDescriptor = vertexDescriptor;
     descriptor.sampleCount = multisample_.samples;
 
-    for (auto i = 0; i != 4; ++i) {
+    for (auto i = 0; i != max_color_attachments; ++i) {
         if (Format::invalid == output_merger_.color_formats[i])
             continue;
 

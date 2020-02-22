@@ -10,6 +10,7 @@
 #include <array>
 #include <bitset>
 #include <platform/Extent.h>
+#include "limitations.h"
 #include "enums.h"
 #include "types.h"
 
@@ -36,7 +37,7 @@ struct Attachment final {
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Render_encoder_desc final {
-    std::array<Attachment, 4> colors;
+    std::array<Attachment, max_color_attachments> colors;
     Attachment depth_stencil;
 };
 

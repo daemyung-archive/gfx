@@ -4,6 +4,7 @@ project(gfx VERSION 0.1.0 LANGUAGES CXX)
 
 add_library(gfx
 STATIC
+    include/gfx/limitations.h
     include/gfx/enums.h
     include/gfx/types.h
     include/gfx/Device.h

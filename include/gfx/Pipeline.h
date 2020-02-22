@@ -8,6 +8,7 @@
 
 #include <array>
 #include <unordered_map>
+#include "limitations.h"
 #include "enums.h"
 
 namespace Gfx_lib {
@@ -35,8 +36,8 @@ struct Vertex_input_binding final {
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Vertex_input final {
-    std::array<Vertex_input_attribute, 16> attributes;
-    std::array<Vertex_input_binding, 2> bindings;
+    std::array<Vertex_input_attribute, max_vertex_input_attributes> attributes;
+    std::array<Vertex_input_binding, max_vertex_input_bindings> bindings;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -103,14 +104,16 @@ struct Color_blend_attachment final {
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Color_blend final {
-    std::array<Color_blend_attachment, 4> attachments;
-    std::array<float, 4> constant;
+    std::array<Color_blend_attachment, max_color_attachments> attachments;
+    std::array<float, max_color_attachments> constant;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 
 struct Output_merger final {
-    std::array<Format, 4> color_formats {Format::invalid, Format::invalid, Format::invalid, Format::invalid};
+    std::array<Format, max_color_attachments> color_formats {
+        Format::invalid, Format::invalid, Format::invalid, Format::invalid
+    };
     Format depth_stencil_format {Format::invalid};
 };
 

@@ -8,6 +8,7 @@
 
 #include <stdexcept>
 #include <Metal/Metal.h>
+#include "limitations.h"
 #include "enums.h"
 #include "types.h"
 
@@ -15,7 +16,7 @@ namespace Gfx_lib {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-constexpr auto vertex_buffer_index_offset = 29;
+constexpr auto vertex_buffer_index_offset = 31 - max_vertex_input_bindings;
 
 //----------------------------------------------------------------------------------------------------------------------
 

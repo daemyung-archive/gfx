@@ -9,6 +9,7 @@
 #include <array>
 #include <unordered_map>
 #include <Metal/Metal.h>
+#include "limitations.h"
 #include "Cmd_buffer.h"
 
 namespace Gfx_lib {
@@ -71,14 +72,9 @@ struct Mtl_arg_texture final {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-using Mtl_arg_array = std::array<T, 16>;
-
-//----------------------------------------------------------------------------------------------------------------------
-
 struct Mtl_arg_table final {
-    Mtl_arg_array<Mtl_arg_buffer> buffers;
-    Mtl_arg_array<Mtl_arg_texture> textures;
+    std::array<Mtl_arg_buffer, max_shader_buffers> buffers;
+    std::array<Mtl_arg_texture, max_shader_textures> textures;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
