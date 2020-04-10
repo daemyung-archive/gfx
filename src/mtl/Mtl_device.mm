@@ -133,7 +133,7 @@ void Mtl_device::init_device_()
 {
 #if TARGET_OS_OSX
     for (id<MTLDevice> device in MTLCopyAllDevices()) {
-        if ([device.name  isEqual:@"AMD Radeon Pro 5500M"])
+        if ([device.name isEqual:@"AMD Radeon Pro 5500M"])
             continue;
 
         device_ = device;
